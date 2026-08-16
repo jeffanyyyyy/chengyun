@@ -360,8 +360,6 @@
   .form-done .t { font-family: var(--serif); font-size: 23px; color: var(--navy); }
   .form-done p { font-size: 16px; line-height: 1.9; color: var(--body); }
 
-  .thumb { width: 100%; max-width: 420px; border: 1px solid var(--line); }
-
   .form-frame { border: 1px solid var(--line); background: var(--paper); padding: 10px; }
   .form-frame iframe { width: 100%; height: 1500px; border: 0; display: block; background: var(--paper); }
 
@@ -763,6 +761,7 @@
         <div class="pull" style="font-size: 21px;">《默者文畫》攤商審核基本資訊</div>
         <p style="font-size: 15px; color: var(--muted); line-height: 1.9;">官方帳號：<a href="https://lin.ee/niY5HtU" target="_blank" rel="noopener">https://lin.ee/niY5HtU</a></p>
         <p style="font-size: 15px;" class="req">＊ 表示必填問題</p>
+        <p style="font-size: 15px; color: var(--body); line-height: 1.9;">送出報名即視同已完整閱讀、理解並同意 <a href="#rules" data-tab="rules">招商規章與品牌進駐規範</a>（含攤位示意圖）之所有條款。</p>
       </div>
 
       <!-- 送出成功後顯示 -->
@@ -829,24 +828,6 @@
               <div class="file-list" id="photoList"></div>
             </div>
           </div>
-        </div>
-
-        <div class="panel">
-          <div class="k">招商規章與品牌進駐規範</div>
-          <p>請確認已閱讀 <a href="#rules" data-tab="rules">招商規章與品牌進駐規範</a> 及下方招商示意圖，並於欄位中回覆確認。</p>
-          <label class="field">
-            <span class="label">您的回答</span>
-            <input type="text" name="rules_reply" placeholder="例：已閱讀並同意" maxlength="200" />
-          </label>
-        </div>
-
-        <div class="panel">
-          <div class="k">招商示意圖</div>
-          <img class="thumb" src="./assets/booth-layout.jpg" alt="攤位示意圖：阿里山帳、LOGO 招牌、桌子與褐色亞麻桌巾、手作遊戲手舉牌" width="1200" height="1136" loading="lazy" />
-          <label class="field">
-            <span class="label">您的回答</span>
-            <input type="text" name="layout_reply" placeholder="例：已了解攤位配置" maxlength="200" />
-          </label>
         </div>
 
         <div class="panel">
@@ -1168,8 +1149,6 @@
           sessions: sessions,
           social: val('social'),
           power: val('power'),
-          rules_reply: val('rules_reply') || null,
-          layout_reply: val('layout_reply') || null,
           line_name: val('line_name'),
           vip: vipEl ? vipEl.value : '',
           vip_other: vipEl && vipEl.value === '其他' ? (val('vip_other') || null) : null,

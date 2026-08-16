@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>默者文畫 無聲風格聚落｜招商規章與品牌進駐</title>
+<meta name="description" content="《默者文畫》無聲風格聚落招商規章與品牌進駐專區。新北市板橋區雙十廣場，擺攤 15:00–20:30，全期 6 場，招商中。" />
+<meta name="theme-color" content="#21324a" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="默者文畫 無聲風格聚落｜招商規章與品牌進駐" />
+<meta property="og:description" content="現場零擴音、零叫賣，聲音的空間留給對話與作品。招商規章、費用方案、進駐流程與品牌報名。" />
+<meta property="og:image" content="./assets/poster.jpg" />
+<meta property="og:locale" content="zh_TW" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2321324a'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='%23c8a86b' font-family='serif'%3E默%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy: #21324a;
+    --navy-soft: #2c4462;
+    --cream: #f7f4ec;
+    --paper: #fffdf7;
+    --panel: #f2ecdd;
+    --ink: #1f2a3c;
+    --body: #3a4557;
+    --muted: #6d7787;
+    --line: #e2dbc9;
+    --field: #d8d1bf;
+    --gold: #c8a86b;
+    --gold-deep: #9a7b3f;
+    --gold-soft: #e8ddc6;
+    --alert: #9a3f3f;
+    --on-navy: #f7f4ec;
+    --serif: "Noto Serif TC", "PingFang TC", "Songti TC", "Microsoft JhengHei", serif;
+    --sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-wrap: break-word;
+  }
+
+  a { color: #1f3a5f; text-decoration: none; }
+  a:hover { color: var(--gold-deep); }
+  img { max-width: 100%; height: auto; display: block; }
+  p { margin: 0; }
+  h1, h2, h3 { margin: 0; }
+  :focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 3px; }
+
+  .page { min-height: 100vh; background: var(--cream); }
+
+  /* ── 頁首 ───────────────────────────── */
+  .hero {
+    background: var(--navy);
+    color: var(--on-navy);
+    padding: 72px 32px 56px;
+    text-align: center;
+    border-bottom: 4px solid var(--gold);
+  }
+  .hero-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    align-items: center;
+  }
+  .hero .eyebrow {
+    font-size: 13px;
+    letter-spacing: 0.5em;
+    text-indent: 0.5em;
+    color: var(--gold);
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: clamp(32px, 7vw, 52px);
+    line-height: 1.25;
+    letter-spacing: 0.04em;
+    text-wrap: balance;
+  }
+  .hero .sub { font-size: 19px; color: rgba(247, 244, 236, 0.72); letter-spacing: 0.2em; }
+  .hero .chips { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 8px; }
+  .hero .chip {
+    border: 1px solid rgba(200, 168, 107, 0.5);
+    border-radius: 999px;
+    padding: 8px 18px;
+    font-size: 14px;
+    color: var(--gold-soft);
+  }
+
+  /* ── 分頁導覽 ───────────────────────── */
+  .tabs {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0 1px 3px rgba(33, 50, 74, 0.06);
+  }
+  .tabs-inner {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    /* 寬度夠時五等分，不夠時改為橫向捲動，不會擠壓文字 */
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabs-inner::-webkit-scrollbar { display: none; }
+  .tabs a {
+    flex: 1 0 auto;
+    scroll-snap-align: center;
+    background: none;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    padding: 20px 12px;
+    min-height: 48px;
+    cursor: pointer;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .tabs a:hover { color: var(--ink); }
+  .tabs a[aria-current="page"] { color: var(--ink); font-weight: 700; border-bottom-color: var(--gold); }
+
+  /* ── 主內容 ─────────────────────────── */
+  main { max-width: 940px; margin: 0 auto; padding: 56px 32px 96px; }
+  .screen { display: none; flex-direction: column; }
+  .screen.on { display: flex; }
+  .screen[data-gap="40"] { gap: 40px; }
+  .screen[data-gap="64"] { gap: 64px; }
+  .screen[data-gap="44"] { gap: 44px; }
+  .screen[data-gap="32"] { gap: 32px; }
+
+  .block { display: flex; flex-direction: column; gap: 24px; }
+  .block.wide { gap: 30px; }
+  .sub-block { display: flex; flex-direction: column; gap: 14px; }
+
+  .head { display: flex; align-items: center; gap: 14px; border-bottom: 2px solid var(--navy); padding-bottom: 12px; }
+  .head .num {
+    background: var(--navy);
+    color: var(--on-navy);
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-family: var(--serif);
+  }
+  .head h2 { font-family: var(--serif); font-size: clamp(21px, 4vw, 25px); letter-spacing: 0.06em; }
+  h3 { font-size: 18px; color: var(--ink); }
+
+  .pull { font-family: var(--serif); font-size: clamp(21px, 4.4vw, 27px); line-height: 1.75; color: var(--navy); letter-spacing: 0.03em; }
+  .prose { display: flex; flex-direction: column; gap: 18px; font-size: 16px; line-height: 2; color: var(--ink); }
+  ul { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 12px; font-size: 16px; line-height: 1.9; color: var(--ink); }
+  li::marker { color: var(--gold-deep); }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--gold);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card .t { font-family: var(--serif); font-size: 19px; color: var(--navy); }
+  .card p { font-size: 15px; line-height: 1.9; color: #4a5567; }
+
+  .note {
+    background: var(--paper);
+    border-left: 4px solid var(--gold);
+    padding: 26px 30px;
+    font-size: 16px;
+    line-height: 1.95;
+    box-shadow: 0 1px 2px rgba(33, 50, 74, 0.06);
+  }
+  .note strong { color: var(--navy); }
+
+  .table-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 460px; background: var(--paper); font-size: 16px; }
+  th, td { border: 1px solid var(--line); padding: 18px 22px; text-align: left; vertical-align: top; line-height: 1.8; }
+  th { background: var(--panel); font-weight: 700; white-space: nowrap; width: 200px; }
+  td .date { font-variant-numeric: tabular-nums; }
+
+  .price-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+  .price {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--gold);
+    padding: 24px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .price .label { font-size: 16px; font-weight: 700; color: var(--navy); }
+  .price .amount { font-family: var(--serif); font-size: 26px; color: var(--navy); font-variant-numeric: tabular-nums; }
+  .price .unit { font-family: var(--sans); font-size: 14px; color: var(--muted); }
+  .price.feature { background: var(--navy); border-color: var(--navy); }
+  .price.feature .label { color: var(--gold-soft); }
+  .price.feature .amount { color: var(--paper); }
+  .price.feature .unit { color: rgba(247, 244, 236, 0.6); }
+
+  .figure { background: var(--paper); border: 1px solid var(--line); padding: 20px; display: flex; flex-direction: column; gap: 14px; margin: 0; }
+  .figure figcaption { font-size: 14px; color: var(--muted); line-height: 1.8; }
+
+  /* 四個項目：桌機一排四格，平板 2x2，手機單欄，不留孤兒格 */
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .tile { background: var(--paper); border: 1px solid var(--line); padding: 18px 20px; font-size: 15px; line-height: 1.8; }
+
+  .steps { display: flex; flex-direction: column; }
+  .step {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 18px;
+    align-items: start;
+    padding: 18px 0;
+    border-top: 1px solid var(--line);
+    font-size: 16px;
+    line-height: 1.9;
+  }
+  .step:last-child { border-bottom: 1px solid var(--line); }
+  .step .n { font-family: var(--serif); font-size: 22px; color: var(--gold); font-variant-numeric: tabular-nums; }
+
+  .cta-band {
+    background: var(--navy);
+    color: var(--on-navy);
+    padding: 34px 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cta-band .t { font-family: var(--serif); font-size: 21px; }
+  .cta-band .s { font-size: 15px; color: rgba(247, 244, 236, 0.7); }
+
+  .btn {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--navy);
+    border: 0;
+    padding: 14px 30px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn:hover { background: #d9bd85; color: var(--navy); }
+  .btn-navy { background: var(--navy); color: var(--on-navy); padding: 16px 40px; letter-spacing: 0.1em; }
+  .btn-navy:hover { background: var(--navy-soft); color: var(--on-navy); }
+
+  .panel { background: var(--paper); border: 1px solid var(--line); padding: 30px; display: flex; flex-direction: column; gap: 20px; }
+  .panel .k { font-size: 15px; font-weight: 700; color: var(--gold-deep); letter-spacing: 0.1em; }
+  .panel p { font-size: 15px; line-height: 1.95; color: var(--body); }
+  .req { color: var(--alert); }
+
+  .form-frame { border: 1px solid var(--line); background: var(--paper); padding: 10px; }
+  .form-frame iframe { width: 100%; height: 1500px; border: 0; display: block; background: var(--paper); }
+
+  .faq-list { display: flex; flex-direction: column; gap: 14px; }
+  details.faq { background: var(--paper); border: 1px solid var(--line); padding: 0 26px; }
+  details.faq summary {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    padding: 24px 0;
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1.7;
+    list-style: none;
+  }
+  details.faq summary::-webkit-details-marker { display: none; }
+  details.faq summary::before { content: "Q"; font-family: var(--serif); color: var(--gold); font-weight: 500; }
+  details.faq .a { display: flex; gap: 12px; align-items: baseline; padding: 0 0 24px; font-size: 16px; line-height: 1.95; color: var(--body); }
+  details.faq .a::before { content: "A"; font-family: var(--serif); color: var(--muted); font-size: 17px; flex: 0 0 auto; }
+  details.faq[open] summary { color: var(--gold-deep); }
+
+  .tail { border-top: 1px dashed var(--field); padding-top: 26px; font-size: 15px; color: var(--muted); line-height: 1.9; }
+
+  /* ── 頁尾 ───────────────────────────── */
+  footer { background: var(--navy); color: var(--on-navy); padding: 56px 32px 48px; }
+  .foot-inner { max-width: 940px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
+  .foot-head { display: flex; align-items: center; gap: 14px; }
+  .foot-head h2 { font-family: var(--serif); font-size: 22px; letter-spacing: 0.06em; color: var(--paper); }
+  .foot-head .rule { flex: 1; height: 1px; background: rgba(200, 168, 107, 0.4); }
+  .foot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 32px 48px; }
+  .foot-col { display: flex; flex-direction: column; gap: 8px; }
+  .foot-col .k { font-size: 13px; letter-spacing: 0.2em; color: var(--gold); }
+  .foot-col a { color: var(--on-navy); font-size: 16px; word-break: break-all; }
+  .foot-col a:hover { color: var(--gold-soft); }
+  .foot-col .v { font-size: 16px; }
+  .foot-col .s { font-size: 14px; color: rgba(247, 244, 236, 0.6); line-height: 1.8; }
+  .foot-end {
+    border-top: 1px solid rgba(247, 244, 236, 0.15);
+    padding-top: 26px;
+    text-align: center;
+    color: rgba(247, 244, 236, 0.6);
+    font-size: 15px;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── 響應式：平板 ───────────────────── */
+  @media (max-width: 900px) {
+    .hero { padding: 60px 28px 48px; }
+    main { padding: 44px 28px 80px; }
+    .screen[data-gap="64"] { gap: 52px; }
+    .screen[data-gap="44"] { gap: 36px; }
+    .screen[data-gap="40"] { gap: 32px; }
+    .tiles { grid-template-columns: repeat(2, 1fr); }
+    footer { padding: 48px 28px 40px; }
+    .form-frame iframe { height: 1600px; }
+  }
+
+  /* ── 響應式：手機 ───────────────────── */
+  @media (max-width: 720px) {
+    .hero { padding: 48px 20px 40px; }
+    .hero-inner { gap: 14px; }
+    .hero .eyebrow { font-size: 12px; letter-spacing: 0.35em; }
+    .hero .sub { font-size: 16px; letter-spacing: 0.14em; }
+    .hero .chip { padding: 7px 14px; font-size: 13px; }
+    main { padding: 32px 20px 64px; }
+    .tabs-inner { padding: 0 8px; }
+    .tabs a { font-size: 15px; letter-spacing: 0.04em; padding: 16px 14px; }
+    .screen[data-gap="64"] { gap: 44px; }
+    .screen[data-gap="32"] { gap: 26px; }
+    .block { gap: 20px; }
+    .block.wide { gap: 26px; }
+    .prose { line-height: 1.95; }
+    .note { padding: 20px 22px; font-size: 15.5px; }
+    .card { padding: 20px; }
+    .price { padding: 20px 16px; }
+    .panel { padding: 22px; }
+    .cta-band { padding: 26px 22px; gap: 18px; }
+    .cta-band .btn { width: 100%; text-align: center; }
+    .btn { padding: 14px 24px; }
+    details.faq { padding: 0 20px; }
+    details.faq summary { padding: 20px 0; font-size: 16px; }
+    .steps .step { grid-template-columns: 44px 1fr; gap: 12px; }
+    footer { padding: 44px 20px 36px; }
+    .foot-grid { gap: 26px 32px; }
+    .form-frame { padding: 6px; }
+    .form-frame iframe { height: 1800px; }
+  }
+
+  /* ── 響應式：窄螢幕，表格改為直式堆疊 ── */
+  @media (max-width: 560px) {
+    table, tbody, tr, th, td { display: block; width: auto; }
+    table { min-width: 0; }
+    tr + tr th { border-top: 0; }
+    th { width: auto; white-space: normal; border-bottom: 0; }
+    td { border-top: 0; }
+    .table-scroll { overflow-x: visible; }
+    .steps .step { grid-template-columns: 1fr; gap: 4px; }
+    .price-cards, .cards, .tiles { gap: 12px; }
+    .tiles { grid-template-columns: 1fr; }
+  }
+
+  /* 讓五個分頁在一般手機寬度下剛好排得下，更窄則自動變成可橫向捲動 */
+  @media (max-width: 460px) {
+    .tabs-inner { padding: 0 4px; }
+    .tabs a { font-size: 14px; letter-spacing: 0; padding: 16px 7px; }
+  }
+
+  @media (max-width: 400px) {
+    body { font-size: 15px; }
+    main { padding: 28px 16px 56px; }
+    .hero { padding: 40px 16px 32px; }
+    .hero h1 { font-size: 28px; }
+    .note { padding: 18px 18px; }
+    th, td { padding: 12px 16px; }
+    footer { padding: 36px 16px 28px; }
+  }
+
+  /* 橫躺手機：表單內嵌高度改用視窗高度，避免過長空白 */
+  @media (max-height: 520px) and (orientation: landscape) {
+    .form-frame iframe { height: 220vh; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  }
+
+  /* 未啟用 JavaScript 時全部展開，內容不會消失 */
+  .no-js .screen { display: flex; }
+  .no-js .tabs { display: none; }
+</style>
+</head>
+<body class="no-js">
+
+<div class="page">
+
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">SILENT MARKET</div>
+      <h1>《默者文畫》無聲風格聚落</h1>
+      <p class="sub">招商規章與品牌進駐專區</p>
+      <div class="chips">
+        <span class="chip">新北市板橋區雙十廣場</span>
+        <span class="chip">擺攤 15:00 – 20:30</span>
+        <span class="chip">全期 6 場</span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="章節">
+    <div class="tabs-inner">
+      <a href="#origin" data-tab="origin">創立原因</a>
+      <a href="#rules" data-tab="rules">招商規章</a>
+      <a href="#join" data-tab="join">加入我們</a>
+      <a href="#form" data-tab="form">報名表</a>
+      <a href="#qa" data-tab="qa">Q&amp;A</a>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- 創立原因 ─────────────────────── -->
+    <section class="screen on" id="origin" data-gap="40" aria-label="創立原因">
+      <div class="head">
+        <span class="num">一</span>
+        <h2>創立原因</h2>
+      </div>
+
+      <p class="pull">市集不該只有叫賣聲。我們想留一塊安靜的地方，讓作品自己說話。</p>
+
+      <div class="prose">
+        <p>《默者文畫》從一個觀察開始：逛市集的人常常因為擴音器與叫賣聲而快步走過，真正想停下來看作品的人反而沒被留住。於是我們把「無聲」訂為規則，而不是氣氛裝飾——現場不使用擴音器、喇叭與麥克風，取而代之的是手拿牌、看板與大會設計的無聲互動道具。</p>
+        <p>在這裡，攤商與客人用文字、圖像與手勢溝通。「老闆我要殺價」的手舉牌代替喊價，「籤筒15秒介紹」讓品牌用最短的篇幅說清楚自己。安靜之後，注意力回到桌上的作品與創作者本人。</p>
+        <p>我們也希望這是一個能長期累積的聚落，而不是一次性的擺攤。統一的視覺規格、客製品牌招牌、跨場次的品牌拼圖福利，都是為了讓固定參與的品牌被記住、被回訪。</p>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <div class="t">無聲</div>
+          <p>現場零擴音、零叫賣，聲音的空間留給對話與作品。</p>
+        </div>
+        <div class="card">
+          <div class="t">互動</div>
+          <p>以手舉牌、籤筒等道具設計買賣之間的默契與遊戲。</p>
+        </div>
+        <div class="card">
+          <div class="t">聚落</div>
+          <p>統一視覺與跨場次福利，讓品牌在同一個場域被記住。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 招商規章 ─────────────────────── -->
+    <section class="screen" id="rules" data-gap="64" aria-label="招商規章">
+
+      <div class="note">
+        <strong>歡迎品牌進駐《默者文畫》！</strong> 為維護市集整體品質、保障參展品牌權益並提供民眾良好的沉浸式互動體驗，請於報名及匯款前仔細閱讀以下規範。凡完成報名與匯款者，即視同已完整閱讀、理解並同意遵守本規章之所有條款。
+      </div>
+
+      <div class="block">
+        <div class="head">
+          <span class="num">一</span>
+          <h2>活動基本資訊</h2>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <tbody>
+              <tr><th scope="row">活動地點</th><td>新北市板橋區雙十廣場</td></tr>
+              <tr><th scope="row">擺攤時間</th><td>15:00 – 20:30</td></tr>
+              <tr><th scope="row">報到進場時間</th><td>14:00 – 15:00（請於 <strong>14:50 前</strong> 完成佈展，逾時不開放大型搬運）</td></tr>
+              <tr><th scope="row">撤場時間</th><td>20:30 – 21:30（請於 <strong>21:30 前</strong> 清理完畢並還原場地）</td></tr>
+              <tr><th scope="row">檔期場次</th><td class="date">全期 6 場（隔週六日）：10/03–10/04、10/17–10/18、10/31–11/01、11/14–11/15、11/28–11/29、12/12–12/13</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="block wide">
+        <div class="head">
+          <span class="num">二</span>
+          <h2>品牌入場與現場營運規範</h2>
+        </div>
+
+        <div class="sub-block">
+          <h3>1. 主題概念與互動配合義務</h3>
+          <ul>
+            <li><strong>主題概念：</strong>本市集以「沉浸式無聲風格聚落」為核心，進駐品牌有義務共同維護市集主題氛圍。</li>
+            <li><strong>無聲體驗：</strong>現場嚴禁使用擴音器、喇叭、麥克風，或進行任何大聲叫賣行為。</li>
+            <li><strong>遊戲配合：</strong>攤商須配合使用大會提供之無聲互動道具（如：「老闆我要殺價」、「籤筒15秒介紹」等），亦歡迎品牌 DIY 專屬手拿牌與視覺看板。（相關互動活動及遊戲詳細操作內容，將於品牌報名完成後統一提供）</li>
+          </ul>
+        </div>
+
+        <div class="sub-block">
+          <h3>2. 場域硬體與使用規範</h3>
+          <ul>
+            <li><strong>硬體提供：</strong>大會提供阿里山帳（兩攤共用一帳，尺寸 3x1.5m）、1 桌（約 120x60cm）、1 靠背椅、客製品牌招牌及氣氛燈串。</li>
+            <li><strong>清潔與還原：</strong>大會免收現場清潔費，但品牌有責任維持攤位周邊整潔，每日完攤後請隨手將垃圾帶走或分類丟棄至指定區域。</li>
+            <li><strong>嚴禁損壞設施：</strong>不得於帳篷、桌椅及招牌上使用無法清理之膠帶、釘槍或噴漆，如有損壞需照價賠償。</li>
+          </ul>
+        </div>
+
+        <div class="sub-block">
+          <h3>3. 用電與安規限制</h3>
+          <ul>
+            <li><strong>基本用電：</strong>大會免費提供基本照明與 3C 設備用電（每攤位限額 200W 以內）。</li>
+            <li><strong>高功率電器限制：</strong>現場嚴禁未報備之高功率加熱、烹煮、高亮度照明等電器（如：電磁爐、氣炸鍋、微波爐、吹風機）。特殊用電需求須於報名時提出申請並經大會書面同意。</li>
+            <li><strong>私接電力責任：</strong>若因未報備電器導致跳電或設備損毀，該攤位需承擔全場修復費用及相關損失。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block wide">
+        <div class="head">
+          <span class="num">三</span>
+          <h2>費用、早鳥優惠與退費標準</h2>
+        </div>
+
+        <div class="sub-block">
+          <h3>1. 費用與優惠方案</h3>
+          <div class="price-cards">
+            <div class="price">
+              <div class="label">單日方案</div>
+              <div class="amount">NT$ 2,000 <span class="unit">/ 天</span></div>
+            </div>
+            <div class="price">
+              <div class="label">雙日方案（單場週末）</div>
+              <div class="amount">NT$ 3,800 <span class="unit">/ 場</span></div>
+            </div>
+            <div class="price feature">
+              <div class="label">全勤方案（全期 6 場）</div>
+              <div class="amount">NT$ 20,400 <span class="unit">/ 全期</span></div>
+            </div>
+          </div>
+          <ul>
+            <li><strong>早鳥優惠：</strong>於 9 月前完成報名與全額匯款，總費用享 <strong style="color: var(--gold-deep);">95 折</strong>。</li>
+            <li><strong>品牌拼圖專屬福利：</strong>參展滿 3 場（週）以上之品牌，免費贈送「客製品牌拼圖」，憑此拼圖享未來檔期攤租折抵優惠。</li>
+          </ul>
+        </div>
+
+        <div class="sub-block">
+          <h3>2. 繳費與資格保留</h3>
+          <ul>
+            <li>通過審核並收到錄取通知後，請於 <strong>3 日內</strong> 完成全額匯款並回傳帳號後五碼。逾期未匯款者，大會有權取消錄取資格並由備取遞補。</li>
+          </ul>
+        </div>
+
+        <div class="sub-block">
+          <h3>3. 取消與退費標準（攤商個人因素）</h3>
+          <ul>
+            <li><strong>活動日 14 天以前（含）取消：</strong>扣除行政手續費與轉帳費 NT$ 200 後，退還剩餘全額費用。</li>
+            <li><strong>活動日 7 至 13 天內取消：</strong>退還已繳費用之 50%。</li>
+            <li><strong>活動日 6 天內（含活動當日）取消：</strong>因硬體配置與行銷資源已投入，恕不接受退費或跨場次順延。</li>
+          </ul>
+        </div>
+
+        <div class="sub-block">
+          <h3>4. 天候與不可抗力因素處理</h3>
+          <ul>
+            <li>若因颱風、豪雨等天然災害，經新北市政府宣布停止上班上課，或經大會評估場地不宜辦理，活動將停辦或延期。</li>
+            <li>因不可抗力因素導致活動取消，大會將扣除基本行政與硬體預整備成本 20% 後，退還 80% 攤租費用，或協助順延至後續檔期。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="block">
+        <div class="head">
+          <span class="num">四</span>
+          <h2>招商示意圖</h2>
+        </div>
+        <figure class="figure">
+          <img src="./assets/booth-layout.jpg" alt="攤位示意圖：阿里山帳、LOGO 招牌、桌子與褐色亞麻桌巾、手作遊戲手舉牌" width="1200" height="1136" />
+          <figcaption>兩攤共用一帳（3x1.5m）、雙側客製 LOGO 招牌、桌子搭配褐色亞麻桌巾與木質桌腳，桌前設手作遊戲手舉牌。</figcaption>
+        </figure>
+      </div>
+
+      <div class="block">
+        <div class="head">
+          <span class="num">五</span>
+          <h2>其他與權益聲明</h2>
+        </div>
+        <ul>
+          <li><strong>肖像與品牌授權：</strong>活動期間大會將進行現場攝影與錄影，報名即視同授權大會於《默者文畫》官方網站、社群媒體（IG/FB/LINE）等宣傳管道無償使用包含品牌攤位及人員之影像素材。</li>
+          <li><strong>違規處理：</strong>若品牌於活動期間違反無聲規範、不配合主題互動或展售違禁品，經大會勸導兩次仍未改善者，大會有權要求立即離場且不予退費。</li>
+          <li><strong>終止與修改權：</strong>大會保留隨時修改、變更、解釋及終止本招商規章之最終權利。</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 加入我們 ─────────────────────── -->
+    <section class="screen" id="join" data-gap="44" aria-label="加入我們">
+      <div class="head">
+        <span class="num">三</span>
+        <h2>加入我們</h2>
+      </div>
+
+      <div class="block">
+        <h3>我們正在尋找的品牌</h3>
+        <div class="tiles">
+          <div class="tile">手作、插畫與紙品</div>
+          <div class="tile">飾品、織品與生活選物</div>
+          <div class="tile">無需高功率電器之輕食甜點</div>
+          <div class="tile">願意配合無聲互動的體驗型攤位</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>進駐可獲得</h3>
+        <ul>
+          <li>阿里山帳、桌椅、氣氛燈串與 <strong>客製品牌招牌</strong>，不需自備硬體。</li>
+          <li>基本照明與 3C 用電（200W 以內）與現場清潔費，皆由大會負擔。</li>
+          <li>9 月前完成報名與全額匯款享 <strong style="color: var(--gold-deep);">95 折</strong> 早鳥價。</li>
+          <li>參展滿 3 場以上，獲贈客製品牌拼圖，可折抵未來檔期攤租。</li>
+          <li>大會官方網站與社群（IG/FB/LINE）曝光，及無聲互動遊戲帶來的停留人流。</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>進駐流程</h3>
+        <div class="steps">
+          <div class="step">
+            <span class="n">01</span>
+            <div><strong>填寫報名表</strong>　提供品牌資料、商品類型與希望參與的方案與場次。</div>
+          </div>
+          <div class="step">
+            <span class="n">02</span>
+            <div><strong>大會審核</strong>　以品牌風格與市集主題契合度為主要評估依據。</div>
+          </div>
+          <div class="step">
+            <span class="n">03</span>
+            <div><strong>錄取通知與繳費</strong>　收到通知後 3 日內完成全額匯款，並回傳帳號後五碼。</div>
+          </div>
+          <div class="step">
+            <span class="n">04</span>
+            <div><strong>行前資訊與互動道具說明</strong>　報名完成後統一提供攤位配置、遊戲操作與進場流程。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta-band">
+        <div>
+          <div class="t">準備好一起安靜地擺攤了嗎？</div>
+          <div class="s">填寫報名表，我們會在審核後以 Email 通知結果。</div>
+        </div>
+        <a class="btn" href="#form" data-tab="form">前往報名表</a>
+      </div>
+    </section>
+
+    <!-- 報名表 ───────────────────────── -->
+    <section class="screen" id="form" data-gap="32" aria-label="報名表">
+      <div class="head">
+        <span class="num">四</span>
+        <h2>品牌報名表</h2>
+      </div>
+
+      <div class="block">
+        <div class="pull" style="font-size: 21px;">《默者文畫》攤商審核基本資訊</div>
+        <p style="font-size: 15px; color: var(--muted); line-height: 1.9;">官方帳號：<a href="https://lin.ee/niY5HtU" target="_blank" rel="noopener">https://lin.ee/niY5HtU</a></p>
+        <p style="font-size: 15px;" class="req">＊ 表示必填問題</p>
+      </div>
+
+      <div class="panel">
+        <div class="k">填寫前請先確認</div>
+        <p>1. 請先閱讀 <a href="#rules" data-tab="rules">招商規章與品牌進駐規範</a> 及招商示意圖，並於表單中回覆確認。</p>
+        <p>2. 表單需附上 3–5 張品牌商品或擺攤實體照片，未上傳者恕無法通過審核；不方便於表單上傳者，可改以官方 LINE 私訊傳送。</p>
+        <p>3. 請先加入官方帳號 <a href="https://lin.ee/niY5HtU" target="_blank" rel="noopener">https://lin.ee/niY5HtU</a>，以利審核通過後與您聯繫。</p>
+        <p><a class="btn btn-navy" href="https://docs.google.com/forms/d/e/1FAIpQLSdLuhpkSUi-dzkGoDe7m1afPcTh7H7ubnKP71_wlBhzmNqHbw/viewform" target="_blank" rel="noopener">在新分頁開啟報名表單</a></p>
+      </div>
+
+      <div class="form-frame" data-embed>
+        <iframe
+          src="https://docs.google.com/forms/d/e/1FAIpQLSdLuhpkSUi-dzkGoDe7m1afPcTh7H7ubnKP71_wlBhzmNqHbw/viewform?embedded=true"
+          title="《默者文畫》攤商審核基本資訊報名表"
+          loading="lazy">載入中…</iframe>
+      </div>
+    </section>
+
+    <!-- Q&A ──────────────────────────── -->
+    <section class="screen" id="qa" data-gap="32" aria-label="常見問題">
+      <div class="head">
+        <span class="num">五</span>
+        <h2>常見問題 Q&amp;A</h2>
+      </div>
+
+      <div class="faq-list">
+        <details class="faq" open>
+          <summary>現場真的完全不能出聲嗎？</summary>
+          <p class="a">可以正常說話與交談，禁止的是擴音器、喇叭、麥克風以及大聲叫賣。溝通建議搭配大會提供的無聲互動道具與品牌手拿牌。</p>
+        </details>
+        <details class="faq">
+          <summary>帳篷、桌椅需要自備嗎？</summary>
+          <p class="a">不需要。大會提供阿里山帳（兩攤共用一帳，3x1.5m）、1 桌（約 120x60cm）、1 靠背椅、客製品牌招牌與氣氛燈串。</p>
+        </details>
+        <details class="faq">
+          <summary>可以帶氣炸鍋、電磁爐等設備嗎？</summary>
+          <p class="a">未報備之高功率加熱、烹煮與高亮度照明電器一律禁止。特殊用電需求須於報名時提出申請，並取得大會書面同意。</p>
+        </details>
+        <details class="faq">
+          <summary>每攤可以用多少電？</summary>
+          <p class="a">大會免費提供基本照明與 3C 設備用電，每攤位限額 200W 以內。若因未報備電器導致跳電或設備損毀，該攤位需承擔全場修復費用。</p>
+        </details>
+        <details class="faq">
+          <summary>當天幾點進場、幾點撤場？</summary>
+          <p class="a">報到進場 14:00–15:00，請於 14:50 前完成佈展，逾時不開放大型搬運；擺攤 15:00–20:30，撤場 20:30–21:30，並於 21:30 前清理完畢還原場地。</p>
+        </details>
+        <details class="faq">
+          <summary>早鳥優惠怎麼計算？</summary>
+          <p class="a">於 9 月前完成報名與全額匯款，總費用享 95 折。參展滿 3 場（週）以上另贈客製品牌拼圖，可折抵未來檔期攤租。</p>
+        </details>
+        <details class="faq">
+          <summary>錄取後多久要付款？</summary>
+          <p class="a">收到錄取通知後 3 日內完成全額匯款，並回傳帳號後五碼。逾期未匯款者，大會有權取消資格並由備取遞補。</p>
+        </details>
+        <details class="faq">
+          <summary>臨時無法參加可以退費嗎？</summary>
+          <p class="a">活動日 14 天以前（含）取消，扣除手續與轉帳費 NT$ 200 後退還剩餘全額；7 至 13 天內取消退還 50%；6 天內（含當日）取消恕不退費或順延。</p>
+        </details>
+        <details class="faq">
+          <summary>遇到颱風或大雨怎麼辦？</summary>
+          <p class="a">若經新北市政府宣布停止上班上課，或大會評估場地不宜辦理，活動將停辦或延期。因不可抗力取消時，扣除 20% 預整備成本後退還 80% 攤租，或協助順延至後續檔期。</p>
+        </details>
+        <details class="faq">
+          <summary>會拍照錄影嗎？</summary>
+          <p class="a">會。報名即視同授權大會於官方網站與社群（IG/FB/LINE）等宣傳管道無償使用含品牌攤位及人員之影像素材。</p>
+        </details>
+      </div>
+
+      <p class="tail">其他問題歡迎透過《默者文畫》官方 IG / FB / LINE 來訊詢問，或於報名表的簡介欄位一併提出。</p>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="foot-inner">
+      <div class="foot-head">
+        <h2>聯絡我們</h2>
+        <span class="rule"></span>
+      </div>
+      <div class="foot-grid">
+        <div class="foot-col">
+          <span class="k">官方 LINE</span>
+          <a href="https://lin.ee/niY5HtU" target="_blank" rel="noopener">https://lin.ee/niY5HtU</a>
+          <span class="s">報名、審核與行前問題請由官方帳號來訊。</span>
+        </div>
+        <div class="foot-col">
+          <span class="k">EMAIL</span>
+          <a href="mailto:chengyuneventstudio@gmail.com">chengyuneventstudio@gmail.com</a>
+          <span class="s">合作提案與媒體聯繫。</span>
+        </div>
+        <div class="foot-col">
+          <span class="k">活動地點</span>
+          <span class="v">新北市板橋區雙十廣場</span>
+          <span class="s">擺攤時間 15:00 – 20:30　捷運江子翠站旁</span>
+        </div>
+        <div class="foot-col">
+          <span class="k">主辦單位</span>
+          <span class="v">澄耘活動工作室 有限公司</span>
+          <span class="s">聯絡電話 0922-531-118<br />統一編號 62164766</span>
+        </div>
+      </div>
+      <div class="foot-end">《默者文畫》無聲風格聚落 大會籌備組 敬啟</div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // 分頁切換：以網址 hash 決定顯示哪一頁，可直接分享單頁連結
+  (function () {
+    document.body.classList.remove('no-js');
+
+    var TABS = ['origin', 'rules', 'join', 'form', 'qa'];
+    var screens = {};
+    var links = Array.prototype.slice.call(document.querySelectorAll('.tabs a'));
+
+    TABS.forEach(function (id) { screens[id] = document.getElementById(id); });
+
+    function show(id, scroll) {
+      if (TABS.indexOf(id) === -1) id = 'origin';
+      TABS.forEach(function (t) {
+        screens[t].classList.toggle('on', t === id);
+      });
+      links.forEach(function (a) {
+        if (a.getAttribute('data-tab') === id) {
+          a.setAttribute('aria-current', 'page');
+        } else {
+          a.removeAttribute('aria-current');
+        }
+      });
+      if (scroll) window.scrollTo(0, 0);
+    }
+
+    function fromHash(scroll) {
+      show((location.hash || '#origin').slice(1), scroll);
+    }
+
+    // 頁內所有帶 data-tab 的連結都切換分頁
+    document.addEventListener('click', function (e) {
+      var a = e.target.closest ? e.target.closest('a[data-tab]') : null;
+      if (!a) return;
+      e.preventDefault();
+      var id = a.getAttribute('data-tab');
+      if (location.hash.slice(1) === id) {
+        show(id, true);
+      } else {
+        location.hash = id;
+      }
+    });
+
+    window.addEventListener('hashchange', function () { fromHash(true); });
+    fromHash(false);
+  })();
+</script>
+
+</body>
+</html>

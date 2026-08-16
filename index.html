@@ -39,6 +39,9 @@
 
   * { box-sizing: border-box; }
 
+  /* hidden 屬性必須贏過元件自己的 display，否則隱藏不了 */
+  [hidden] { display: none !important; }
+
   html { -webkit-text-size-adjust: 100%; }
 
   body {
@@ -278,6 +281,87 @@
   .panel p { font-size: 15px; line-height: 1.95; color: var(--body); }
   .req { color: var(--alert); }
 
+  /* ── 報名表單元件 ───────────────────── */
+  #signupForm { display: flex; flex-direction: column; gap: 24px; }
+  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .field { display: flex; flex-direction: column; gap: 8px; font-size: 15px; }
+  .field > .label { color: var(--ink); }
+  .field > .hint { font-size: 14px; color: var(--muted); line-height: 1.8; }
+  .field input[type="text"],
+  .field input[type="tel"],
+  .field input[type="url"],
+  .field textarea {
+    padding: 12px 14px;
+    border: 1px solid var(--field);
+    background: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--ink);
+    width: 100%;
+  }
+  .field textarea { min-height: 96px; resize: vertical; line-height: 1.8; }
+  .field input:focus, .field textarea:focus { border-color: var(--gold-deep); outline: 2px solid rgba(200, 168, 107, 0.35); outline-offset: 1px; }
+  .field input[aria-invalid="true"], .field textarea[aria-invalid="true"] { border-color: var(--alert); background: #fdf7f7; }
+
+  .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+  .choice {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border: 1px solid var(--line);
+    background: #fff;
+    padding: 14px 16px;
+    font-size: 15px;
+    cursor: pointer;
+    line-height: 1.6;
+  }
+  .choice:hover { border-color: var(--gold); }
+  .choice input { accent-color: var(--gold-deep); width: 18px; height: 18px; flex: 0 0 auto; }
+  .choice.plain { border: 0; background: none; padding: 6px 0; }
+  .choice.plain:hover { border: 0; }
+
+  .file-drop {
+    border: 1px dashed var(--field);
+    background: #fff;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .file-drop input[type="file"] { font-size: 15px; font-family: inherit; }
+  .file-list { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--gold-deep); }
+  .file-list .bad { color: var(--alert); }
+
+  .form-error {
+    background: #fdf3f3;
+    border-left: 4px solid var(--alert);
+    color: var(--alert);
+    padding: 16px 20px;
+    font-size: 15px;
+    line-height: 1.8;
+  }
+  .form-error ul { color: var(--alert); gap: 6px; margin-top: 8px; }
+
+  .submit-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+  .btn[disabled] { opacity: 0.55; cursor: progress; }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+  .form-done {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--gold);
+    padding: 40px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .form-done .t { font-family: var(--serif); font-size: 23px; color: var(--navy); }
+  .form-done p { font-size: 16px; line-height: 1.9; color: var(--body); }
+
+  .thumb { width: 100%; max-width: 420px; border: 1px solid var(--line); }
+
   .form-frame { border: 1px solid var(--line); background: var(--paper); padding: 10px; }
   .form-frame iframe { width: 100%; height: 1500px; border: 0; display: block; background: var(--paper); }
 
@@ -309,7 +393,8 @@
   .foot-head { display: flex; align-items: center; gap: 14px; }
   .foot-head h2 { font-family: var(--serif); font-size: 22px; letter-spacing: 0.06em; color: var(--paper); }
   .foot-head .rule { flex: 1; height: 1px; background: rgba(200, 168, 107, 0.4); }
-  .foot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 32px 48px; }
+  /* 四欄固定 2x2，避免出現「3+1」的孤兒欄 */
+  .foot-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 48px; }
   .foot-col { display: flex; flex-direction: column; gap: 8px; }
   .foot-col .k { font-size: 13px; letter-spacing: 0.2em; color: var(--gold); }
   .foot-col a { color: var(--on-navy); font-size: 16px; word-break: break-all; }
@@ -379,6 +464,7 @@
     .steps .step { grid-template-columns: 1fr; gap: 4px; }
     .price-cards, .cards, .tiles { gap: 12px; }
     .tiles { grid-template-columns: 1fr; }
+    .foot-grid { grid-template-columns: 1fr; }
   }
 
   /* 讓五個分頁在一般手機寬度下剛好排得下，更窄則自動變成可橫向捲動 */
@@ -679,20 +765,138 @@
         <p style="font-size: 15px;" class="req">＊ 表示必填問題</p>
       </div>
 
-      <div class="panel">
-        <div class="k">填寫前請先確認</div>
-        <p>1. 請先閱讀 <a href="#rules" data-tab="rules">招商規章與品牌進駐規範</a> 及招商示意圖，並於表單中回覆確認。</p>
-        <p>2. 表單需附上 3–5 張品牌商品或擺攤實體照片，未上傳者恕無法通過審核；不方便於表單上傳者，可改以官方 LINE 私訊傳送。</p>
-        <p>3. 請先加入官方帳號 <a href="https://lin.ee/niY5HtU" target="_blank" rel="noopener">https://lin.ee/niY5HtU</a>，以利審核通過後與您聯繫。</p>
-        <p><a class="btn btn-navy" href="https://docs.google.com/forms/d/e/1FAIpQLSdLuhpkSUi-dzkGoDe7m1afPcTh7H7ubnKP71_wlBhzmNqHbw/viewform" target="_blank" rel="noopener">在新分頁開啟報名表單</a></p>
+      <!-- 送出成功後顯示 -->
+      <div class="form-done" id="formDone" hidden>
+        <div class="t">謝謝您的耐心填寫，再請留意通知！</div>
+        <p>已收到 <strong id="doneBrand">您的品牌</strong> 的報名資料。審核通過後會主動與您聯繫，請先加入官方帳號 <a href="https://lin.ee/niY5HtU" target="_blank" rel="noopener">https://lin.ee/niY5HtU</a>；錄取後請於 3 日內完成匯款並回傳帳號後五碼。</p>
+        <button type="button" class="btn" id="againBtn">再填一筆</button>
       </div>
 
-      <div class="form-frame" data-embed>
-        <iframe
-          src="https://docs.google.com/forms/d/e/1FAIpQLSdLuhpkSUi-dzkGoDe7m1afPcTh7H7ubnKP71_wlBhzmNqHbw/viewform?embedded=true"
-          title="《默者文畫》攤商審核基本資訊報名表"
-          loading="lazy">載入中…</iframe>
-      </div>
+      <form id="signupForm" novalidate>
+
+        <div class="panel">
+          <div class="k">攤商基本資料</div>
+
+          <div class="fields">
+            <label class="field">
+              <span class="label">品牌名稱 <span class="req">＊</span></span>
+              <input type="text" name="brand" autocomplete="organization" maxlength="100" required />
+            </label>
+            <label class="field">
+              <span class="label">聯絡人姓名 <span class="req">＊</span></span>
+              <input type="text" name="owner" autocomplete="name" maxlength="50" required />
+            </label>
+            <label class="field">
+              <span class="label">聯絡電話 <span class="req">＊</span></span>
+              <input type="tel" name="phone" autocomplete="tel" maxlength="30" required />
+            </label>
+            <label class="field">
+              <span class="label">販售/體驗品項 <span class="req">＊</span></span>
+              <input type="text" name="items" maxlength="500" required />
+            </label>
+          </div>
+
+          <div class="field">
+            <span class="label">預計報名場次 <span class="req">＊</span></span>
+            <div class="choices" id="sessionChoices">
+              <label class="choice"><input type="checkbox" name="sessions" value="10/03-10/04" /><span>10/03-10/04</span></label>
+              <label class="choice"><input type="checkbox" name="sessions" value="10/17-10/18" /><span>10/17-10/18</span></label>
+              <label class="choice"><input type="checkbox" name="sessions" value="10/31-11/01" /><span>10/31-11/01</span></label>
+              <label class="choice"><input type="checkbox" name="sessions" value="11/14-11/15" /><span>11/14-11/15</span></label>
+              <label class="choice"><input type="checkbox" name="sessions" value="11/28-11/29" /><span>11/28-11/29</span></label>
+              <label class="choice"><input type="checkbox" name="sessions" value="12/12-12/13" /><span>12/12-12/13</span></label>
+            </div>
+            <label class="choice plain"><input type="checkbox" id="allSessions" /><span>全選</span></label>
+          </div>
+
+          <label class="field">
+            <span class="label">品牌粉專/IG連結 <span class="req">＊</span></span>
+            <span class="hint">（供視覺與風格審核）</span>
+            <input type="text" name="social" inputmode="url" placeholder="https://" maxlength="500" required />
+          </label>
+
+          <label class="field">
+            <span class="label">現場用電需求瓦數 <span class="req">＊</span></span>
+            <span class="hint">若無用電請填「無」；有使用電器請務必註明品項與預估瓦數，如：照明燈 20W</span>
+            <input type="text" name="power" maxlength="200" required />
+          </label>
+
+          <div class="field">
+            <span class="label">品牌商品/擺攤實體照片</span>
+            <span class="hint">請附上 3–5 張照片。<strong>若未上傳，即審核未過。</strong>不方便上傳也可以私訊或傳至官方 LINE。最多 10 個檔案，每個檔案上限 10 MB。</span>
+            <div class="file-drop">
+              <input type="file" name="photos" id="photoInput" accept="image/jpeg,image/png,image/webp,image/heic" multiple />
+              <div class="file-list" id="photoList"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="k">招商規章與品牌進駐規範</div>
+          <p>請確認已閱讀 <a href="#rules" data-tab="rules">招商規章與品牌進駐規範</a> 及下方招商示意圖，並於欄位中回覆確認。</p>
+          <label class="field">
+            <span class="label">您的回答</span>
+            <input type="text" name="rules_reply" placeholder="例：已閱讀並同意" maxlength="200" />
+          </label>
+        </div>
+
+        <div class="panel">
+          <div class="k">招商示意圖</div>
+          <img class="thumb" src="./assets/booth-layout.jpg" alt="攤位示意圖：阿里山帳、LOGO 招牌、桌子與褐色亞麻桌巾、手作遊戲手舉牌" width="1200" height="1136" loading="lazy" />
+          <label class="field">
+            <span class="label">您的回答</span>
+            <input type="text" name="layout_reply" placeholder="例：已了解攤位配置" maxlength="200" />
+          </label>
+        </div>
+
+        <div class="panel">
+          <div class="k">審核通過後會主動與您聯繫</div>
+          <label class="field">
+            <span class="label">請提供 LINE 名稱 <span class="req">＊</span></span>
+            <span class="hint">官方帳號：<a href="https://lin.ee/niY5HtU" target="_blank" rel="noopener">https://lin.ee/niY5HtU</a>　請先加入官方帳號，以利審核通過與您聯繫～</span>
+            <input type="text" name="line_name" maxlength="100" required />
+          </label>
+        </div>
+
+        <div class="panel">
+          <div class="k">是否願意成為我們的 VIP</div>
+          <p>未來會定期舉辦市集，希望可以共襄盛舉，且 VIP 可提供優惠。</p>
+          <div class="field">
+            <span class="label">是否願意成為 VIP <span class="req">＊</span></span>
+            <label class="choice plain"><input type="radio" name="vip" value="是" /><span>是</span></label>
+            <label class="choice plain"><input type="radio" name="vip" value="否" /><span>否</span></label>
+            <label class="choice plain">
+              <input type="radio" name="vip" value="其他" /><span>其他：</span>
+              <input type="text" name="vip_other" maxlength="200" style="flex: 1; border: 0; border-bottom: 1px solid var(--field); padding: 6px 4px;" />
+            </label>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="k">其他</div>
+          <label class="field">
+            <span class="label">想讓大會知道的事（選填）</span>
+            <textarea name="note" maxlength="1000"></textarea>
+          </label>
+          <label class="choice plain">
+            <input type="checkbox" name="consent" />
+            <span>我同意大會為攤商審核與活動聯繫之目的，蒐集及使用以上個人資料。<span class="req">＊</span></span>
+          </label>
+        </div>
+
+        <!-- 防機器人：真人看不到，填了就擋下 -->
+        <div class="hp" aria-hidden="true">
+          <label>請勿填寫此欄<input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+        </div>
+
+        <div class="block">
+          <div class="form-error" id="formError" hidden></div>
+          <div class="submit-row">
+            <button type="submit" class="btn btn-navy" id="submitBtn">提交報名</button>
+            <span class="hint" id="submitHint"></span>
+          </div>
+        </div>
+      </form>
     </section>
 
     <!-- Q&A ──────────────────────────── -->
@@ -829,6 +1033,245 @@
 
     window.addEventListener('hashchange', function () { fromHash(true); });
     fromHash(false);
+  })();
+</script>
+
+<script>
+  // ───────────────────────────────────────────────────────
+  // 報名表：送到 Supabase
+  // 填入你的 Supabase 專案資訊即可啟用；留空則自動改用 Google 表單。
+  // anon key 是設計上就會公開的金鑰，安全性由資料庫的 RLS 政策把關。
+  // ───────────────────────────────────────────────────────
+  var SUPABASE_URL = 'https://poddquxxvbtydbokcxvy.supabase.co';
+  var SUPABASE_ANON_KEY = 'sb_publishable_XxibeRoY4L66Z0-b8Bgpyw_atCS9XFj';
+  var GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdLuhpkSUi-dzkGoDe7m1afPcTh7H7ubnKP71_wlBhzmNqHbw/viewform';
+  var PHOTO_BUCKET = 'registration-photos';
+  var MAX_PHOTOS = 10;
+  var MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+  var COOLDOWN_MS = 60 * 1000;
+
+  (function () {
+    var form = document.getElementById('signupForm');
+    if (!form) return;
+
+    var errorBox = document.getElementById('formError');
+    var submitBtn = document.getElementById('submitBtn');
+    var submitHint = document.getElementById('submitHint');
+    var photoInput = document.getElementById('photoInput');
+    var photoList = document.getElementById('photoList');
+    var allSessions = document.getElementById('allSessions');
+    var sessionBoxes = Array.prototype.slice.call(
+      document.querySelectorAll('#sessionChoices input[name="sessions"]')
+    );
+    var doneBox = document.getElementById('formDone');
+    var doneBrand = document.getElementById('doneBrand');
+    var againBtn = document.getElementById('againBtn');
+
+    var configured = SUPABASE_URL !== '' && SUPABASE_ANON_KEY !== '';
+
+    if (!configured) {
+      submitBtn.disabled = true;
+      submitHint.innerHTML = '線上送出功能設定中，請暫時<a href="' + GOOGLE_FORM_URL +
+        '" target="_blank" rel="noopener">使用 Google 表單填寫</a>。';
+    }
+
+    // 全選 ↔ 各場次連動
+    function syncAll() {
+      allSessions.checked = sessionBoxes.every(function (b) { return b.checked; });
+    }
+    allSessions.addEventListener('change', function () {
+      sessionBoxes.forEach(function (b) { b.checked = allSessions.checked; });
+    });
+    sessionBoxes.forEach(function (b) { b.addEventListener('change', syncAll); });
+
+    // 照片選取後列出檔名並檢查大小
+    photoInput.addEventListener('change', function () {
+      var files = Array.prototype.slice.call(photoInput.files || []);
+      photoList.innerHTML = '';
+      if (!files.length) return;
+
+      if (files.length > MAX_PHOTOS) {
+        photoList.innerHTML = '<div class="bad">最多只能上傳 ' + MAX_PHOTOS + ' 個檔案，請重新選擇。</div>';
+        return;
+      }
+      files.forEach(function (f) {
+        var row = document.createElement('div');
+        var mb = (f.size / 1024 / 1024).toFixed(1);
+        if (f.size > MAX_PHOTO_BYTES) {
+          row.className = 'bad';
+          row.textContent = '✕ ' + f.name + '（' + mb + ' MB，超過 10 MB 上限）';
+        } else {
+          row.textContent = '✓ ' + f.name + '（' + mb + ' MB）';
+        }
+        photoList.appendChild(row);
+      });
+    });
+
+    function showErrors(list) {
+      if (!list.length) { errorBox.hidden = true; return; }
+      errorBox.innerHTML = '請修正以下欄位：<ul>' +
+        list.map(function (m) { return '<li>' + m + '</li>'; }).join('') + '</ul>';
+      errorBox.hidden = false;
+      errorBox.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+
+    function val(name) {
+      var el = form.elements[name];
+      return el && typeof el.value === 'string' ? el.value.trim() : '';
+    }
+
+    function mark(name, bad) {
+      var el = form.elements[name];
+      if (el && el.setAttribute) el.setAttribute('aria-invalid', bad ? 'true' : 'false');
+    }
+
+    function collect() {
+      var errs = [];
+      var required = [
+        ['brand', '品牌名稱'],
+        ['owner', '聯絡人姓名'],
+        ['phone', '聯絡電話'],
+        ['items', '販售/體驗品項'],
+        ['social', '品牌粉專/IG連結'],
+        ['power', '現場用電需求瓦數'],
+        ['line_name', 'LINE 名稱']
+      ];
+      required.forEach(function (pair) {
+        var empty = val(pair[0]) === '';
+        mark(pair[0], empty);
+        if (empty) errs.push('請填寫「' + pair[1] + '」');
+      });
+
+      var sessions = sessionBoxes.filter(function (b) { return b.checked; })
+        .map(function (b) { return b.value; });
+      if (!sessions.length) errs.push('請至少勾選一個「預計報名場次」');
+
+      var vipEl = form.querySelector('input[name="vip"]:checked');
+      if (!vipEl) errs.push('請選擇「是否願意成為 VIP」');
+
+      if (!form.elements['consent'].checked) errs.push('請勾選個人資料使用同意');
+
+      var files = Array.prototype.slice.call(photoInput.files || []);
+      if (files.length > MAX_PHOTOS) errs.push('照片最多 ' + MAX_PHOTOS + ' 個檔案');
+      if (files.some(function (f) { return f.size > MAX_PHOTO_BYTES; })) {
+        errs.push('有照片超過 10 MB 上限，請先壓縮或改以官方 LINE 傳送');
+      }
+
+      return {
+        errors: errs,
+        files: files,
+        row: {
+          brand: val('brand'),
+          owner: val('owner'),
+          phone: val('phone'),
+          items: val('items'),
+          sessions: sessions,
+          social: val('social'),
+          power: val('power'),
+          rules_reply: val('rules_reply') || null,
+          layout_reply: val('layout_reply') || null,
+          line_name: val('line_name'),
+          vip: vipEl ? vipEl.value : '',
+          vip_other: vipEl && vipEl.value === '其他' ? (val('vip_other') || null) : null,
+          note: val('note') || null,
+          photo_paths: []
+        }
+      };
+    }
+
+    function api(path, options) {
+      var opts = options || {};
+      opts.headers = Object.assign({
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: 'Bearer ' + SUPABASE_ANON_KEY
+      }, opts.headers || {});
+      return fetch(SUPABASE_URL.replace(/\/$/, '') + path, opts);
+    }
+
+    function extOf(file) {
+      var m = /\.([a-zA-Z0-9]+)$/.exec(file.name || '');
+      return m ? m[1].toLowerCase() : 'jpg';
+    }
+
+    async function uploadPhotos(files) {
+      if (!files.length) return [];
+      var folder = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
+      var paths = [];
+      for (var i = 0; i < files.length; i++) {
+        var f = files[i];
+        var path = folder + '/' + (i + 1) + '.' + extOf(f);
+        submitBtn.textContent = '上傳照片 ' + (i + 1) + '/' + files.length + '…';
+        var res = await api('/storage/v1/object/' + PHOTO_BUCKET + '/' + path, {
+          method: 'POST',
+          headers: { 'Content-Type': f.type || 'application/octet-stream' },
+          body: f
+        });
+        if (!res.ok) throw new Error('照片上傳失敗（' + f.name + '）');
+        paths.push(path);
+      }
+      return paths;
+    }
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (!configured) return;
+
+      // 蜜罐：真人看不到這欄，填了就是機器人
+      if (val('website') !== '') return;
+
+      var last = Number(localStorage.getItem('mozhe_last_submit') || 0);
+      if (Date.now() - last < COOLDOWN_MS) {
+        showErrors(['剛剛已送出過一次，請稍候一分鐘再試。']);
+        return;
+      }
+
+      var data = collect();
+      if (data.errors.length) { showErrors(data.errors); return; }
+      showErrors([]);
+
+      submitBtn.disabled = true;
+      var originalLabel = submitBtn.textContent;
+      submitBtn.textContent = '送出中…';
+
+      try {
+        data.row.photo_paths = await uploadPhotos(data.files);
+        submitBtn.textContent = '送出中…';
+
+        var res = await api('/rest/v1/registrations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+          body: JSON.stringify(data.row)
+        });
+        if (!res.ok) {
+          var detail = await res.text();
+          throw new Error('送出失敗（' + res.status + '）' + detail.slice(0, 200));
+        }
+
+        localStorage.setItem('mozhe_last_submit', String(Date.now()));
+        doneBrand.textContent = data.row.brand;
+        form.hidden = true;
+        doneBox.hidden = false;
+        window.scrollTo(0, 0);
+      } catch (err) {
+        showErrors([
+          String(err.message || err),
+          '若持續失敗，請改用 <a href="' + GOOGLE_FORM_URL + '" target="_blank" rel="noopener">Google 表單</a>，或私訊官方 LINE。'
+        ]);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalLabel;
+      }
+    });
+
+    againBtn.addEventListener('click', function () {
+      form.reset();
+      photoList.innerHTML = '';
+      syncAll();
+      showErrors([]);
+      doneBox.hidden = true;
+      form.hidden = false;
+      window.scrollTo(0, 0);
+    });
   })();
 </script>
 

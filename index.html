@@ -381,6 +381,8 @@
   details.faq summary::before { content: "Q"; font-family: var(--serif); color: var(--gold); font-weight: 500; }
   details.faq .a { display: flex; gap: 12px; align-items: baseline; padding: 0 0 24px; font-size: 16px; line-height: 1.95; color: var(--body); }
   details.faq .a::before { content: "A"; font-family: var(--serif); color: var(--muted); font-size: 17px; flex: 0 0 auto; }
+  /* 多段落的答案：A 標記留在最上方，段落自己垂直排列 */
+  details.faq .a-body { display: flex; flex-direction: column; gap: 12px; }
   details.faq[open] summary { color: var(--gold-deep); }
 
   .tail { border-top: 1px dashed var(--field); padding-top: 26px; font-size: 15px; color: var(--muted); line-height: 1.9; }
@@ -637,7 +639,7 @@
             </div>
           </div>
           <ul>
-            <li><strong>早鳥優惠：</strong>於 <strong>2026 年 9 月 30 日前</strong> 完成報名與全額匯款，總費用享 <strong style="color: var(--gold-deep);">95 折</strong>。</li>
+            <li><strong>早鳥優惠：</strong>於 <strong>2026 年 9 月 10 日前</strong> 完成報名與全額匯款，總費用享 <strong style="color: var(--gold-deep);">95 折</strong>。</li>
             <li><strong>品牌拼圖專屬福利：</strong>參展滿 3 場（週）以上之品牌，免費贈送「客製品牌拼圖」，憑此拼圖享未來檔期攤租折抵優惠。</li>
           </ul>
         </div>
@@ -713,7 +715,7 @@
         <ul>
           <li>阿里山帳、桌椅、氣氛燈串與 <strong>客製品牌招牌</strong>，不需自備硬體。</li>
           <li>基本照明與 3C 用電（200W 以內）與現場清潔費，皆由大會負擔。</li>
-          <li>2026 年 9 月 30 日前完成報名與全額匯款享 <strong style="color: var(--gold-deep);">95 折</strong> 早鳥價。</li>
+          <li>2026 年 9 月 10 日前完成報名與全額匯款享 <strong style="color: var(--gold-deep);">95 折</strong> 早鳥價。</li>
           <li>參展滿 3 場以上，獲贈客製品牌拼圖，可折抵未來檔期攤租。</li>
           <li>大會官方網站與社群（IG/FB/LINE）曝光，及無聲互動遊戲帶來的停留人流。</li>
         </ul>
@@ -889,8 +891,15 @@
 
       <div class="faq-list">
         <details class="faq" open>
-          <summary>現場真的完全不能出聲嗎？</summary>
-          <p class="a">可以正常說話與交談，禁止的是擴音器、喇叭、麥克風以及大聲叫賣。溝通建議搭配大會提供的無聲互動道具與品牌手拿牌。</p>
+          <summary>現場真的完全不能說話嗎？</summary>
+          <div class="a">
+            <div class="a-body">
+              <p><strong>原則上請以「無聲互動」為主！</strong></p>
+              <p>請優先使用大會提供的趣味手拿牌、字卡與手勢引導，讓逛展民眾體驗這場特別的安靜聚落。</p>
+              <p>我們嚴格禁止「擴音喇叭、麥克風與大聲叫賣」；若遇到人潮湧入、客流量較大時，則以「服務客人為第一優先」，允許輕聲低語交流。</p>
+              <p>另外，雙十廣場為開放式的親子放電空間，無法嚴格要求路過民眾噤聲，場域內依然能聽到孩子與居民放鬆的歡笑聲唷！</p>
+            </div>
+          </div>
         </details>
         <details class="faq">
           <summary>帳篷、桌椅需要自備嗎？</summary>
@@ -910,7 +919,7 @@
         </details>
         <details class="faq">
           <summary>早鳥優惠怎麼計算？</summary>
-          <p class="a">於 2026 年 9 月 30 日前完成報名與全額匯款，總費用享 95 折。參展滿 3 場（週）以上另贈客製品牌拼圖，可折抵未來檔期攤租。</p>
+          <p class="a">於 2026 年 9 月 10 日前完成報名與全額匯款，總費用享 95 折。參展滿 3 場（週）以上另贈客製品牌拼圖，可折抵未來檔期攤租。</p>
         </details>
         <details class="faq">
           <summary>錄取後多久要付款？</summary>

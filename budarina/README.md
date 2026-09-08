@@ -36,11 +36,26 @@ draws the 21-point skeleton over it:
 
 - **open hand** → the reel plays
 - **closed fist** → the reel pauses
+- **tilt your hand** → the reel panel leans the same way
 
 A finger counts as extended when its tip sits further from the wrist than its
 middle joint. Three or more extended reads as open, one or fewer as a fist, and
 anything between holds the current state. A gesture has to hold for four frames
 before it takes effect, so a blurred frame can't flip the reel.
+
+The lean comes from the wrist-to-middle-knuckle vector, the hand's spine.
+Landmarks are in raw camera coordinates while the view is mirrored, so the sign
+is flipped to match what is on screen. About 35 degrees of wrist rotation maps
+onto the panel's full travel, and the panel eases towards the angle rather than
+snapping to it. Two cases are deliberately ignored: a hand turned past a quarter
+circle, where the angle wraps and would otherwise flip the panel end to end, and
+a frame with no hand in it, which settles the panel back to level.
+
+How far the panel may turn is measured, not assumed. A near-full-height portrait
+panel runs out of room long before a short wide one, so the page works out what
+its current shape can afford where it sits, shrinking it slightly at full tilt to
+buy room. On a phone that calculation lands on zero and the full-bleed backdrop
+stays level, which is what that layout wants anyway.
 
 The library and the model are vendored under `vendor/`, so the page fetches
 nothing from a third party at runtime — it works offline, and it can't break

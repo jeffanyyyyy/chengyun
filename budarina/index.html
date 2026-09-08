@@ -196,6 +196,8 @@
     overflow: hidden;
     background: #060606;
     border: 1px solid var(--line-soft);
+    transform: rotate(var(--reel-rot, 0deg)) scale(var(--reel-scale, 1));
+    will-change: transform;
   }
   .reel video,
   .reel canvas {
@@ -222,7 +224,7 @@
       top: 50%;
       bottom: auto;
       height: auto;
-      transform: translateY(-50%);
+      transform: translateY(-50%) rotate(var(--reel-rot, 0deg)) scale(var(--reel-scale, 1));
       aspect-ratio: var(--reel-ar);
       max-height: calc(100dvh - clamp(150px, 16vw, 190px));
     }
@@ -388,6 +390,7 @@
       border-radius: 0;
       border: 0;
       opacity: 0.42;
+      transform: none;
     }
     .reel::after { background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.45)); }
     .reel-tag { top: auto; bottom: auto; left: 14px; bottom: 13px; }
@@ -560,6 +563,7 @@ function useFallbackReel() {
   player = createFallbackReel(reelCanvas);
   player.play();
   syncReelTag();
+  requestAnimationFrame(refreshMaxTilt);
 }
 
 video.addEventListener('error', useFallbackReel, true);
@@ -576,6 +580,7 @@ function fitReelToVideo() {
   stage.style.setProperty('--reel-ar', `${w} / ${h}`);
   stage.classList.toggle('reel-landscape', w > h);
   document.querySelector('.reel').classList.add('is-fitted');
+  requestAnimationFrame(refreshMaxTilt);
   return true;
 }
 
@@ -756,6 +761,16 @@ function drawSkeleton(landmarks, toPx) {
   }
 }
 
+/* How far the hand is tilted from upright, in degrees, as the viewer sees it.
+   The wrist -> middle-finger-knuckle vector is the hand's spine. Landmarks are
+   in raw camera coordinates while the view is mirrored, so the sign is flipped
+   to match what is actually on screen. */
+function readTilt(lm) {
+  const vx = lm[9].x - lm[0].x;
+  const vy = lm[9].y - lm[0].y;
+  return -Math.atan2(vx, -vy) * 180 / Math.PI;
+}
+
 /* Open vs. closed: a finger counts as extended when its tip sits further
    from the wrist than its middle joint does. */
 function readGesture(lm) {
@@ -775,6 +790,64 @@ let gesture = null;
 let candidate = null;
 let candidateFrames = 0;
 const CONFIRM_FRAMES = 4;    // debounce so a passing blur can't flip the reel
+
+const MAX_TILT = 16;         // a corner of the tall panel starts leaving the screen past this
+const TILT_RANGE = 35;       // wrist degrees that map onto the full panel rotation
+const TILT_SCALE = 0.90;     // shrink at full tilt, so a rotated corner stays inside the viewport
+const TILT_EASE = 0.18;      // how hard the panel chases the hand, per frame
+const reelPanel = document.querySelector('.reel');
+let tiltTarget = 0;
+let tiltShown = 0;
+let maxTilt = MAX_TILT;
+
+/* The tall panel is nearly the height of the screen, so it runs out of room to
+   turn long before a short wide one does. Rather than pick one angle that is
+   safe for the worst case, work out how far this panel can actually turn where
+   it currently sits. Recomputed on resize and whenever the panel changes shape;
+   never per frame. On a phone the panel is the whole viewport, so this lands on
+   0 and the backdrop stays level, which is what the layout wants anyway. */
+function computeMaxTilt() {
+  const rot = reelPanel.style.getPropertyValue('--reel-rot');
+  const scale = reelPanel.style.getPropertyValue('--reel-scale');
+  reelPanel.style.setProperty('--reel-rot', '0deg');
+  reelPanel.style.setProperty('--reel-scale', '1');
+  const box = reelPanel.getBoundingClientRect();
+  reelPanel.style.setProperty('--reel-rot', rot || '0deg');
+  reelPanel.style.setProperty('--reel-scale', scale || '1');
+
+  const cx = box.left + box.width / 2;
+  const cy = box.top + box.height / 2;
+  const roomX = Math.min(cx, window.innerWidth - cx);
+  const roomY = Math.min(cy, window.innerHeight - cy);
+  const hw = box.width / 2, hh = box.height / 2;
+
+  for (let deg = MAX_TILT; deg > 0; deg--) {
+    const t = deg * Math.PI / 180;
+    const s = 1 - (1 - TILT_SCALE) * (deg / MAX_TILT);
+    const ex = s * (hw * Math.cos(t) + hh * Math.sin(t));
+    const ey = s * (hw * Math.sin(t) + hh * Math.cos(t));
+    if (ex <= roomX && ey <= roomY) return deg;
+  }
+  return 0;
+}
+
+function refreshMaxTilt() {
+  maxTilt = computeMaxTilt();
+  tiltTarget = Math.max(-maxTilt, Math.min(maxTilt, tiltTarget));
+}
+window.addEventListener('resize', refreshMaxTilt);
+refreshMaxTilt();
+
+/* Runs every animation frame, not only on the frames the detector produced a
+   result for, so the panel glides instead of stepping at the camera's rate. */
+function easeTilt() {
+  const next = tiltShown + (tiltTarget - tiltShown) * TILT_EASE;
+  if (Math.abs(next - tiltShown) < 0.005) return;
+  tiltShown = next;
+  const amount = maxTilt ? Math.abs(tiltShown) / maxTilt : 0;
+  reelPanel.style.setProperty('--reel-rot', `${tiltShown.toFixed(2)}deg`);
+  reelPanel.style.setProperty('--reel-scale', (1 - (1 - TILT_SCALE) * amount).toFixed(4));
+}
 
 function applyGesture(next) {
   if (next === gesture) return;
@@ -842,6 +915,7 @@ async function loadLandmarker() {
 function tick() {
   if (!running) return;
   requestAnimationFrame(tick);
+  easeTilt();
 
   const vw = camVideo.videoWidth, vh = camVideo.videoHeight;
   if (!vw || !vh) return;
@@ -863,12 +937,21 @@ function tick() {
   if (!hands.length) {
     candidate = null;
     candidateFrames = 0;
+    tiltTarget = 0;              // no hand: settle back to level
     renderChip(false);
     return;
   }
 
   const lm = hands[0];
   drawSkeleton(lm, coverMapper(boxW, boxH, vw, vh));
+
+  const raw = readTilt(lm);
+  /* Past a quarter turn the hand is upside down and the angle wraps, which would
+     snap the panel from one extreme to the other. Hold the last angle instead. */
+  if (Math.abs(raw) <= 90) {
+    const mapped = raw * (maxTilt / TILT_RANGE);
+    tiltTarget = Math.max(-maxTilt, Math.min(maxTilt, mapped));
+  }
 
   const next = readGesture(lm);
   if (next) {

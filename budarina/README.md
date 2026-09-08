@@ -71,7 +71,14 @@ Only the SIMD build of the wasm runtime is vendored. Browsers without wasm SIMD
 not get you a camera. Serve it instead:
 
 ```bash
-cd budarina && python3 -m http.server 8080
+cd budarina && python3 serve.py
 ```
 
 Then open http://localhost:8080/ and allow camera access.
+
+Use `serve.py` rather than `python3 -m http.server`. The stock module answers
+every Range request with the whole file and a plain 200, and Safari treats that
+as a broken source and refuses to play the reel at all — the page falls back to
+the generated canvas and looks like the video is missing. `serve.py` is the same
+static server with the 206 responses video playback needs, and it threads, since
+a video element opens several connections at once.

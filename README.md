@@ -44,6 +44,11 @@ git push -u origin main
 3. 到 repository 的 **Settings → Pages**，Source 選 **Deploy from a branch**，分支選 `main`、資料夾選 `/ (root)`，按 Save。
 4. 約一分鐘後網址會是：https://jeffanyyyyy.github.io/chengyun/
 
+## budarina/
+
+同一個 repository 另外收了一頁獨立的作品集首頁 `budarina/index.html`（深色滿版、
+影片 reel、手勢操控攝影機視窗），與招商網頁無關，詳見 `budarina/README.md`。
+
 ## 修改內容
 
 所有文字都直接寫在 `index.html` 裡，用編輯器搜尋要改的字串即可。

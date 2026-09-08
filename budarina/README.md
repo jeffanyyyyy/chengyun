@@ -15,8 +15,15 @@ step: `index.html` contains the markup, CSS and JS.
 
 ## Showreel
 
-The reel plays `assets/reel.mp4`. Drop your own file in at that path — portrait
-or landscape both work, the panel crops with `object-fit: cover`.
+The reel plays `assets/reel.mp4`. Drop your own file in at that path; nothing
+else needs changing.
+
+The panel takes its shape from the file. A portrait reel fills the tall column
+down the right-hand side; a landscape one becomes a wide card centred on the
+right, so a 16:9 video is not cropped down to its middle third. That is read
+from `videoWidth`/`videoHeight` once the metadata loads, so it follows whatever
+you put there. Below 861px wide the reel becomes a dimmed full-screen backdrop
+instead, and the copy sits over it.
 
 Until that file exists the page renders a generated monochrome reel on a canvas
 instead, so nothing looks broken on a fresh checkout. The generated reel honours

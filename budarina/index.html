@@ -214,6 +214,21 @@
     pointer-events: none;
     background: linear-gradient(to left, transparent 55%, rgba(0, 0, 0, 0.5));
   }
+  /* A portrait reel fills the tall column; a landscape one becomes a wide card
+     centred on the right, so nothing important gets cropped away. */
+  @media (min-width: 861px) and (min-height: 561px) {
+    .stage.reel-landscape { --reel-w: clamp(300px, 42vw, 620px); }
+    .reel.is-fitted {
+      top: 50%;
+      bottom: auto;
+      height: auto;
+      transform: translateY(-50%);
+      aspect-ratio: var(--reel-ar);
+      max-height: calc(100dvh - clamp(150px, 16vw, 190px));
+    }
+    .reel.is-fitted::after { background: linear-gradient(to left, transparent 70%, rgba(0, 0, 0, 0.35)); }
+  }
+
   .reel-tag {
     position: absolute;
     z-index: 2;
@@ -428,7 +443,7 @@
   </main>
 
   <section class="reel" aria-label="Showreel">
-    <video id="reel" loop muted playsinline autoplay preload="auto" poster="" aria-hidden="true">
+    <video id="reel" loop muted playsinline autoplay preload="auto" aria-hidden="true">
       <source src="assets/reel.mp4" type="video/mp4" />
     </video>
     <canvas id="reelCanvas" hidden aria-hidden="true"></canvas>
@@ -553,6 +568,23 @@ video.querySelector('source').addEventListener('error', useFallbackReel);
 video.addEventListener('play',  syncReelTag);
 video.addEventListener('pause', syncReelTag);
 
+/* Shape the panel around whatever reel.mp4 turns out to be */
+function fitReelToVideo() {
+  const { videoWidth: w, videoHeight: h } = video;
+  if (!w || !h) return false;
+  const stage = document.querySelector('.stage');
+  stage.style.setProperty('--reel-ar', `${w} / ${h}`);
+  stage.classList.toggle('reel-landscape', w > h);
+  document.querySelector('.reel').classList.add('is-fitted');
+  return true;
+}
+
+/* This is a module script, so it runs after the document is parsed — a file
+   served off local disk can already be loaded (or already have failed) by now.
+   Handle the events that fired before this line as well as the ones after. */
+if (video.error) useFallbackReel();
+else if (!fitReelToVideo()) video.addEventListener('loadedmetadata', fitReelToVideo, { once: true });
+
 function syncReelTag() {
   const paused = player.paused;
   reelTag.dataset.state = paused ? 'paused' : 'playing';
@@ -563,10 +595,15 @@ function playReel()  { const r = player.play(); if (r && r.catch) r.catch(() => 
 function pauseReel() { player.pause(); syncReelTag(); }
 
 playReel();
-/* No decodable source (or an empty placeholder file) also means fallback */
+
+/* A missing or undecodable file fires 'error' on its own. This is only a safety
+   net for a source that never resolves either way, and it has to be generous:
+   a short timer would swap out a perfectly good reel on a slow connection. */
+let reelSettled = video.readyState >= HTMLMediaElement.HAVE_METADATA;
+video.addEventListener('loadedmetadata', () => { reelSettled = true; }, { once: true });
 window.setTimeout(() => {
-  if (player === video && video.readyState === 0) useFallbackReel();
-}, 1200);
+  if (!reelSettled && player === video && video.readyState === 0) useFallbackReel();
+}, 10000);
 
 /* ────────────────────────────────────────────────────────────
    2. Floating camera window — draggable + resizable

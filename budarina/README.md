@@ -34,9 +34,38 @@ the same play/pause control as a real video.
 The camera window runs [MediaPipe Hand Landmarker][mp] on the webcam feed and
 draws the 21-point skeleton over it:
 
-- **open hand** → the reel plays
-- **closed fist** → the reel pauses
-- **tilt your hand** → the reel panel leans the same way
+The `REEL` block at the top of the script picks which of two controls is wired
+up, because they suit different footage.
+
+`control: 'scrub'` (the default) maps the hand's angle onto a position in the
+clip, for footage of a subject turning from one side to the other — tilt your
+hand and the subject turns with it. An open hand follows, a fist locks the
+current frame. On footage that is not a turn, tilting just scrubs back and forth
+through it.
+
+`control: 'play'` treats it as an ordinary looping reel: an open hand plays, a
+fist pauses, and the whole panel leans with your hand instead of the footage
+moving.
+
+`cutout: true` suits a clip shot on black. It drops the panel's frame, fill and
+edge gradient so the clip's black merges into the page's and the subject reads
+as cut out. No transparent video is needed, which matters: WebM with an alpha
+channel does not play in Safari, and MP4 with alpha does not play in Chrome, so
+black-on-black is the one approach that works everywhere. On footage that is not
+on black this only removes the frame, so leave it false until the clip suits it.
+
+`assets/turn-test.webm` is a generated head turning left to right on black,
+kept as a reference for what the scrub control expects. Point the `<source>` at
+it and set `cutout: true` to see the intended effect.
+
+The reel is mirrored, so a clip of a subject turning to its right plays on
+screen as turning left. The scrub mapping is inverted to compensate, so the
+subject follows the hand the viewer actually sees.
+
+Seeking a compressed clip is not free — measured at roughly 60ms per seek under
+software decoding, less with hardware decoding. If the subject feels like it
+lags behind the hand, the fix is to decode the clip into a strip of frames once
+at load and draw the nearest one, rather than seeking per frame.
 
 A finger counts as extended when its tip sits further from the wrist than its
 middle joint. Three or more extended reads as open, one or fewer as a fist, and

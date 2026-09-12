@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CHENGYUN LAB｜實驗性數位視覺</title>
+<meta name="description" content="澄耘活動工作室的實驗性作品頁：WebGL、動態設計與前衛視覺的沉浸式數位體驗。" />
+<meta name="theme-color" content="#0a0a0a" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="CHENGYUN LAB｜實驗性數位視覺" />
+<meta property="og:description" content="以動態、質感與互動為主軸的實驗性作品頁。" />
+<meta property="og:locale" content="zh_TW" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0a0a'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23f3f3f3' font-family='sans-serif'%3EC%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #0a0a0a;
+    --ink-soft: #101010;
+    --paper: #f3f3f3;
+    --muted: #a3a3a3;
+    --faint: #737373;
+    --line: #262626;
+    --shell: 1200px;
+    --display: 'Syne', 'Noto Sans TC', sans-serif;
+    --body: 'Inter', 'Noto Sans TC', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--body);
+    font-weight: 300;
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--paper); color: var(--ink); }
+
+  h1, h2, h3 {
+    font-family: var(--display);
+    font-weight: 800;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  .shell {
+    width: 100%;
+    max-width: var(--shell);
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* ── 自訂游標 ───────────────────────── */
+  /* 只有真正有滑鼠的裝置才藏起系統游標；觸控裝置留原生游標，否則會完全看不到點擊位置 */
+  .cursor { display: none; }
+
+  @media (hover: hover) and (pointer: fine) {
+    body { cursor: none; }
+    .cursor {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      border-radius: 50%;
+      z-index: 999;
+      /* 位移交給 JS 的 translate，這裡只補間尺寸與底色 */
+      transition: width .3s ease, height .3s ease, background-color .3s ease;
+      will-change: transform;
+    }
+    .cursor.is-idle { opacity: 0; }
+    .cursor-dot {
+      width: 8px;
+      height: 8px;
+      margin: -4px 0 0 -4px;
+      background: #fff;
+    }
+    .cursor-ring {
+      width: 40px;
+      height: 40px;
+      margin: -20px 0 0 -20px;
+      border: 1px solid rgba(255, 255, 255, .4);
+      background: transparent;
+    }
+    .cursor-ring.is-near {
+      width: 70px;
+      height: 70px;
+      margin: -35px 0 0 -35px;
+      background: rgba(255, 255, 255, .1);
+    }
+  }
+
+  /* ── 頁首 ───────────────────────────── */
+  .topbar {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.5rem 2rem;
+    /* 差集混合讓頁首在亮暗影像上都看得見，不必另外加底色 */
+    mix-blend-mode: difference;
+  }
+
+  .wordmark {
+    font-family: var(--display);
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+  }
+
+  .topnav {
+    display: flex;
+    gap: 2rem;
+    font-size: .8rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+  }
+
+  .topnav a {
+    color: var(--muted);
+    transition: color .3s ease;
+  }
+
+  .topnav a:hover,
+  .topnav a:focus-visible { color: #fff; }
+
+  .pill {
+    font: inherit;
+    font-size: .7rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: inherit;
+    padding: .55rem 1.25rem;
+    border: 1px solid rgba(255, 255, 255, .3);
+    border-radius: 999px;
+    background: transparent;
+    transition: background-color .3s ease, color .3s ease;
+  }
+
+  .pill:hover,
+  .pill:focus-visible { background: #fff; color: #000; }
+
+  /* ── 首屏：影片背景 ─────────────────── */
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .hero video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: .6;
+  }
+
+  /* 由上而下加深，讓標題壓在影片上仍有足夠對比 */
+  .hero-veil {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(10, 10, 10, .4) 0%, rgba(10, 10, 10, .85) 100%);
+  }
+
+  .hero-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 60rem;
+    padding: 8rem 1.5rem 6rem;
+  }
+
+  .eyebrow {
+    display: block;
+    font-size: .7rem;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.25rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(3rem, 12vw, 8.5rem);
+    line-height: .92;
+    letter-spacing: -.03em;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 .fade {
+    background: linear-gradient(90deg, #fff 0%, var(--muted) 55%, #404040 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hero p {
+    max-width: 36rem;
+    margin: 0 auto;
+    color: var(--muted);
+    font-size: clamp(.9rem, 2.2vw, 1rem);
+    letter-spacing: .02em;
+  }
+
+  /* ── 作品 ───────────────────────────── */
+  .works { padding: 8rem 0; }
+
+  .section-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+    margin-bottom: 4rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .section-head h2 {
+    font-size: clamp(2rem, 6vw, 3.75rem);
+    letter-spacing: -.01em;
+  }
+
+  .section-head span {
+    font-size: .7rem;
+    letter-spacing: .2em;
+    color: var(--faint);
+    white-space: nowrap;
+  }
+
+  .work-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3rem;
+  }
+
+  /* 第二欄整體下沉，做出雜誌式錯落，不是單純的兩欄網格 */
+  .work-grid > :nth-child(even) { margin-top: 6rem; }
+
+  .work-frame {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    margin-bottom: 1.5rem;
+    background: #171717;
+    overflow: hidden;
+  }
+
+  .work-frame span {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(38, 38, 38, .5);
+    font-family: var(--display);
+    font-size: 1.5rem;
+    color: #525252;
+    transition: transform .7s cubic-bezier(.22, 1, .36, 1);
+  }
+
+  .work:hover .work-frame span,
+  .work:focus-visible .work-frame span { transform: scale(1.05); }
+
+  .work-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .work-meta h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    transition: transform .3s ease;
+  }
+
+  .work:hover .work-meta h3,
+  .work:focus-visible .work-meta h3 { transform: translateX(.5rem); }
+
+  .work-meta em {
+    font-style: normal;
+    font-size: .7rem;
+    letter-spacing: .15em;
+    color: var(--faint);
+    text-align: right;
+  }
+
+  /* ── 理念 ───────────────────────────── */
+  .manifesto {
+    padding: 8rem 0;
+    background: #050505;
+    border-top: 1px solid #171717;
+    border-bottom: 1px solid #171717;
+    text-align: center;
+  }
+
+  .manifesto .shell { max-width: 56rem; }
+
+  .manifesto h2 {
+    font-size: clamp(1.6rem, 5vw, 3rem);
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 2rem;
+  }
+
+  .manifesto p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  /* ── 頁尾 ───────────────────────────── */
+  .contact {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+    padding: 6rem 0;
+  }
+
+  .contact h2 {
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    line-height: 1;
+    letter-spacing: -.02em;
+    margin-bottom: 1rem;
+  }
+
+  .contact a[href^="mailto"] {
+    font-size: 1.125rem;
+    color: var(--muted);
+    text-decoration: underline;
+    text-underline-offset: .25em;
+    transition: color .3s ease;
+  }
+
+  .contact a[href^="mailto"]:hover,
+  .contact a[href^="mailto"]:focus-visible { color: #fff; }
+
+  .colophon {
+    text-align: right;
+    font-size: .7rem;
+    letter-spacing: .2em;
+    color: #525252;
+  }
+
+  .colophon p { margin: 0 0 .5rem; }
+
+  /* ── 進場動畫 ───────────────────────── */
+  /* 只有 JS 掛上 reveal-ready 後才先藏起來，沒有 JS 的環境直接看到完整內容 */
+  .reveal-ready [data-reveal] {
+    opacity: 0;
+    transform: translateY(50px);
+    transition: opacity .9s cubic-bezier(.22, 1, .36, 1), transform .9s cubic-bezier(.22, 1, .36, 1);
+  }
+
+  .reveal-ready [data-reveal].is-in {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ── 響應式：平板以下 ───────────────── */
+  @media (max-width: 900px) {
+    .shell { padding: 0 1.5rem; }
+    .topbar { padding: 1.25rem 1.5rem; }
+    .topnav { display: none; }
+    .works, .manifesto { padding: 5rem 0; }
+    .work-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 3.5rem;
+    }
+    .work-grid > :nth-child(even) { margin-top: 0; }
+    .contact {
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+      padding: 4.5rem 0;
+    }
+    .colophon { text-align: left; }
+  }
+
+  @media (max-width: 520px) {
+    /* 窄螢幕時字標與按鈕會互相貼上，兩邊都縮一點留出呼吸空間 */
+    .wordmark { font-size: 1rem; }
+    .pill { padding: .5rem 1rem; }
+    .section-head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: .75rem;
+    }
+    .work-meta {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: .35rem;
+    }
+    .work-meta em { text-align: left; }
+  }
+
+  /* ── 降低動態偏好 ───────────────────── */
+  /* 使用者若要求減少動態，就直接顯示內容，影片也由 JS 暫停 */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { animation-duration: .01ms !important; }
+    .reveal-ready [data-reveal] {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+    .work-frame span,
+    .work-meta h3 { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor cursor-dot" id="cursorDot" aria-hidden="true"></div>
+<div class="cursor cursor-ring" id="cursorRing" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a class="wordmark hover-target" href="#top">CHENGYUN.LAB</a>
+  <nav class="topnav">
+    <a class="hover-target" href="#works">Works</a>
+    <a class="hover-target" href="#lab">Lab</a>
+    <a class="hover-target" href="#contact">Contact</a>
+  </nav>
+  <a class="pill hover-target" href="#contact">Let's Talk</a>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <video id="heroVideo" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+      <source src="../assets/hero-loop.mp4" type="video/mp4" />
+    </video>
+    <div class="hero-veil"></div>
+
+    <div class="hero-copy">
+      <span class="eyebrow">Experimental Digital &amp; Visual Arts</span>
+      <h1>Beyond <br /><span class="fade">Reality</span></h1>
+      <p>We craft immersive digital experiences, pushing the boundaries of WebGL, motion, and avant-garde design aesthetics.</p>
+    </div>
+  </section>
+
+  <section class="works" id="works">
+    <div class="shell">
+      <div class="section-head">
+        <h2 data-reveal>Selected Works</h2>
+        <span data-reveal>(2026 ARCHIVE)</span>
+      </div>
+
+      <div class="work-grid">
+        <a class="work hover-target" href="#contact" data-reveal>
+          <div class="work-frame"><span>[ PROJECT 01 ]</span></div>
+          <div class="work-meta">
+            <h3>Neural Void</h3>
+            <em>WEBGL / INTERACTION</em>
+          </div>
+        </a>
+
+        <a class="work hover-target" href="#contact" data-reveal>
+          <div class="work-frame"><span>[ PROJECT 02 ]</span></div>
+          <div class="work-meta">
+            <h3>Liquid Cyber</h3>
+            <em>BRANDING / 3D MOTION</em>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="manifesto" id="lab">
+    <div class="shell">
+      <span class="eyebrow" data-reveal>Philosophy</span>
+      <h2 data-reveal>“We don't just build websites. We engineer digital dimensions.”</h2>
+      <p data-reveal>Merging high-end creative direction with cutting-edge engineering. Every pixel, motion curve, and interaction is meticulously crafted to evoke emotion and leave a lasting impression.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="contact shell" id="contact">
+  <div>
+    <h2 data-reveal>Let's create <br />something weird.</h2>
+    <a class="hover-target" href="mailto:hello@chengyun.studio" data-reveal>hello@chengyun.studio</a>
+  </div>
+  <div class="colophon" data-reveal>
+    <p>© 2026 CHENGYUN LAB. ALL RIGHTS RESERVED.</p>
+    <p>POWERED BY AVANT-GARDE MOTION</p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    /* 自訂游標：小圓點貼著滑鼠，外圈用 lerp 慢半拍跟上 */
+    var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+    var dot = document.getElementById('cursorDot');
+    var ring = document.getElementById('cursorRing');
+
+    if (finePointer.matches) {
+      var mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+      var ringX = mouseX, ringY = mouseY;
+
+      dot.classList.add('is-idle');
+      ring.classList.add('is-idle');
+
+      window.addEventListener('mousemove', function (e) {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        dot.style.transform = 'translate(' + mouseX + 'px,' + mouseY + 'px)';
+        dot.classList.remove('is-idle');
+        ring.classList.remove('is-idle');
+      });
+
+      (function render() {
+        ringX += (mouseX - ringX) * 0.15;
+        ringY += (mouseY - ringY) * 0.15;
+        ring.style.transform = 'translate(' + ringX + 'px,' + ringY + 'px)';
+        requestAnimationFrame(render);
+      })();
+
+      /* 用事件委派，之後新增 .hover-target 不必再綁一次 */
+      document.addEventListener('mouseover', function (e) {
+        if (e.target.closest('.hover-target')) { ring.classList.add('is-near'); }
+      });
+      document.addEventListener('mouseout', function (e) {
+        if (e.target.closest('.hover-target')) { ring.classList.remove('is-near'); }
+      });
+    }
+
+    /* 捲動進場：舊瀏覽器或減少動態時直接顯示，不留白畫面 */
+    var targets = document.querySelectorAll('[data-reveal]');
+
+    function revealAll() {
+      targets.forEach(function (el) { el.classList.add('is-in'); });
+    }
+
+    if (!('IntersectionObserver' in window) || reduceMotion.matches) {
+      document.documentElement.classList.add('reveal-ready');
+      revealAll();
+    } else {
+      var seen = 0;
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) { return; }
+          var el = entry.target;
+          /* 同一區塊內依序延遲，做出 stagger */
+          el.style.transitionDelay = (el.dataset.reveal || 0) * 0.15 + 's';
+          el.classList.add('is-in');
+          io.unobserve(el);
+          seen += 1;
+        });
+      }, { rootMargin: '0px 0px -20% 0px' });
+
+      /* 依父層分組編號，讓延遲從每一區塊重新計算 */
+      var groups = new Map();
+      targets.forEach(function (el) {
+        var key = el.closest('section, footer') || document.body;
+        var index = groups.get(key) || 0;
+        el.dataset.reveal = index;
+        groups.set(key, index + 1);
+        io.observe(el);
+      });
+
+      document.documentElement.classList.add('reveal-ready');
+
+      /* 捲到底時直接補完：頁尾元素落在 rootMargin 的下緣盲區，光靠 IO 永遠不會進場 */
+      function checkBottom() {
+        if (window.scrollY + window.innerHeight < document.documentElement.scrollHeight - 4) { return; }
+        window.removeEventListener('scroll', checkBottom);
+        io.disconnect();
+        revealAll();
+      }
+      window.addEventListener('scroll', checkBottom, { passive: true });
+      checkBottom();
+
+      /* 保險絲：截圖工具、爬蟲等環境不送 IO 回呼，等一下若一個都沒進場就全部顯示 */
+      window.setTimeout(function () {
+        if (seen === 0) {
+          io.disconnect();
+          revealAll();
+        }
+      }, 1500);
+    }
+
+    /* 尊重減少動態偏好：背景影片停在第一幀 */
+    var video = document.getElementById('heroVideo');
+    function syncVideo() {
+      if (reduceMotion.matches) { video.pause(); }
+      else { video.play().catch(function () { /* 瀏覽器擋自動播放就維持靜幀，版面不受影響 */ }); }
+    }
+    syncVideo();
+    if (reduceMotion.addEventListener) { reduceMotion.addEventListener('change', syncVideo); }
+  })();
+</script>
+
+</body>
+</html>

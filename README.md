@@ -19,10 +19,22 @@
 ## 檔案結構
 
 ```
-index.html              網頁本體（HTML + CSS + JS 全部內含）
-assets/poster.jpg       宣傳海報
-assets/booth-layout.jpg 招商示意圖
+index.html               網頁本體（HTML + CSS + JS 全部內含）
+assets/poster.jpg        宣傳海報
+assets/booth-layout.jpg  招商示意圖
+assets/hero-loop.mp4     實驗頁首屏背景影片
+experimental/index.html  實驗性作品頁（獨立頁面，不影響主站）
 ```
+
+## 實驗性作品頁
+
+`experimental/index.html` 是一支獨立的深色實驗版型（本機預覽：`/experimental/`），
+與招商主站互不影響，同樣是單檔 HTML、無框架、無建置流程：
+
+- 首屏以 `assets/hero-loop.mp4` 靜音循環播放當背景
+- 自訂游標（外圈慢半拍跟隨），僅在有滑鼠的裝置啟用
+- 捲動進場動畫走 IntersectionObserver，沒有 JS 或回呼沒送達時會直接顯示完整內容
+- 尊重 `prefers-reduced-motion`：關閉進場動畫並暫停背景影片
 
 ## 本機預覽
 

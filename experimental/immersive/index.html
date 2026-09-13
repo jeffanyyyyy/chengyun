@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>CHENGYUN LAB — Obsidian</title>
+<title>CHENGYUN STUDIO — Obsidian</title>
 <meta name="description" content="沈浸式分鏡體驗：中央的碎裂黑水晶、長按展開的導覽、全螢幕遮罩轉場。" />
 <meta name="theme-color" content="#0b0b0c" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0c'/%3E%3Cpath d='M16 5l9 11-9 11-9-11z' fill='%23191919' stroke='%239aa0b5' stroke-width='.8'/%3E%3C/svg%3E" />
@@ -162,37 +162,17 @@
     .cursor.is-idle { opacity: 0; }
 
     .cursor-ring.is-near {
-      width: 72px; height: 72px; margin: -36px 0 0 -36px;
+      width: 46px; height: 46px; margin: -23px 0 0 -23px;
       background: rgba(255,255,255,.1);
       border-color: transparent;
     }
 
+    /* 長按時收緊並提亮，進度交給引導文字下方那條線 */
     .cursor-ring.is-hold {
-      width: 96px; height: 96px; margin: -48px 0 0 -48px;
-      border-color: rgba(255,255,255,.3);
+      width: 38px; height: 38px; margin: -19px 0 0 -19px;
+      background: transparent;
+      border-color: rgba(255,255,255,.85);
     }
-
-    /* 長按進度直接畫在游標外框上，不必在版面中央擺一個環 */
-    .cursor-arc {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      transform: rotate(-90deg);
-      opacity: 0;
-      transition: opacity .3s ease;
-    }
-
-    .cursor-arc circle {
-      fill: none;
-      stroke: #fff;
-      stroke-width: 3;
-      stroke-dasharray: 289;
-      stroke-dashoffset: 289;
-      transition: stroke-dashoffset .1s linear;
-    }
-
-    .cursor-ring.is-hold .cursor-arc { opacity: 1; }
   }
 
   /* ── 長按進度 ───────────────────────── */
@@ -360,15 +340,13 @@
 </div>
 
 <div class="cursor cursor-dot" id="cursorDot" aria-hidden="true"></div>
-<div class="cursor cursor-ring" id="cursorRing" aria-hidden="true">
-  <svg class="cursor-arc" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" id="cursorArc" /></svg>
-</div>
+<div class="cursor cursor-ring" id="cursorRing" aria-hidden="true"></div>
 <div class="wipe" id="wipe" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
 
 <!-- ── 固定頁首／頁尾 ───────────────── -->
 <header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 md:px-10 py-6 mix-blend-difference">
-  <button class="hover-target font-syne text-sm font-extrabold tracking-[.22em] uppercase" id="brand" type="button">Chengyun.Lab</button>
+  <button class="hover-target font-syne text-sm font-extrabold tracking-[.22em] uppercase" id="brand" type="button">Chengyun.Studio</button>
   <div class="flex items-center gap-5">
     <span class="text-[.6rem] tracking-[.3em] uppercase text-white/60 hidden sm:block" id="sceneLabel">Index</span>
     <button class="burger hover-target py-2" id="burger" type="button" aria-label="開關導覽">
@@ -591,17 +569,12 @@
     /* ══ 長按展開 ══════════════════════════════════════════════ */
     const holdZone = document.getElementById('holdZone');
     const holdLine = document.getElementById('holdLine');
-    const cursorArc = document.getElementById('cursorArc');
     const ring = document.getElementById('cursorRing');
-    const ARC = 289;                       // 2πr，r = 46
     const HOLD_MS = 850;
     let holdStart = 0;
     let holding = false;
 
-    const setProgress = (p) => {
-      holdLine.style.transform = `scaleX(${p})`;
-      cursorArc.style.strokeDashoffset = String(ARC * (1 - p));
-    };
+    const setProgress = (p) => { holdLine.style.transform = `scaleX(${p})`; };
 
     function startHold() {
       if (current !== 'hero' || busy) { return; }

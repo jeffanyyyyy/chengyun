@@ -63,9 +63,6 @@
     height: 100%;
     object-fit: cover;
     opacity: .78;
-    /* 放大一點點，滑鼠視差位移時才不會露出邊緣 */
-    transform: scale(1.08);
-    will-change: transform;
   }
 
   /* 壓暗層：白字要壓在影片上仍需要一層底，但比先前淡，讓影片看得出來。
@@ -532,15 +529,6 @@
     addEventListener('pointerdown', resumeVideo);
     addEventListener('keydown', resumeVideo);
 
-    /* 滑鼠位置推一點背景視差，畫面才不會是一張死的影片 */
-    let mx = 0, my = 0, vx = 0, vy = 0;
-    if (fine) {
-      addEventListener('mousemove', (e) => {
-        mx = (e.clientX / innerWidth - 0.5) * 2;
-        my = (e.clientY / innerHeight - 0.5) * 2;
-      });
-    }
-
     /* ══ 分鏡切換 ══════════════════════════════════════════════ */
     const scenes = new Map();
     document.querySelectorAll('[data-scene]').forEach((el) => scenes.set(el.dataset.scene, el));
@@ -744,12 +732,6 @@
         ringX = lerp(ringX, mouseX, 0.16);
         ringY = lerp(ringY, mouseY, 0.16);
         ring.style.transform = `translate(${ringX}px, ${ringY}px)`;
-      }
-
-      if (fine) {
-        vx = lerp(vx, mx * -14, 0.045);
-        vy = lerp(vy, my * -14, 0.045);
-        bgVideo.style.transform = `translate(${vx.toFixed(2)}px, ${vy.toFixed(2)}px) scale(1.08)`;
       }
 
       requestAnimationFrame(frame);

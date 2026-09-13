@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Noto+Sans+JP:wght@200;300;400&family=Noto+Sans+TC:wght@200;300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
 
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script>
   if (window.tailwind) {
     tailwind.config = {
@@ -327,6 +328,65 @@
     transition: transform .12s linear;
   }
 
+  /* ── 全螢幕選單覆蓋層 ───────────────── */
+  /* 疊在頁首之下（頁首 z-95），漢堡鈕才能當關閉鈕用 */
+  .menu-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: grid;
+    place-items: center;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .menu-overlay.is-open {
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .menu-blur {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    background: rgba(6, 7, 10, .55);
+    backdrop-filter: blur(20px) saturate(.85);
+    -webkit-backdrop-filter: blur(20px) saturate(.85);
+  }
+
+  /* 從右上角漢堡鈕的位置擴散開的圓形遮罩 */
+  .menu-mask {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 260vmax;
+    height: 260vmax;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(10, 11, 14, .92) 0%, rgba(10, 11, 14, .78) 60%, rgba(10, 11, 14, .6) 100%);
+    transform: translate(50%, -50%) scale(0);
+    transform-origin: 50% 50%;
+  }
+
+  .menu-nav {
+    position: relative;
+    width: 100%;
+    max-width: 48rem;
+    padding: 0 2rem;
+    max-height: 100svh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* 沒有 GSAP 時，用 CSS 補間同一組狀態，動畫仍然成立 */
+  .menu-blur, .menu-mask { transition: opacity .5s var(--ease), transform .9s var(--ease); }
+  .menu-overlay.is-open .menu-blur { opacity: 1; }
+  .menu-overlay.is-open .menu-mask { transform: translate(50%, -50%) scale(1); }
+  .menu-row { transition: opacity .5s var(--ease), transform .6s var(--ease), color .45s var(--ease), border-color .45s var(--ease); }
+
+  /* 交給 GSAP 之後就不需要 CSS 補間，免得兩邊打架 */
+  .has-gsap .menu-blur,
+  .has-gsap .menu-mask { transition: none; }
+
   /* ── 導覽：六個章節排成一列清單 ─────── */
   .menu-row {
     display: flex;
@@ -355,8 +415,8 @@
   }
 
 
-  .menu-row:hover,
-  .menu-row:focus-visible {
+  .menu-overlay.is-open .menu-row:hover,
+  .menu-overlay.is-open .menu-row:focus-visible {
     color: #fff;
     border-color: rgba(255, 255, 255, .4);
     transform: translateX(.75rem);
@@ -788,31 +848,33 @@
   </div>
 </section>
 
-<!-- ── 2. 導覽：六個章節 ─────────────── -->
-<section class="scene" data-scene="menu" aria-hidden="true">
-  <div class="scene-inner grid place-items-center min-h-[100svh] px-6 md:px-10 py-24">
-    <nav class="stagger w-full max-w-3xl">
-      <a class="menu-row hover-target" href="#about" data-go="about">
-        <span class="idx">01</span><span class="label" data-i18n="menu.about">About Us</span>
-      </a>
-      <a class="menu-row hover-target" href="#services" data-go="services">
-        <span class="idx">02</span><span class="label" data-i18n="menu.services">Services</span>
-      </a>
-      <a class="menu-row hover-target" href="#teams" data-go="teams">
-        <span class="idx">03</span><span class="label" data-i18n="menu.teams">Teams</span>
-      </a>
-      <a class="menu-row hover-target" href="#portfolio" data-go="portfolio">
-        <span class="idx">04</span><span class="label" data-i18n="menu.portfolio">Portfolio</span>
-      </a>
-      <a class="menu-row hover-target" href="#faq" data-go="faq">
-        <span class="idx">05</span><span class="label" data-i18n="menu.faq">Q&amp;A</span>
-      </a>
-      <a class="menu-row hover-target" href="#contact" data-go="contact">
-        <span class="idx">06</span><span class="label" data-i18n="menu.contact">Contact Us</span>
-      </a>
-    </nav>
-  </div>
-</section>
+<!-- ── 全螢幕選單覆蓋層 ─────────────── -->
+<div class="menu-overlay" id="menuOverlay" aria-hidden="true">
+  <!-- 毛玻璃與暗化分成兩層：模糊整片淡入，圓形遮罩從按鈕擴散 -->
+  <div class="menu-blur"></div>
+  <div class="menu-mask"></div>
+
+  <nav class="menu-nav" id="menuNav" aria-label="Menu">
+    <a class="menu-row hover-target" href="#about" data-go="about">
+      <span class="idx">01</span><span class="label" data-i18n="menu.about">About Us</span>
+    </a>
+    <a class="menu-row hover-target" href="#services" data-go="services">
+      <span class="idx">02</span><span class="label" data-i18n="menu.services">Services</span>
+    </a>
+    <a class="menu-row hover-target" href="#teams" data-go="teams">
+      <span class="idx">03</span><span class="label" data-i18n="menu.teams">Teams</span>
+    </a>
+    <a class="menu-row hover-target" href="#portfolio" data-go="portfolio">
+      <span class="idx">04</span><span class="label" data-i18n="menu.portfolio">Portfolio</span>
+    </a>
+    <a class="menu-row hover-target" href="#faq" data-go="faq">
+      <span class="idx">05</span><span class="label" data-i18n="menu.faq">Q&amp;A</span>
+    </a>
+    <a class="menu-row hover-target" href="#contact" data-go="contact">
+      <span class="idx">06</span><span class="label" data-i18n="menu.contact">Contact Us</span>
+    </a>
+  </nav>
+</div>
 
 <!-- ── 01 About ────────────────────── -->
 <section class="scene" data-scene="about" aria-hidden="true">
@@ -1413,8 +1475,9 @@
 
     /* 頁首標籤與頁尾提示跟著語言走 */
     function syncChrome() {
-      sceneLabel.textContent = t('label.' + current);
-      footHint.textContent = t('hint.' + current) || t('hint.default');
+      const open = menuOverlay.classList.contains('is-open');
+      sceneLabel.textContent = open ? t('label.menu') : t('label.' + current);
+      footHint.textContent = open ? t('hint.menu') : (t('hint.' + current) || t('hint.default'));
     }
 
     function goTo(name) {
@@ -1438,8 +1501,7 @@
         current = name;
 
         if (name === 'hero') { setProgress(0); }
-        root.classList.toggle('is-inner', name !== 'hero' && name !== 'menu');
-        root.classList.toggle('is-menu', name === 'menu');
+        root.classList.toggle('is-inner', name !== 'hero');
         syncChrome();
         watchScene(to);
         backBtn.hidden = name === 'hero';
@@ -1450,6 +1512,73 @@
 
         setTimeout(() => { busy = false; }, reduce ? 60 : 420);
       }, reduce ? 60 : 380);
+    }
+
+    /* ══ 全螢幕選單覆蓋層 ══════════════════════════════════════ */
+    const menuOverlay = document.getElementById('menuOverlay');
+    const menuBlur = menuOverlay.querySelector('.menu-blur');
+    const menuMask = menuOverlay.querySelector('.menu-mask');
+    const menuRows = [...menuOverlay.querySelectorAll('.menu-row')];
+    const hasGsap = typeof window.gsap !== 'undefined';
+    let menuTl = null;
+
+    if (hasGsap) {
+      root.classList.add('has-gsap');
+      /* 起始狀態用 gsap.set 而不是寫在 CSS 裡：GSAP 沒載到時內容照樣看得到 */
+      gsap.set(menuBlur, { opacity: 0 });
+      gsap.set(menuMask, { scale: 0 });
+      gsap.set(menuRows, { opacity: 0, y: 46 });
+    }
+
+    function buildMenuTl() {
+      /* 模糊先淡入、圓形遮罩從右上角擴散，項目最後依序由下滑出 */
+      const tl = gsap.timeline({ paused: true, defaults: { ease: 'power3.out' } });
+      tl.to(menuBlur, { opacity: 1, duration: .5, ease: 'power2.out' }, 0)
+        .to(menuMask, { scale: 1, duration: 1.05, ease: 'power3.inOut' }, 0)
+        .to(menuRows, { opacity: 1, y: 0, duration: .85, stagger: .07 }, .28);
+      return tl;
+    }
+
+    function openMenu() {
+      if (menuOverlay.classList.contains('is-open')) { return; }
+      menuOverlay.classList.add('is-open');
+      menuOverlay.removeAttribute('aria-hidden');
+      root.classList.add('is-menu');
+      syncChrome();
+      /* 覆蓋層開著時關閉鈕就是右上的 ×，頁尾那顆「← Index」留著只會誤導 */
+      backBtn.hidden = true;
+
+      if (hasGsap && !reduce) {
+        if (!menuTl) { menuTl = buildMenuTl(); }
+        menuTl.timeScale(1).play(0);
+      } else if (hasGsap) {
+        gsap.set(menuBlur, { opacity: 1 });
+        gsap.set(menuMask, { scale: 1 });
+        gsap.set(menuRows, { opacity: 1, y: 0 });
+      }
+      if (keyboardNav) { menuRows[0].focus({ preventScroll: true }); }
+    }
+
+    function closeMenu(then) {
+      if (!menuOverlay.classList.contains('is-open')) { if (then) { then(); } return; }
+      root.classList.remove('is-menu');
+
+      const finish = () => {
+        menuOverlay.classList.remove('is-open');
+        menuOverlay.setAttribute('aria-hidden', 'true');
+        syncChrome();
+        backBtn.hidden = current === 'hero';
+        if (then) { then(); }
+      };
+
+      if (hasGsap && menuTl && !reduce) {
+        /* 收合走同一條時間軸倒帶，但快一點，才不會拖 */
+        menuTl.timeScale(1.9).reverse();
+        menuTl.eventCallback('onReverseComplete', () => { menuTl.eventCallback('onReverseComplete', null); finish(); });
+      } else {
+        if (hasGsap) { gsap.set(menuBlur, { opacity: 0 }); gsap.set(menuMask, { scale: 0 }); gsap.set(menuRows, { opacity: 0, y: 46 }); }
+        finish();
+      }
     }
 
     /* ══ 長按展開 ══════════════════════════════════════════════ */
@@ -1481,7 +1610,7 @@
     function release() {
       endHold(true);
       root.classList.add('is-entering');
-      setTimeout(() => goTo('menu'), reduce ? 0 : 300);
+      setTimeout(openMenu, reduce ? 0 : 300);
       setTimeout(() => root.classList.remove('is-entering'), reduce ? 60 : 1300);
     }
 
@@ -1497,17 +1626,24 @@
     /* ══ 導覽與返回 ════════════════════════════════════════════ */
     document.addEventListener('click', (e) => {
       const go = e.target.closest('[data-go]');
-      if (go) { e.preventDefault(); goTo(go.dataset.go); }
+      if (!go) { return; }
+      e.preventDefault();
+      const target = go.dataset.go;
+      /* 先收合再換場，兩段動畫不會疊在一起互相打架 */
+      closeMenu(() => goTo(target));
     });
 
     document.getElementById('brand').addEventListener('click', () => goTo('hero'));
-    document.getElementById('burger').addEventListener('click', () => goTo(current === 'menu' ? 'hero' : 'menu'));
-    backBtn.addEventListener('click', () => goTo(current === 'menu' ? 'hero' : 'menu'));
+    document.getElementById('burger').addEventListener('click', () => {
+      if (menuOverlay.classList.contains('is-open')) { closeMenu(); } else { openMenu(); }
+    });
+    backBtn.addEventListener('click', () => { if (menuOverlay.classList.contains('is-open')) { closeMenu(); } else { openMenu(); } });
 
     addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') { return; }
       if (detail.classList.contains('is-on')) { closeDetail(); }
-      else if (current !== 'hero') { goTo(current === 'menu' ? 'hero' : 'menu'); }
+      else if (menuOverlay.classList.contains('is-open')) { closeMenu(); }
+      else { openMenu(); }
     });
 
     /* ══ 活動細節：上下對開的遮罩 ══════════════════════════════ */

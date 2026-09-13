@@ -798,8 +798,10 @@
     border-radius: 2px;
     display: grid;
     place-items: center;
-    align-content: center;
-    gap: .45rem;
+    /* 有照片時字壓在下緣的漸層上，才不會蓋住人臉 */
+    align-content: end;
+    gap: .3rem;
+    padding-bottom: .9rem;
     background:
       radial-gradient(120% 90% at 30% 15%, var(--a) 0%, var(--b) 65%),
       var(--b);
@@ -808,6 +810,17 @@
     transform-origin: 50% 50%;
     transition: box-shadow .55s var(--ease);
   }
+
+  /* 片格裡有照片時，字要壓得住 */
+  .frame-shot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(5, 7, 11, .1) 0%, rgba(5, 7, 11, 0) 35%, rgba(5, 7, 11, .62) 100%);
+    pointer-events: none;
+  }
+
+  .frame-shot > span { position: relative; z-index: 1; }
 
   .frame-shot > span:first-child {
     font-size: .6rem;
@@ -1400,16 +1413,16 @@
       <div class="film" id="film">
         <div class="film-reel" id="filmTrack">
           <article class="frame">
-            <div class="frame-shot" style="--a:#2b3a66; --b:#0d1220"><span>01</span><span class="frame-role" data-i18n="teams.s1">Curation Lead</span></div>
+            <div class="frame-shot" style="--a:#2b3a66; --b:#0d1220; background-image: url(../../assets/team/01.jpg); background-size: cover; background-position: center 50%"><span class="num">01</span><span class="frame-role" data-i18n="teams.s1">Curation Lead</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#1f4a4a; --b:#0b1516"><span>02</span><span class="frame-role" data-i18n="teams.s2">Brand Review</span></div>
+            <div class="frame-shot" style="--a:#1f4a4a; --b:#0b1516; background-image: url(../../assets/team/02.jpg); background-size: cover; background-position: center 40%"><span class="num">02</span><span class="frame-role" data-i18n="teams.s2">Brand Review</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#4a2a2a; --b:#170d0d"><span>03</span><span class="frame-role" data-i18n="teams.s3">Site Operations</span></div>
+            <div class="frame-shot" style="--a:#4a2a2a; --b:#170d0d; background-image: url(../../assets/team/03.jpg); background-size: cover; background-position: center 36%"><span class="num">03</span><span class="frame-role" data-i18n="teams.s3">Site Operations</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#3d3a18; --b:#14130a"><span>04</span><span class="frame-role" data-i18n="teams.s4">Design</span></div>
+            <div class="frame-shot" style="--a:#3d3a18; --b:#14130a; background-image: url(../../assets/team/04.jpg); background-size: cover; background-position: center 45%"><span class="num">04</span><span class="frame-role" data-i18n="teams.s4">Design</span></div>
           </article>
           <article class="frame">
             <div class="frame-shot" style="--a:#33265c; --b:#100c1c"><span>05</span><span class="frame-role" data-i18n="teams.s5">Social</span></div>
@@ -2518,12 +2531,14 @@
     const filmCanvas = document.getElementById('filmGL');
     let filmGL = null;
 
-    /* 之後換成真實照片：把 src 填上圖片網址即可，載好會自動重畫貼圖 */
+    /* 片格內容：src 填上圖片路徑即可，載好會自動重畫貼圖；
+       focus 是等比裁切時的垂直焦點（0 = 貼齊上緣、1 = 貼齊下緣），
+       直式照片放進橫式片格會裁掉上下，用它把人臉留在畫面裡 */
     const FILM_ART = [
-      { a: '#2b3a66', b: '#0d1220', src: '' },
-      { a: '#1f4a4a', b: '#0b1516', src: '' },
-      { a: '#4a2a2a', b: '#170d0d', src: '' },
-      { a: '#3d3a18', b: '#14130a', src: '' },
+      { a: '#2b3a66', b: '#0d1220', src: '../../assets/team/01.jpg', focus: .5 },
+      { a: '#1f4a4a', b: '#0b1516', src: '../../assets/team/02.jpg', focus: .4 },
+      { a: '#4a2a2a', b: '#170d0d', src: '../../assets/team/03.jpg', focus: .36 },
+      { a: '#3d3a18', b: '#14130a', src: '../../assets/team/04.jpg', focus: .45 },
       { a: '#33265c', b: '#100c1c', src: '' },
       { a: '#20405e', b: '#0a131c', src: '' },
       { a: '#2d4a3a', b: '#0b1510', src: '' },
@@ -2562,7 +2577,7 @@
       scene.add(rig);
 
       const PANEL_W = 1;                               /* 片格寬＝1 個世界單位，其餘都以它為準 */
-      const IMG_H = .58;                               /* 畫面高 */
+      const IMG_H = .66;                               /* 畫面高：接近 35mm 的 3:2 */
       const PERF_H = .075;                             /* 單邊齒孔帶高 */
       const PANEL_H = IMG_H + PERF_H * 2;
       const BEND = .22;                                /* 往後彎的強度：z = -BEND · x²  */
@@ -2641,14 +2656,17 @@
           /* 等比裁切填滿，比例不對也不會被拉扁 */
           const iw = art.img.width;
           const ihh = art.img.height;
-          const scale = Math.max((TW - 20) / iw, (ih - 8) / ihh);
+          const bw = TW - 20;
+          const bh = ih - 8;
+          const scale = Math.max(bw / iw, bh / ihh);
           const dw = iw * scale;
           const dh = ihh * scale;
+          const f = typeof art.focus === 'number' ? art.focus : .42;
           x.save();
           x.beginPath();
-          x.rect(10, iy + 4, TW - 20, ih - 8);
+          x.rect(10, iy + 4, bw, bh);
           x.clip();
-          x.drawImage(art.img, 10 + (TW - 20 - dw) / 2, iy + 4 + (ih - 8 - dh) / 2, dw, dh);
+          x.drawImage(art.img, 10 + (bw - dw) / 2, iy + 4 + (bh - dh) * f, dw, dh);
           x.restore();
         } else {
           x.fillStyle = 'rgba(255, 255, 255, .3)';

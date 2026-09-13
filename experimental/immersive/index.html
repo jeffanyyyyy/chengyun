@@ -643,7 +643,7 @@
   .film-stage {
     position: relative;
     z-index: 1;
-    perspective: 1150px;
+    perspective: 1050px;
     perspective-origin: 50% 50%;
     padding: 2rem 0 2.25rem;
   }
@@ -657,6 +657,8 @@
     transform-style: preserve-3d;
     cursor: grab;
     touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
   }
 
   .film.is-dragging { cursor: grabbing; }
@@ -742,8 +744,10 @@
     background:
       radial-gradient(120% 90% at 30% 15%, var(--a) 0%, var(--b) 65%),
       var(--b);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07), 0 14px 36px rgba(0, 0, 0, .55);
     overflow: hidden;
+    transform-origin: 50% 50%;
+    transition: box-shadow .55s var(--ease);
   }
 
   .frame-shot > span:first-child {
@@ -761,7 +765,7 @@
     transition: color .5s var(--ease);
   }
 
-  .frame.is-current .frame-shot { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .28), 0 24px 70px rgba(0, 0, 0, .6); }
+  .frame.is-current .frame-shot { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .3), 0 34px 90px rgba(0, 0, 0, .78); }
   .frame.is-current .frame-role { color: #fff; }
 
   /* 左右箭頭：圓角方塊，貼在畫面兩側外緣 */
@@ -2329,7 +2333,9 @@
     function filmRender(now) {
       filmFrames.forEach((f, i) => {
         const o = i - filmPos;
-        const near = Math.max(0, 1 - Math.abs(o));          /* 離中心多近 */
+        /* 離中心多近：用一條連續的鐘形曲線，
+           1 - |o| 會讓隔壁那格一次掉到底，遠近看起來都一樣暗 */
+        const near = 1 / (1 + (o / 1.1) * (o / 1.1));
         const float = reduce ? 0 : Math.sin(now / 1100 + i * 1.7) * 4 * near;
 
         if (reduce) {
@@ -2343,8 +2349,15 @@
             'translateY(' + float.toFixed(2) + 'px)';
         }
 
-        f.style.opacity = clamp(1 - Math.abs(o) * .1, .12, 1).toFixed(3);
-        filmShots[i].style.filter = 'brightness(' + (.62 + .38 * near).toFixed(3) + ')';
+        f.style.opacity = clamp(1 - Math.abs(o) * .09, .14, 1).toFixed(3);
+
+        /* 縮放與失焦掛在畫面上，不掛在片格本身：
+           片格一縮，整條底片就會出現縫、齒孔也會對不齊 */
+        const shot = filmShots[i];
+        shot.style.transform = reduce ? '' : 'scale(' + (.92 + .08 * near).toFixed(3) + ')';
+        shot.style.filter =
+          'brightness(' + (.46 + .54 * near).toFixed(3) + ')' +
+          (reduce ? '' : ' blur(' + ((1 - near) * 1.5).toFixed(2) + 'px)');
       });
 
       if (filmSpot) { filmSpot.style.opacity = (.55 + .45 * Math.max(0, 1 - Math.abs(filmPos - Math.round(filmPos)) * 2)).toFixed(3); }

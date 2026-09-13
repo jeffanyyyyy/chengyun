@@ -14,6 +14,8 @@
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<!-- 膠卷轉盤用：載不到或沒有 WebGL 時，下面的 CSS 3D 版本會接手 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
   if (window.tailwind) {
     tailwind.config = {
@@ -591,7 +593,63 @@
     color: rgba(255, 255, 255, .7);
   }
 
-  /* ── 團隊：3D 圓柱膠卷轉盤 ───────────
+  /* ── 團隊：Three.js 膠卷 ───────────────
+     WebGL 可用時由畫布接手，CSS 3D 那版整個收起來；
+     兩者共用同一組狀態（位置、目標、慣性）與同一排控制項。 */
+  .film-gl-wrap {
+    position: relative;
+    height: calc(var(--fh) + var(--perf) * 2 + 2.5rem);
+    min-height: 220px;
+  }
+
+  .film-gl {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .film-gl.is-dragging { cursor: grabbing; }
+
+  /* 兩端淡出，和 CSS 版本同一個處理 */
+  .film-gl-wrap::before,
+  .film-gl-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 16vw;
+    pointer-events: none;
+  }
+
+  .film-gl-wrap::before { left: 0; background: linear-gradient(90deg, rgba(6, 9, 22, .92) 10%, rgba(6, 9, 22, 0)); }
+  .film-gl-wrap::after { right: 0; background: linear-gradient(270deg, rgba(6, 9, 22, .92) 10%, rgba(6, 9, 22, 0)); }
+
+  :root.has-filmgl .film-stage { display: none; }
+
+  /* 前往活動成果 */
+  .film-cta {
+    position: relative;
+    z-index: 3;
+    margin: .7rem 0 0;
+  }
+
+  .film-link {
+    font-size: .78rem;
+    letter-spacing: .1em;
+    color: rgba(255, 255, 255, .82);
+    border-bottom: 1px solid rgba(255, 255, 255, .3);
+    padding-bottom: 2px;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, .8);
+    transition: color .4s var(--ease), border-color .4s var(--ease);
+  }
+
+  .film-link:hover { color: #fff; border-color: rgba(255, 255, 255, .8); }
+
+  /* ── 團隊：3D 圓柱膠卷轉盤（CSS 3D 備援）─
      每一格排在同一個圓柱面上（rotateY + translateZ），
      齒孔做在片格自己身上，所以整條膠卷是真的跟著弧面彎。
      位置由 JS 每一格算，CSS 只負責尺寸、材質與退化後的樣子。 */
@@ -620,7 +678,7 @@
     position: relative;
     width: 100vw;
     max-width: 100vw;
-    margin-top: -7rem;
+    margin-top: -4.5rem;
     z-index: 1;
 
     /* 片格尺寸；圓柱半徑由 JS 依這個寬度回推 */
@@ -1324,10 +1382,16 @@
 
       <!-- 目前這一格的說明，跟著輪播切換 -->
       <p class="film-caption"><b id="filmRole"></b><span class="sep">•</span><span id="filmNote"></span></p>
+      <p class="film-cta"><a class="film-link hover-target" id="filmLink" href="#portfolio" data-i18n="teams.link">View our work →</a></p>
     </div>
 
     <!-- 膠卷：滿版出血、帶透視與傾斜，兩端切出畫面外 -->
     <div class="film-bleed">
+      <!-- Three.js 的膠卷；WebGL 不可用時這層不會出現 -->
+      <div class="film-gl-wrap" id="filmGLWrap" hidden>
+        <canvas class="film-gl" id="filmGL"></canvas>
+      </div>
+
       <div class="film-stage">
       <!-- 中央聚光：畫在 3D 場景外，免得和正中央那一格同深度互穿 -->
       <div class="film-spot" aria-hidden="true"></div>
@@ -1663,6 +1727,7 @@
         'teams.b9': 'Name, role and photo to be supplied.',
         'teams.b10': 'Name, role and photo to be supplied.',
         'teams.b11': 'Name, role and photo to be supplied.',
+        'teams.link': 'View our work →',
         'contact.t0': 'Chengyun Event Studio Co., Ltd.',
         'form.required': 'This field is required', 'form.badEmail': 'Please check the email address',
         'form.fixFields': 'Please complete the required fields marked with an asterisk.',
@@ -1778,6 +1843,7 @@
         'teams.s9': '職務待補', 'teams.b9': '姓名、職務與照片待提供。',
         'teams.s10': '職務待補', 'teams.b10': '姓名、職務與照片待提供。',
         'teams.s11': '職務待補', 'teams.b11': '姓名、職務與照片待提供。',
+        'teams.link': '看看我們的活動成果 →',
         'teams.note': '主辦單位：澄耘活動工作室 有限公司',
         'portfolio.eyebrow': '04 — 活動成果',
         'portfolio.meta': '市集策劃 · 品牌招商 · 現場執行',
@@ -1918,6 +1984,7 @@
         'teams.s9': '担当は調整中', 'teams.b9': '氏名・担当・写真は後日追加。',
         'teams.s10': '担当は調整中', 'teams.b10': '氏名・担当・写真は後日追加。',
         'teams.s11': '担当は調整中', 'teams.b11': '氏名・担当・写真は後日追加。',
+        'teams.link': '活動実績を見る →',
         'teams.note': '主催：澄耘活動工作室 有限公司（Chengyun Event Studio Co., Ltd.）',
         'portfolio.eyebrow': '04 — 実績',
         'portfolio.meta': 'キュレーション · 出店審査 · 現場運営',
@@ -2346,7 +2413,7 @@
     function filmMetrics() {
       /* 一定要用 offsetWidth：getBoundingClientRect 量到的是「轉過之後的投影寬」，
          拿它回推半徑會讓圓柱太緊，相鄰片格就會互相穿插 */
-      filmW = filmFrames[0].offsetWidth || 280;
+      filmW = filmGL ? filmGL.pitch() : (filmFrames[0].offsetWidth || 280);
       filmStep = innerWidth < 760 ? 17 : 12.5;
       /* 弦長只比片格寬 2%：相鄰片格之間留一道框線的縫，
          連起來才像一整條底片，又不會在投影時互穿 */
@@ -2361,6 +2428,8 @@
     }
 
     function filmRender(now) {
+      if (filmGL) { filmGL.render(now); return; }
+
       filmFrames.forEach((f, i) => {
         const o = i - filmPos;
         /* 離中心多近：用一條連續的鐘形曲線，
@@ -2438,8 +2507,252 @@
       filmStart();
     }
 
+    /* ══ Three.js 膠卷 ═════════════════════════════════════════
+       片格不是平面板子轉角度，而是把頂點直接壓到圓柱面上，
+       所以整條底片是一個連續彎曲的曲面，齒孔也跟著彎 —— 這是 CSS 做不到的地方。
+       每一格的貼圖含上下齒孔，寬度剛好是 8 個孔距，
+       相鄰片格接起來齒孔就是連續的。
+       WebGL 不可用、Three.js 沒載到、或使用者要求減少動態時，回到 CSS 3D 版本。 */
+    const filmGLWrap = document.getElementById('filmGLWrap');
+    const filmCanvas = document.getElementById('filmGL');
+    let filmGL = null;
+
+    /* 之後換成真實照片：把 src 填上圖片網址即可，載好會自動重畫貼圖 */
+    const FILM_ART = [
+      { a: '#2b3a66', b: '#0d1220', src: '' },
+      { a: '#1f4a4a', b: '#0b1516', src: '' },
+      { a: '#4a2a2a', b: '#170d0d', src: '' },
+      { a: '#3d3a18', b: '#14130a', src: '' },
+      { a: '#33265c', b: '#100c1c', src: '' },
+      { a: '#20405e', b: '#0a131c', src: '' },
+      { a: '#2d4a3a', b: '#0b1510', src: '' },
+      { a: '#4a3556', b: '#140f1a', src: '' },
+      { a: '#563d2a', b: '#18100b', src: '' },
+      { a: '#25505a', b: '#0a1619', src: '' },
+      { a: '#3a3550', b: '#111018', src: '' }
+    ];
+
+    function filmMakeGL() {
+      if (reduce || !window.THREE) { return null; }
+
+      /* 先用一張暫時的畫布探 WebGL：直接交給 Three 去建的話，
+         失敗時它會在主控台留下一行紅字，而這是預期中的降級、不是錯誤 */
+      const probe = document.createElement('canvas');
+      if (!(probe.getContext('webgl2') || probe.getContext('webgl') || probe.getContext('experimental-webgl'))) {
+        return null;
+      }
+
+      let renderer;
+      try {
+        renderer = new THREE.WebGLRenderer({ canvas: filmCanvas, antialias: true, alpha: true });
+      } catch (err) {
+        return null;                                   /* 沒有 WebGL 就交給 CSS 版本 */
+      }
+
+      renderer.setClearColor(0x000000, 0);
+      renderer.outputEncoding = THREE.sRGBEncoding;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(38, 1, .1, 100);
+
+      /* rig 負責整條膠卷的傾角，reel 只負責繞 Y 軸轉 */
+      const rig = new THREE.Group();
+      rig.rotation.z = -0.1;                           /* 往右上揚，對齊參考畫面 */
+      rig.rotation.x = 0.12;
+      scene.add(rig);
+
+      const reel = new THREE.Group();
+      rig.add(reel);
+
+      const STEP = 0.22;                               /* 每一格佔的圓心角（弧度，約 12.6°）*/
+      const PANEL_W = 1;                               /* 片格寬＝1 個世界單位，其餘都以它為準 */
+      const IMG_H = .58;                               /* 畫面高 */
+      const PERF_H = .075;                             /* 單邊齒孔帶高 */
+      const PANEL_H = IMG_H + PERF_H * 2;
+      const R = (PANEL_W / 2) / Math.sin(STEP / 2);    /* 弦長＝片格寬，相鄰片格剛好接上 */
+      reel.position.z = -R;                            /* 把圓柱前緣挪到 z = 0 */
+
+      /* ── 貼圖：片基 + 上下齒孔 + 中間畫面 ── */
+      const TW = 512;
+      const TH = Math.round(TW * PANEL_H / PANEL_W);
+      const PERF_PX = Math.round(TH * PERF_H / PANEL_H);
+      const CELL = TW / 8;                             /* 一格剛好 8 個孔，接縫才連得起來 */
+
+      function roundRect(x, rx, ry, w, h, r) {
+        x.beginPath();
+        x.moveTo(rx + r, ry);
+        x.arcTo(rx + w, ry, rx + w, ry + h, r);
+        x.arcTo(rx + w, ry + h, rx, ry + h, r);
+        x.arcTo(rx, ry + h, rx, ry, r);
+        x.arcTo(rx, ry, rx + w, ry, r);
+        x.closePath();
+        x.fill();
+      }
+
+      function paint(c, art, n) {
+        const x = c.getContext('2d');
+        x.fillStyle = '#05070b';
+        x.fillRect(0, 0, TW, TH);
+
+        /* 畫面：先鋪佔位漸層，有照片時再蓋上去 */
+        const iy = PERF_PX;
+        const ih = TH - PERF_PX * 2;
+        const g = x.createRadialGradient(TW * .3, iy + ih * .15, 8, TW * .5, iy + ih * .6, TW * .75);
+        g.addColorStop(0, art.a);
+        g.addColorStop(1, art.b);
+        x.fillStyle = g;
+        x.fillRect(10, iy + 4, TW - 20, ih - 8);
+
+        if (art.img) {
+          /* 等比裁切填滿，比例不對也不會被拉扁 */
+          const iw = art.img.width;
+          const ihh = art.img.height;
+          const scale = Math.max((TW - 20) / iw, (ih - 8) / ihh);
+          const dw = iw * scale;
+          const dh = ihh * scale;
+          x.save();
+          x.beginPath();
+          x.rect(10, iy + 4, TW - 20, ih - 8);
+          x.clip();
+          x.drawImage(art.img, 10 + (TW - 20 - dw) / 2, iy + 4 + (ih - 8 - dh) / 2, dw, dh);
+          x.restore();
+        } else {
+          x.fillStyle = 'rgba(255, 255, 255, .3)';
+          x.font = '500 15px Inter, system-ui, sans-serif';
+          x.textAlign = 'center';
+          x.fillText(String(n + 1).padStart(2, '0'), TW / 2, iy + ih / 2);
+        }
+
+        /* 齒孔 */
+        x.fillStyle = '#05070b';
+        x.fillRect(0, 0, TW, PERF_PX);
+        x.fillRect(0, TH - PERF_PX, TW, PERF_PX);
+        x.fillStyle = 'rgba(232, 236, 245, .34)';
+        const hw = CELL * .48;
+        const hh = PERF_PX * .52;
+        for (let k = 0; k < 8; k += 1) {
+          const cx = k * CELL + (CELL - hw) / 2;
+          roundRect(x, cx, (PERF_PX - hh) / 2, hw, hh, hh * .28);
+          roundRect(x, cx, TH - PERF_PX + (PERF_PX - hh) / 2, hw, hh, hh * .28);
+        }
+      }
+
+      /* ── 彎到圓柱面上的片格 ── */
+      function curved(arc, h, seg) {
+        const g = new THREE.PlaneGeometry(1, h, seg, 1);
+        const pos = g.attributes.position;
+        for (let i = 0; i < pos.count; i += 1) {
+          const a = pos.getX(i) * arc;                 /* -0.5..0.5 → -arc/2..arc/2 */
+          pos.setX(i, Math.sin(a) * R);
+          pos.setZ(i, Math.cos(a) * R);
+        }
+        pos.needsUpdate = true;
+        g.computeVertexNormals();
+        return g;
+      }
+
+      const geo = curved(STEP, PANEL_H, 28);
+      const panels = FILM_ART.slice(0, filmFrames.length).map((art, i) => {
+        const c = document.createElement('canvas');
+        c.width = TW;
+        c.height = TH;
+        paint(c, art, i);
+
+        const tex = new THREE.CanvasTexture(c);
+        tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        tex.encoding = THREE.sRGBEncoding;
+
+        const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.rotation.y = i * STEP;
+        reel.add(mesh);
+
+        if (art.src) {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => { art.img = img; paint(c, art, i); tex.needsUpdate = true; };
+          img.src = art.src;
+        }
+        return { mesh: mesh, mat: mat, tex: tex, canvas: c };
+      });
+
+      let want = 3.2;                                  /* 畫面上同時看得到幾個片格寬 */
+
+      function resize() {
+        const w = filmGLWrap.clientWidth;
+        const h = filmGLWrap.clientHeight;
+        if (!w || !h) { return; }
+        renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+
+        /* 相機距離由「想同時看到幾個片格寬」回推，換螢幕寬度時取景才一致 */
+        /* 窄螢幕看得到的片格數要少，否則膠卷會縮成細細一條、上下留一大片空白 */
+        want = w < 520 ? 1.15 : (w < 900 ? 2 : 3.2);
+        const tanY = Math.tan(camera.fov * Math.PI / 360);
+        const hfov = 2 * Math.atan(tanY * camera.aspect);
+        /* 兩個限制取遠的那個：橫向要放得下 want 個片格，
+           縱向要放得下整條膠卷再留 35% 餘裕，否則上下會被切掉 */
+        camera.position.z = Math.max((want / 2) / Math.tan(hfov / 2), (PANEL_H * 1.14 / 2) / tanY);
+      }
+
+      return {
+        canvas: filmCanvas,
+        resize: resize,
+        /* 一格在畫面上的寬度，拖曳要用它換算才會跟手 */
+        pitch: function () { return (filmGLWrap.clientWidth || 1) / want; },
+        render: function (now) {
+          reel.rotation.y = -filmPos * STEP;
+          panels.forEach((p, i) => {
+            const o = i - filmPos;
+            const near = 1 / (1 + (o / 1.1) * (o / 1.1));
+            const b = .46 + .54 * near;
+            p.mat.color.setScalar(b);
+            p.mat.opacity = clamp(1 - Math.abs(o) * .21, 0, 1);
+            p.mesh.visible = p.mat.opacity > .01;
+          });
+          /* 正中央那格輕輕浮動 */
+          rig.position.y = Math.sin(now / 1400) * .012;
+          renderer.render(scene, camera);
+        },
+        dispose: function () {
+          panels.forEach((p) => { p.mat.dispose(); p.tex.dispose(); });
+          geo.dispose();
+          renderer.dispose();
+        }
+      };
+    }
+
+    function filmUseGL(on) {
+      root.classList.toggle('has-filmgl', on);
+      filmGLWrap.hidden = !on;
+    }
+
+    filmGL = filmMakeGL();
+    if (filmGL) {
+      filmUseGL(true);
+      filmGL.resize();
+
+      /* 顯示卡在別的分頁被回收時，退回 CSS 版本；回來再試著重建 */
+      filmCanvas.addEventListener('webglcontextlost', (e) => {
+        e.preventDefault();
+        if (filmGL) { filmGL.dispose(); }
+        filmGL = null;
+        filmUseGL(false);
+        filmRender(performance.now());
+      });
+      filmCanvas.addEventListener('webglcontextrestored', () => {
+        filmGL = filmMakeGL();
+        if (filmGL) { filmUseGL(true); filmGL.resize(); }
+      });
+    }
+
+    /* 拖曳的承接面：GL 開著時是畫布，否則是 CSS 膠卷 */
+    const filmSurface = filmGL ? filmCanvas : filmEl;
+
     /* ── 拖曳／滑動 ── */
-    filmEl.addEventListener('pointerdown', (e) => {
+    filmSurface.addEventListener('pointerdown', (e) => {
       filmMetrics();
       filmDrag.on = true;
       filmDrag.id = e.pointerId;
@@ -2447,12 +2760,12 @@
       filmDrag.moved = 0;
       filmDrag.v = 0;
       filmDrag.last = performance.now();
-      filmEl.classList.add('is-dragging');
-      filmEl.setPointerCapture(e.pointerId);
+      filmSurface.classList.add('is-dragging');
+      filmSurface.setPointerCapture(e.pointerId);
       filmStart();
     });
 
-    filmEl.addEventListener('pointermove', (e) => {
+    filmSurface.addEventListener('pointermove', (e) => {
       if (!filmDrag.on || e.pointerId !== filmDrag.id) { return; }
       const dx = e.clientX - filmDrag.x;
       const dt = Math.max(performance.now() - filmDrag.last, 8);
@@ -2469,13 +2782,27 @@
     function filmRelease(e) {
       if (!filmDrag.on || (e && e.pointerId !== filmDrag.id)) { return; }
       filmDrag.on = false;
-      filmEl.classList.remove('is-dragging');
+      filmSurface.classList.remove('is-dragging');
       /* 把放手當下的速度投射出去，再吸附到最近的一格 */
       filmGo(Math.round(clamp(filmPos + filmDrag.v * 7, 0, filmMax)));
     }
 
-    filmEl.addEventListener('pointerup', filmRelease);
-    filmEl.addEventListener('pointercancel', filmRelease);
+    filmSurface.addEventListener('pointerup', filmRelease);
+    filmSurface.addEventListener('pointercancel', filmRelease);
+
+    /* 滾輪／觸控板：橫向優先，沒有橫向分量就吃縱向；
+       停手後再吸附，滾動中一直重設計時器 */
+    let filmWheelT = 0;
+    filmSurface.addEventListener('wheel', (e) => {
+      if (current !== 'teams') { return; }
+      e.preventDefault();
+      const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      filmPos = filmResist(filmPos + d / 320);
+      filmTarget = filmPos;
+      filmStart();
+      clearTimeout(filmWheelT);
+      filmWheelT = setTimeout(() => filmGo(Math.round(filmPos)), 130);
+    }, { passive: false });
 
     /* ── 圓點、箭頭、鍵盤 ── */
     filmFrames.forEach((f, i) => {
@@ -2494,6 +2821,8 @@
     /* 一律以「目標位置」為基準往前後推：
        filmIndex 要等動畫跑到才更新，用它當基準的話，
        連按兩下箭頭只會走一格 */
+    document.getElementById('filmLink').addEventListener('click', (e) => { e.preventDefault(); goTo('portfolio'); });
+
     filmPrev.addEventListener('click', () => filmGo(Math.round(filmTarget) - 1));
     filmNext.addEventListener('click', () => filmGo(Math.round(filmTarget) + 1));
 
@@ -2506,7 +2835,9 @@
 
     /* rAF 只在這個分鏡開著、分頁又在前景時跑，其餘時間不佔資源 */
     addEventListener('cy:scene', (e) => {
-      if (e.detail === 'teams') { requestAnimationFrame(() => { filmMetrics(); filmStart(); }); }
+      if (e.detail === 'teams') {
+        requestAnimationFrame(() => { filmMetrics(); if (filmGL) { filmGL.resize(); } filmStart(); });
+      }
       else { filmStop(); }
     });
 
@@ -2515,7 +2846,11 @@
       else if (current === 'teams') { filmStart(); }
     });
 
-    addEventListener('resize', () => { filmMetrics(); filmRender(performance.now()); });
+    addEventListener('resize', () => {
+      filmMetrics();
+      if (filmGL) { filmGL.resize(); }
+      filmRender(performance.now());
+    });
 
     /* 開場先把中間那一格放到正面，兩側才都有東西 */
     filmFrames[filmIndex].classList.add('is-current');

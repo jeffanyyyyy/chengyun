@@ -584,6 +584,129 @@
     color: rgba(255, 255, 255, .7);
   }
 
+  /* ── 聯絡：左資訊、右表單 ───────────── */
+  .contact-split {
+    display: grid;
+    grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+    gap: 3.5rem;
+    margin-top: 3rem;
+  }
+
+  .contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  @media (max-width: 900px) {
+    .contact-split { grid-template-columns: minmax(0, 1fr); gap: 2.75rem; }
+  }
+
+  /* ── 表單 ───────────────────────────── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem 1.5rem;
+    margin: 1.75rem 0 2rem;
+  }
+
+  .field.full { grid-column: 1 / -1; }
+
+  @media (max-width: 640px) {
+    .form-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  .field label {
+    display: block;
+    font-size: .58rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .45);
+    margin-bottom: .6rem;
+  }
+
+  .field .req { font-style: normal; color: rgba(255, 255, 255, .85); }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .18);
+    border-radius: 0;
+    padding: .55rem 0;
+    font: inherit;
+    font-size: .85rem;
+    color: #fff;
+    transition: border-color .4s var(--ease);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .field textarea { resize: vertical; min-height: 6.5rem; line-height: 1.8; }
+
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    outline: none;
+    border-bottom-color: #fff;
+  }
+
+  /* 深色底的原生下拉，選項清單仍由系統繪製，得指定顏色才讀得到 */
+  .field select { cursor: none; background-image: none; }
+  .field select option { background: #101013; color: #fff; }
+
+  .field .err {
+    display: block;
+    margin-top: .45rem;
+    font-size: .62rem;
+    letter-spacing: .08em;
+    color: #e08b7a;
+    min-height: .9rem;
+  }
+
+  .field.is-error input,
+  .field.is-error select,
+  .field.is-error textarea { border-bottom-color: #e08b7a; }
+
+  .consent {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    font-size: .78rem;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, .6);
+    cursor: none;
+  }
+
+  .consent input {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    margin-top: .35rem;
+    accent-color: #fff;
+  }
+
+  .form-foot {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+
+  .form-msg {
+    margin: 0;
+    font-size: .72rem;
+    line-height: 1.8;
+    letter-spacing: .04em;
+    color: rgba(255, 255, 255, .55);
+  }
+
+  .form-msg.is-error { color: #e08b7a; }
+  .form-msg.is-ok { color: #8fd6a8; }
+
   /* ── 常見問題：用原生 details，不必為了展開再寫一套 JS ── */
   .faq-group {
     display: block;
@@ -1073,33 +1196,129 @@
 <!-- ── 06 Contact ──────────────────── -->
 <section class="scene" data-scene="contact" aria-hidden="true">
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
-    <div class="stagger w-full max-w-3xl text-left">
+    <div class="stagger w-full max-w-5xl text-left">
       <span class="eyebrow" data-i18n="contact.eyebrow">06 — Contact Us</span>
       <h2 class="scene-title" data-i18n-html="contact.title">Ready to set up a stall<br />in the quiet?</h2>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8 mt-12">
-        <div>
-          <span class="term" data-i18n="contact.t1">Official LINE</span>
-          <a class="link hover-target" href="https://lin.ee/niY5HtU" target="_blank" rel="noopener">lin.ee/niY5HtU</a>
-          <span class="desc" data-i18n="contact.d1">For applications, review and pre-event questions.</span>
+      <div class="contact-split">
+        <!-- 企業聯絡資訊 -->
+        <div class="contact-info">
+          <div>
+            <span class="term" data-i18n="contact.t0">Chengyun Event Studio Co., Ltd.</span>
+            <span class="desc" data-i18n="contact.note">Tax ID 62164766</span>
+          </div>
+          <div>
+            <span class="term" data-i18n="contact.t4">Address</span>
+            <span class="desc" data-i18n="contact.v4">Shuangshi Plaza, Banqiao, New Taipei</span>
+            <span class="desc" data-i18n="contact.d4">Next to Jiangzicui MRT</span>
+          </div>
+          <div>
+            <span class="term" data-i18n="contact.t3">Phone</span>
+            <a class="link hover-target" href="tel:0922531118">0922-531-118</a>
+          </div>
+          <div>
+            <span class="term" data-i18n="contact.t2">Email</span>
+            <a class="link hover-target" href="mailto:chengyuneventstudio@gmail.com">chengyuneventstudio@gmail.com</a>
+            <span class="desc" data-i18n="contact.d2">Partnerships and press.</span>
+          </div>
+          <div>
+            <span class="term" data-i18n="contact.t1">Official LINE</span>
+            <a class="link hover-target" href="https://lin.ee/niY5HtU" target="_blank" rel="noopener">lin.ee/niY5HtU</a>
+            <span class="desc" data-i18n="contact.d1">For applications, review and pre-event questions.</span>
+          </div>
         </div>
-        <div>
-          <span class="term" data-i18n="contact.t2">Email</span>
-          <a class="link hover-target" href="mailto:chengyuneventstudio@gmail.com">chengyuneventstudio@gmail.com</a>
-          <span class="desc" data-i18n="contact.d2">Partnerships and press.</span>
-        </div>
-        <div>
-          <span class="term" data-i18n="contact.t3">Phone</span>
-          <a class="link hover-target" href="tel:0922531118">0922-531-118</a>
-        </div>
-        <div>
-          <span class="term" data-i18n="contact.t4">Location</span>
-          <span class="link" data-i18n="contact.v4">Shuangshi Plaza, Banqiao, New Taipei</span>
-          <span class="desc" data-i18n="contact.d4">Next to Jiangzicui MRT　Open 15:00 – 20:30</span>
-        </div>
-      </div>
 
-      <p class="note mt-12" data-i18n="contact.note">Chengyun Event Studio Co., Ltd.　|　Tax ID 62164766</p>
+        <!-- 線上諮詢表單 -->
+        <form class="contact-form" id="enquiry" novalidate>
+          <span class="term" data-i18n="form.heading">Send an enquiry</span>
+
+          <div class="form-grid">
+            <div class="field full">
+              <label for="f-subject" data-i18n-html="form.subject">Subject <i class="req">*</i></label>
+              <select id="f-subject" name="subject" required>
+                <option value="" data-i18n="form.choose">Please choose</option>
+                <option value="corporate" data-i18n="form.opt1">Corporate events &amp; ceremonies</option>
+                <option value="market" data-i18n="form.opt2">Markets &amp; brand IP</option>
+                <option value="production" data-i18n="form.opt3">Production &amp; talent</option>
+                <option value="esg" data-i18n="form.opt4">ESG-minded events</option>
+                <option value="press" data-i18n="form.opt5">Partnerships &amp; press</option>
+                <option value="other" data-i18n="form.opt6">Something else</option>
+              </select>
+              <span class="err"></span>
+            </div>
+
+            <div class="field full">
+              <label for="f-message" data-i18n-html="form.message">Message <i class="req">*</i></label>
+              <textarea id="f-message" name="message" rows="4" required></textarea>
+              <span class="err"></span>
+            </div>
+
+            <div class="field">
+              <label for="f-name" data-i18n-html="form.name">Name <i class="req">*</i></label>
+              <input id="f-name" name="name" type="text" autocomplete="name" required />
+              <span class="err"></span>
+            </div>
+            <div class="field">
+              <label for="f-company" data-i18n-html="form.company">Company <i class="req">*</i></label>
+              <input id="f-company" name="company" type="text" autocomplete="organization" required />
+              <span class="err"></span>
+            </div>
+            <div class="field">
+              <label for="f-email" data-i18n-html="form.email">Email <i class="req">*</i></label>
+              <input id="f-email" name="email" type="email" autocomplete="email" required />
+              <span class="err"></span>
+            </div>
+            <div class="field">
+              <label for="f-phone" data-i18n-html="form.phone">Phone <i class="req">*</i></label>
+              <input id="f-phone" name="phone" type="tel" autocomplete="tel" required />
+              <span class="err"></span>
+            </div>
+            <div class="field">
+              <label for="f-mobile" data-i18n="form.mobile">Mobile</label>
+              <input id="f-mobile" name="mobile" type="tel" />
+            </div>
+            <div class="field">
+              <label for="f-fax" data-i18n="form.fax">Fax</label>
+              <input id="f-fax" name="fax" type="tel" />
+            </div>
+            <div class="field full">
+              <label for="f-website" data-i18n="form.website">Website</label>
+              <input id="f-website" name="website" type="url" placeholder="https://" />
+            </div>
+
+            <div class="field">
+              <label for="f-country" data-i18n="form.country">Country / Region</label>
+              <select id="f-country" name="country"></select>
+            </div>
+            <div class="field">
+              <label for="f-postal" data-i18n="form.postal">Postal code</label>
+              <input id="f-postal" name="postal" type="text" autocomplete="postal-code" />
+            </div>
+            <div class="field">
+              <label for="f-state" data-i18n="form.state">State / Province</label>
+              <input id="f-state" name="state" type="text" autocomplete="address-level1" />
+            </div>
+            <div class="field">
+              <label for="f-city" data-i18n="form.city">City</label>
+              <input id="f-city" name="city" type="text" autocomplete="address-level2" />
+            </div>
+            <div class="field full">
+              <label for="f-address" data-i18n="form.address">Address</label>
+              <input id="f-address" name="address" type="text" autocomplete="street-address" />
+            </div>
+          </div>
+
+          <label class="consent" for="f-consent">
+            <input id="f-consent" name="consent" type="checkbox" />
+            <span data-i18n="form.consent">I have read the privacy policy and agree to the terms above.</span>
+          </label>
+
+          <div class="form-foot">
+            <button class="pill hover-target" type="submit" id="f-submit" data-i18n="form.submit">Send</button>
+            <p class="form-msg" id="formMsg" role="status" aria-live="polite"></p>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </section>
@@ -1132,6 +1351,13 @@
     const I18N = {
       en: {
         'hero.top': 'View All Projects', 'hero.hold': 'Click & Hold',
+        'contact.t0': 'Chengyun Event Studio Co., Ltd.',
+        'form.required': 'This field is required', 'form.badEmail': 'Please check the email address',
+        'form.fixFields': 'Please complete the required fields marked with an asterisk.',
+        'form.needConsent': 'Please agree to the privacy policy before sending.',
+        'form.sending': 'Sending…', 'form.sent': 'Thank you — we will be in touch shortly.',
+        'form.failed': 'Sending failed. Please reach us by email or on LINE instead.',
+        'form.noEndpoint': 'The form is not connected to a backend yet, so nothing was sent. Please reach us by email or on LINE above.',
         'ui.back': '← Index', 'ui.close': 'Close',
         'label.hero': 'Index', 'label.menu': 'Menu', 'label.about': '01 — About Us',
         'label.services': '02 — Services', 'label.teams': '03 — Teams',
@@ -1151,6 +1377,26 @@
       },
       zh: {
         'hero.top': '瀏覽所有章節', 'hero.hold': '長按進入',
+        'contact.t0': '澄耘活動工作室 有限公司',
+        'form.heading': '線上諮詢',
+        'form.subject': '詢問主題 <i class="req">*</i>', 'form.choose': '請選擇',
+        'form.opt1': '企業活動與大型慶典', 'form.opt2': '活動市集與品牌 IP',
+        'form.opt3': '軟硬體工程與演藝人力', 'form.opt4': 'ESG 永續會展',
+        'form.opt5': '合作提案與媒體聯繫', 'form.opt6': '其他',
+        'form.message': '內容 <i class="req">*</i>',
+        'form.name': '姓名 <i class="req">*</i>', 'form.company': '公司名稱 <i class="req">*</i>',
+        'form.email': '電子郵件 <i class="req">*</i>', 'form.phone': '電話 <i class="req">*</i>',
+        'form.mobile': '手機', 'form.fax': '傳真', 'form.website': '網站',
+        'form.country': '國別', 'form.postal': '郵遞區號', 'form.state': '省／州',
+        'form.city': '城市', 'form.address': '詳細地址',
+        'form.consent': '我已詳細閱讀隱私權政策，並同意接受以上內容。',
+        'form.submit': '送出',
+        'form.required': '此欄為必填', 'form.badEmail': '電子郵件格式不正確',
+        'form.fixFields': '請先補齊標示星號的必填欄位。',
+        'form.needConsent': '請先同意隱私權政策後再進行送出。',
+        'form.sending': '傳送中…', 'form.sent': '已收到您的訊息，我們會盡速與您聯繫。',
+        'form.failed': '送出失敗，請改用 Email 或官方 LINE 與我們聯繫。',
+        'form.noEndpoint': '表單尚未接上後端，資料並未送出。請改用上方的 Email 或官方 LINE 與我們聯繫。',
         'ui.back': '← 首頁', 'ui.close': '關閉',
         'label.hero': '首頁', 'label.menu': '選單', 'label.about': '01 — 關於我們',
         'label.services': '02 — 服務內容', 'label.teams': '03 — 我們的團隊',
@@ -1268,6 +1514,26 @@
       },
       ja: {
         'hero.top': 'すべての章を見る', 'hero.hold': '長押しで開く',
+        'contact.t0': '澄耘活動工作室 有限公司',
+        'form.heading': 'お問い合わせ',
+        'form.subject': 'ご用件 <i class="req">*</i>', 'form.choose': '選択してください',
+        'form.opt1': '企業イベント・大型式典', 'form.opt2': 'マーケット・ブランドIP',
+        'form.opt3': '設営・技術・出演者', 'form.opt4': 'ESGに基づくMICE',
+        'form.opt5': '協業のご提案・取材', 'form.opt6': 'その他',
+        'form.message': '内容 <i class="req">*</i>',
+        'form.name': 'お名前 <i class="req">*</i>', 'form.company': '会社名 <i class="req">*</i>',
+        'form.email': 'メールアドレス <i class="req">*</i>', 'form.phone': '電話番号 <i class="req">*</i>',
+        'form.mobile': '携帯電話', 'form.fax': 'FAX', 'form.website': 'ウェブサイト',
+        'form.country': '国・地域', 'form.postal': '郵便番号', 'form.state': '都道府県・州',
+        'form.city': '市区町村', 'form.address': '住所',
+        'form.consent': 'プライバシーポリシーを確認し、上記の内容に同意します。',
+        'form.submit': '送信',
+        'form.required': '必須項目です', 'form.badEmail': 'メールアドレスの形式が正しくありません',
+        'form.fixFields': '必須項目（*）をご入力ください。',
+        'form.needConsent': 'プライバシーポリシーに同意のうえ、送信してください。',
+        'form.sending': '送信中…', 'form.sent': '送信しました。折り返しご連絡いたします。',
+        'form.failed': '送信に失敗しました。メールまたは公式LINEからご連絡ください。',
+        'form.noEndpoint': 'フォームはまだバックエンドに接続されていません。データは送信されていません。上のメールまたは公式LINEからご連絡ください。',
         'ui.back': '← トップ', 'ui.close': '閉じる',
         'label.hero': 'トップ', 'label.menu': 'メニュー', 'label.about': '01 — 私たちについて',
         'label.services': '02 — サービス内容', 'label.teams': '03 — チーム',
@@ -1414,6 +1680,13 @@
       document.querySelectorAll('#langSwitch button').forEach((b) => {
         b.setAttribute('aria-current', String(b.dataset.lang === next));
       });
+      /* 表單的錯誤訊息是即時產生的、沒有 data-i18n，換語言時會留著上一個語言的字；
+         直接清掉，使用者再送出一次就會拿到新語言的訊息 */
+      document.querySelectorAll('.field.is-error').forEach((f) => f.classList.remove('is-error'));
+      document.querySelectorAll('.field .err').forEach((e) => { e.textContent = ''; });
+      const fm = document.getElementById('formMsg');
+      if (fm) { fm.textContent = ''; fm.classList.remove('is-error', 'is-ok'); }
+
       try { localStorage.setItem('cy-lang', next); } catch (err) { /* 無痕視窗寫不進去，忽略即可 */ }
       syncChrome();
       if (detail.classList.contains('is-on')) { renderDetail(); }
@@ -1718,6 +1991,123 @@
     try { saved = localStorage.getItem('cy-lang'); } catch (err) { /* 讀不到就用預設 */ }
     if (saved && saved !== 'en') { applyLang(saved); }
     else { syncChrome(); }
+
+
+    /* ══ 聯絡表單 ══════════════════════════════════════════════
+       這是純靜態頁面，沒有伺服器可以寫資料庫或寄信。
+       把端點填在下面這一行，表單就會把 JSON POST 過去；
+       留空時不會假裝送出，而是明白告知並提供改用 Email 的途徑。 */
+    const FORM_ENDPOINT = '';
+
+    const form = document.getElementById('enquiry');
+    const formMsg = document.getElementById('formMsg');
+    const countrySel = document.getElementById('f-country');
+
+    const COMMON = 'Taiwan|Japan|China|Hong Kong|Macau|Singapore|South Korea|Malaysia|Thailand|Vietnam|Philippines|Indonesia|United States|Canada|United Kingdom|Australia|New Zealand|Germany|France|Netherlands'.split('|');
+    const ALL = 'Afghanistan|Albania|Algeria|Andorra|Angola|Argentina|Armenia|Australia|Austria|Azerbaijan|Bahamas|Bahrain|Bangladesh|Barbados|Belarus|Belgium|Belize|Benin|Bhutan|Bolivia|Bosnia and Herzegovina|Botswana|Brazil|Brunei|Bulgaria|Burkina Faso|Burundi|Cambodia|Cameroon|Canada|Cape Verde|Central African Republic|Chad|Chile|China|Colombia|Comoros|Congo|Costa Rica|Croatia|Cuba|Cyprus|Czechia|Denmark|Djibouti|Dominica|Dominican Republic|Ecuador|Egypt|El Salvador|Equatorial Guinea|Eritrea|Estonia|Eswatini|Ethiopia|Fiji|Finland|France|Gabon|Gambia|Georgia|Germany|Ghana|Greece|Grenada|Guatemala|Guinea|Guinea-Bissau|Guyana|Haiti|Honduras|Hong Kong|Hungary|Iceland|India|Indonesia|Iran|Iraq|Ireland|Israel|Italy|Ivory Coast|Jamaica|Japan|Jordan|Kazakhstan|Kenya|Kiribati|Kuwait|Kyrgyzstan|Laos|Latvia|Lebanon|Lesotho|Liberia|Libya|Liechtenstein|Lithuania|Luxembourg|Macau|Madagascar|Malawi|Malaysia|Maldives|Mali|Malta|Marshall Islands|Mauritania|Mauritius|Mexico|Micronesia|Moldova|Monaco|Mongolia|Montenegro|Morocco|Mozambique|Myanmar|Namibia|Nauru|Nepal|Netherlands|New Zealand|Nicaragua|Niger|Nigeria|North Macedonia|Norway|Oman|Pakistan|Palau|Palestine|Panama|Papua New Guinea|Paraguay|Peru|Philippines|Poland|Portugal|Qatar|Romania|Russia|Rwanda|Saint Kitts and Nevis|Saint Lucia|Saint Vincent and the Grenadines|Samoa|San Marino|Sao Tome and Principe|Saudi Arabia|Senegal|Serbia|Seychelles|Sierra Leone|Singapore|Slovakia|Slovenia|Solomon Islands|Somalia|South Africa|South Korea|South Sudan|Spain|Sri Lanka|Sudan|Suriname|Sweden|Switzerland|Syria|Taiwan|Tajikistan|Tanzania|Thailand|Timor-Leste|Togo|Tonga|Trinidad and Tobago|Tunisia|Turkey|Turkmenistan|Tuvalu|Uganda|Ukraine|United Arab Emirates|United Kingdom|United States|Uruguay|Uzbekistan|Vanuatu|Vatican City|Venezuela|Vietnam|Yemen|Zambia|Zimbabwe'.split('|');
+
+    (function fillCountries() {
+      const mk = (name) => { const o = document.createElement('option'); o.value = name; o.textContent = name; return o; };
+      countrySel.appendChild(mk(''));
+      const g1 = document.createElement('optgroup');
+      g1.label = '—';
+      g1.dataset.group = 'common';
+      COMMON.forEach((c) => g1.appendChild(mk(c)));
+      const g2 = document.createElement('optgroup');
+      g2.label = '—';
+      g2.dataset.group = 'all';
+      ALL.forEach((c) => g2.appendChild(mk(c)));
+      countrySel.append(g1, g2);
+      countrySel.value = 'Taiwan';
+    })();
+
+    const REQUIRED = ['subject', 'message', 'name', 'company', 'email', 'phone'];
+
+    function fieldOf(el) { return el.closest('.field'); }
+
+    function setError(el, msg) {
+      const f = fieldOf(el);
+      if (!f) { return; }
+      f.classList.toggle('is-error', Boolean(msg));
+      const slot = f.querySelector('.err');
+      if (slot) { slot.textContent = msg || ''; }
+    }
+
+    function validate() {
+      let firstBad = null;
+      REQUIRED.forEach((name) => {
+        const el = form.elements[name];
+        const empty = !String(el.value).trim();
+        setError(el, empty ? t('form.required') : '');
+        if (empty && !firstBad) { firstBad = el; }
+      });
+
+      const email = form.elements.email;
+      if (String(email.value).trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+        setError(email, t('form.badEmail'));
+        if (!firstBad) { firstBad = email; }
+      }
+      return firstBad;
+    }
+
+    function say(msg, kind) {
+      formMsg.textContent = msg;
+      formMsg.classList.toggle('is-error', kind === 'error');
+      formMsg.classList.toggle('is-ok', kind === 'ok');
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const bad = validate();
+      if (bad) {
+        say(t('form.fixFields'), 'error');
+        bad.focus({ preventScroll: false });
+        return;
+      }
+
+      /* 未勾選隱私權同意就擋下來，不送出 */
+      if (!form.elements.consent.checked) {
+        say(t('form.needConsent'), 'error');
+        form.elements.consent.focus({ preventScroll: false });
+        return;
+      }
+
+      const data = Object.fromEntries(new FormData(form).entries());
+      data.consent = true;
+      data.lang = lang;
+      data.submittedAt = new Date().toISOString();
+
+      if (!FORM_ENDPOINT) {
+        /* 端點還沒串：明說沒有送出，並給一條現在就能用的路 */
+        say(t('form.noEndpoint'), 'error');
+        return;
+      }
+
+      const btn = document.getElementById('f-submit');
+      btn.disabled = true;
+      say(t('form.sending'));
+      try {
+        const res = await fetch(FORM_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!res.ok) { throw new Error('HTTP ' + res.status); }
+        form.reset();
+        countrySel.value = 'Taiwan';
+        say(t('form.sent'), 'ok');
+      } catch (err) {
+        say(t('form.failed') + '（' + err.message + '）', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    /* 邊填邊清掉錯誤提示，不用等到再次送出 */
+    form.addEventListener('input', (e) => {
+      if (e.target.closest('.field')) { setError(e.target, ''); }
+    });
 
     /* ══ 單一 rAF ══════════════════════════════════════════════ */
     function frame(now) {

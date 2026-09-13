@@ -591,10 +591,10 @@
     color: rgba(255, 255, 255, .7);
   }
 
-  /* ── 團隊：弧形膠卷輪播 ─────────────
-     整條膠卷比視窗寬，兩端切出畫面外；
-     外層給 perspective，膠卷本體做輕微的 rotateX / rotateZ，
-     每一格再依離畫面中心的距離加上 rotateY，合起來就是弧面。 */
+  /* ── 團隊：3D 圓柱膠卷轉盤 ───────────
+     每一格排在同一個圓柱面上（rotateY + translateZ），
+     齒孔做在片格自己身上，所以整條膠卷是真的跟著弧面彎。
+     位置由 JS 每一格算，CSS 只負責尺寸、材質與退化後的樣子。 */
   .film-title {
     position: relative;
     z-index: 3;
@@ -620,112 +620,141 @@
     position: relative;
     width: 100vw;
     max-width: 100vw;
-    margin-top: -3.75rem;
+    margin-top: -3.5rem;
     z-index: 1;
+
+    /* 片格尺寸；圓柱半徑由 JS 依這個寬度回推 */
+    --fw: clamp(210px, 23vw, 340px);
+    --fh: clamp(150px, 29svh, 250px);
+    --perf: 17px;
   }
+
+  @media (max-width: 760px) { .film-bleed { margin-top: -1rem; --fw: 58vw; --fh: min(26svh, 200px); --perf: 13px; } }
 
   .scene[data-scene="teams"] .scene-inner { overflow: hidden; }
 
   .film-stage {
-    perspective: 1400px;
+    position: relative;
+    z-index: 1;
+    perspective: 1150px;
     perspective-origin: 50% 50%;
-    padding: 2.75rem 0 3.5rem;
+    padding: 2.5rem 0 3rem;
   }
 
-  @media (max-width: 760px) { .film-stage { padding: 1.75rem 0 2.25rem; } }
+  @media (max-width: 760px) { .film-stage { padding: 1.5rem 0 2rem; } }
 
   .film {
     position: relative;
-    min-width: 0;
-    transform: rotateX(7deg) rotateZ(-3.4deg) scale(1.06);
+    height: calc(var(--fh) + var(--perf) * 2 + 1.5rem);
+    transform: rotateX(5deg) rotateZ(-2.6deg);
     transform-style: preserve-3d;
-    background: linear-gradient(180deg, #10161f 0%, #0a0e14 55%, #06080d 100%);
-    box-shadow: 0 40px 120px rgba(0, 0, 0, .6);
+    cursor: grab;
+    touch-action: pan-y;
   }
 
-  /* 兩端淡出，讓膠卷像是從畫面外延伸進來、再延伸出去 */
+  .film.is-dragging { cursor: grabbing; }
+
+  /* 兩端淡出，讓轉盤像是從畫面外轉進來、再轉出去 */
   .film::before,
   .film::after {
     content: '';
     position: absolute;
-    top: -2px;
-    bottom: -2px;
-    width: 16vw;
+    top: -12vh;
+    bottom: -12vh;
+    width: 18vw;
     pointer-events: none;
-    z-index: 3;
+    z-index: 60;
   }
 
-  .film::before { left: 0; background: linear-gradient(90deg, rgba(4, 5, 8, .92), rgba(4, 5, 8, 0)); }
-  .film::after { right: 0; background: linear-gradient(270deg, rgba(4, 5, 8, .92), rgba(4, 5, 8, 0)); }
+  .film::before { left: -1px; background: linear-gradient(90deg, rgba(4, 5, 8, .96) 15%, rgba(4, 5, 8, 0)); }
+  .film::after { right: -1px; background: linear-gradient(270deg, rgba(4, 5, 8, .96) 15%, rgba(4, 5, 8, 0)); }
+
+  /* 中央聚光 */
+  .film-spot {
+    position: absolute;
+    z-index: 0;
+    left: 50%;
+    top: 50%;
+    width: calc(var(--fw) * 2.4);
+    height: calc(var(--fh) * 2.2);
+    margin: calc(var(--fh) * -1.1) 0 0 calc(var(--fw) * -1.2);
+    background: radial-gradient(ellipse at center, rgba(150, 180, 255, .16) 0%, rgba(120, 150, 255, .06) 42%, rgba(0, 0, 0, 0) 70%);
+    pointer-events: none;
+  }
+
+  .film-reel {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    /* 捲軸本身和正中央那一格同在 z=0，命中測試會忽前忽後；
+       讓它不接事件，點擊一律落在片格或膠卷底座上 */
+    pointer-events: none;
+  }
+
+  .frame { pointer-events: auto; }
+
+  /* 片格＝一段底片：上下齒孔 + 中間畫面，背景就是片基 */
+  .frame {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--fw);
+    height: calc(var(--fh) + var(--perf) * 2);
+    margin: calc((var(--fh) + var(--perf) * 2) / -2) 0 0 calc(var(--fw) / -2);
+    padding: var(--perf) 3px;
+    background: linear-gradient(180deg, #0d1219 0%, #070a10 100%);
+    box-shadow: inset 1px 0 0 rgba(255, 255, 255, .05), inset -1px 0 0 rgba(0, 0, 0, .6);
+    will-change: transform, opacity;
+  }
 
   /* 齒孔：一格 40px、孔寬 16px，和真實底片的比例接近 */
-  .film-perf {
-    height: 20px;
-    background-color: rgba(0, 0, 0, .55);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='20'%3E%3Crect x='12' y='5' width='16' height='10' rx='2.5' fill='%23ffffff' fill-opacity='.16'/%3E%3C/svg%3E");
+  .frame::before,
+  .frame::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: var(--perf);
+    background-color: rgba(0, 0, 0, .5);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='20'%3E%3Crect x='12' y='5' width='16' height='10' rx='2.5' fill='%23ffffff' fill-opacity='.17'/%3E%3C/svg%3E");
+    background-size: auto 100%;
     background-repeat: repeat-x;
   }
 
-  .film-window {
-    overflow: hidden;
-    padding: 1.1rem;
-    min-width: 0;
-  }
-
-  .film-track {
-    display: flex;
-    gap: 1rem;
-    transform-style: preserve-3d;
-    will-change: transform;
-  }
-
-  /* 一次看到的格數：桌機約 4.5 格，弧形才有東西可以彎 */
-  .frame {
-    flex: 0 0 22%;
-    min-width: 0;
-    transform-style: preserve-3d;
-    transition: opacity .6s var(--ease);
-  }
-
-  @media (max-width: 1100px) { .frame { flex-basis: 30%; } }
-  @media (max-width: 760px) { .frame { flex-basis: 46%; } }
-  @media (max-width: 520px) { .frame { flex-basis: 56%; } }
+  .frame::before { top: 0; }
+  .frame::after { bottom: 0; }
 
   /* 人像位置：目前是佔位色塊，換成照片時把背景換掉即可 */
   .frame-shot {
     position: relative;
-    /* 高度跟著視窗走，整條膠卷連同下方的圓點才進得了一個畫面 */
-    height: min(26svh, 15rem);
-    border-radius: 4px;
+    height: 100%;
     display: grid;
     place-items: center;
     align-content: center;
-    gap: .5rem;
+    gap: .45rem;
     background:
       radial-gradient(120% 90% at 30% 15%, var(--a) 0%, var(--b) 65%),
       var(--b);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07);
     overflow: hidden;
-    transition: box-shadow .6s var(--ease), filter .6s var(--ease);
   }
 
   .frame-shot > span:first-child {
-    font-size: .62rem;
+    font-size: .6rem;
     letter-spacing: .3em;
-    color: rgba(255, 255, 255, .3);
+    color: rgba(255, 255, 255, .32);
   }
 
   .frame-role {
-    font-size: .8rem;
+    font-size: .78rem;
     letter-spacing: .05em;
-    color: rgba(255, 255, 255, .62);
+    color: rgba(255, 255, 255, .6);
     text-align: center;
-    padding: 0 .75rem;
+    padding: 0 .6rem;
+    transition: color .5s var(--ease);
   }
 
-  /* 非中心的片格壓暗，視線自然落在中間那一格 */
-  .frame:not(.is-current) .frame-shot { filter: brightness(.52) saturate(.8); }
-  .frame.is-current .frame-shot { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .26), 0 18px 60px rgba(0, 0, 0, .55); }
+  .frame.is-current .frame-shot { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .28), 0 24px 70px rgba(0, 0, 0, .6); }
   .frame.is-current .frame-role { color: #fff; }
 
   /* 左右箭頭：圓角方塊，貼在畫面兩側外緣 */
@@ -743,7 +772,7 @@
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18);
     backdrop-filter: blur(8px);
     transition: transform .4s var(--ease), background-color .4s var(--ease), opacity .4s var(--ease);
-    z-index: 4;
+    z-index: 70;
   }
 
   .film-arrow svg { width: 1.05rem; height: 1.05rem; }
@@ -759,7 +788,7 @@
     z-index: 3;
     width: 100%;
     max-width: 72rem;
-    margin-top: 1.25rem;
+    margin-top: 1rem;
   }
 
   .film-dots {
@@ -781,12 +810,13 @@
     transform: scale(1.5);
   }
 
-  .film-below .note { margin-top: 1.5rem; text-align: center; }
+  .film-below .note { margin-top: 1.4rem; text-align: center; }
 
-  /* 動態偏好關閉時不做 3D，避免暈眩 */
+  /* 動態偏好關閉時整條攤平，不做 3D 也不浮動 */
   @media (prefers-reduced-motion: reduce) {
     .film { transform: none; }
-    .film-stage { perspective: none; padding: 2rem 0; }
+    .film-stage { perspective: none; }
+    .film-spot { display: none; }
   }
 
   /* ── 聯絡：左資訊、右表單 ───────────── */
@@ -1282,34 +1312,30 @@
     <!-- 膠卷：滿版出血、帶透視與傾斜，兩端切出畫面外 -->
     <div class="film-bleed">
       <div class="film-stage">
+      <!-- 中央聚光：畫在 3D 場景外，免得和正中央那一格同深度互穿 -->
+      <div class="film-spot" aria-hidden="true"></div>
+
       <div class="film" id="film">
-        <div class="film-perf" aria-hidden="true"></div>
-
-        <div class="film-window">
-          <div class="film-track" id="filmTrack">
-            <article class="frame">
-              <div class="frame-shot" style="--a:#2b3a66; --b:#0d1220"><span>01</span><span class="frame-role" data-i18n="teams.s1">Curation Lead</span></div>
-            </article>
-            <article class="frame">
-              <div class="frame-shot" style="--a:#1f4a4a; --b:#0b1516"><span>02</span><span class="frame-role" data-i18n="teams.s2">Brand Review</span></div>
-            </article>
-            <article class="frame">
-              <div class="frame-shot" style="--a:#4a2a2a; --b:#170d0d"><span>03</span><span class="frame-role" data-i18n="teams.s3">Site Operations</span></div>
-            </article>
-            <article class="frame">
-              <div class="frame-shot" style="--a:#3d3a18; --b:#14130a"><span>04</span><span class="frame-role" data-i18n="teams.s4">Design</span></div>
-            </article>
-            <article class="frame">
-              <div class="frame-shot" style="--a:#33265c; --b:#100c1c"><span>05</span><span class="frame-role" data-i18n="teams.s5">Social</span></div>
-            </article>
-            <article class="frame">
-              <div class="frame-shot" style="--a:#20405e; --b:#0a131c"><span>06</span><span class="frame-role" data-i18n="teams.s6">Stallholder Support</span></div>
-            </article>
-          </div>
+        <div class="film-reel" id="filmTrack">
+          <article class="frame">
+            <div class="frame-shot" style="--a:#2b3a66; --b:#0d1220"><span>01</span><span class="frame-role" data-i18n="teams.s1">Curation Lead</span></div>
+          </article>
+          <article class="frame">
+            <div class="frame-shot" style="--a:#1f4a4a; --b:#0b1516"><span>02</span><span class="frame-role" data-i18n="teams.s2">Brand Review</span></div>
+          </article>
+          <article class="frame">
+            <div class="frame-shot" style="--a:#4a2a2a; --b:#170d0d"><span>03</span><span class="frame-role" data-i18n="teams.s3">Site Operations</span></div>
+          </article>
+          <article class="frame">
+            <div class="frame-shot" style="--a:#3d3a18; --b:#14130a"><span>04</span><span class="frame-role" data-i18n="teams.s4">Design</span></div>
+          </article>
+          <article class="frame">
+            <div class="frame-shot" style="--a:#33265c; --b:#100c1c"><span>05</span><span class="frame-role" data-i18n="teams.s5">Social</span></div>
+          </article>
+          <article class="frame">
+            <div class="frame-shot" style="--a:#20405e; --b:#0a131c"><span>06</span><span class="frame-role" data-i18n="teams.s6">Stallholder Support</span></div>
+          </article>
         </div>
-
-        <div class="film-perf" aria-hidden="true"></div>
-
       </div>
       </div>
 
@@ -2241,20 +2267,84 @@
 
 
 
-    /* ══ 團隊膠卷輪播（弧形）══════════════════════════════════
-       膠卷本體只做水平位移，弧面是每一格各自的 rotateY / translateZ，
-       依「這一格的中心離視窗中心多遠」算出來，所以捲動時弧度會跟著流動。 */
+    /* ══ 團隊：3D 圓柱膠卷轉盤 ═══════════════════════════════
+       位置用一個連續的浮點數 pos 表示（2.4 代表停在第 3 格偏左）。
+       每一格依 (i - pos) 算出在圓柱上的角度，
+       半徑由片格寬度回推，相鄰兩格的邊剛好接在一起，看起來才是一整條底片。
+       放開手後不是直接跳格，而是把速度投射出去、再用 lerp 收斂到最近的一格。 */
     const filmEl = document.getElementById('film');
-    const filmTrack = document.getElementById('filmTrack');
-    const filmFrames = [...filmTrack.children];
+    const filmReel = document.getElementById('filmTrack');
+    const filmFrames = [...filmReel.children];
+    const filmShots = filmFrames.map((f) => f.querySelector('.frame-shot'));
     const filmDots = document.getElementById('filmDots');
     const filmPrev = document.getElementById('filmPrev');
     const filmNext = document.getElementById('filmNext');
     const filmRole = document.getElementById('filmRole');
     const filmNote = document.getElementById('filmNote');
+    const filmSpot = filmEl.querySelector('.film-spot');
     const filmMax = filmFrames.length - 1;
-    let filmIndex = 0;
+
+    let filmPos = Math.floor(filmMax / 2);   /* 目前位置（連續值） */
+    let filmTarget = filmPos;                /* 想去的位置 */
+    let filmIndex = filmPos;                 /* 對外用的整數格號 */
+    let filmStep = 16;                       /* 每一格佔的圓心角 */
+    let filmR = 1000;                        /* 圓柱半徑 */
+    let filmW = 280;                         /* 片格寬，拖曳換算用 */
     let filmRaf = 0;
+    let filmRunning = false;
+    const filmDrag = { on: false, id: null, x: 0, moved: 0, v: 0, last: 0 };
+
+    function filmMetrics() {
+      /* 一定要用 offsetWidth：getBoundingClientRect 量到的是「轉過之後的投影寬」，
+         拿它回推半徑會讓圓柱太緊，相鄰片格就會互相穿插 */
+      filmW = filmFrames[0].offsetWidth || 280;
+      filmStep = innerWidth < 760 ? 17 : 12;
+      /* 弦長只比片格寬 3%：相鄰片格之間留一道框線的縫，
+         連起來才像一整條底片，又不會在投影時互穿 */
+      filmR = (filmW * 1.03 / 2) / Math.tan(filmStep * Math.PI / 360);
+    }
+
+    /* 超出頭尾時給阻尼，拖到底會有回彈的手感而不是硬停 */
+    function filmResist(p) {
+      if (p < 0) { return p * .35; }
+      if (p > filmMax) { return filmMax + (p - filmMax) * .35; }
+      return p;
+    }
+
+    function filmRender(now) {
+      filmFrames.forEach((f, i) => {
+        const o = i - filmPos;
+        const near = Math.max(0, 1 - Math.abs(o));          /* 離中心多近 */
+        const float = reduce ? 0 : Math.sin(now / 1100 + i * 1.7) * 4 * near;
+
+        if (reduce) {
+          /* 不做 3D：退回單純的橫向位移 */
+          f.style.transform = 'translateX(' + (o * filmW).toFixed(1) + 'px)';
+        } else {
+          f.style.transform =
+            'translateZ(' + (-filmR).toFixed(1) + 'px) ' +
+            'rotateY(' + (o * filmStep).toFixed(3) + 'deg) ' +
+            'translateZ(' + filmR.toFixed(1) + 'px) ' +
+            'translateY(' + float.toFixed(2) + 'px)';
+        }
+
+        f.style.opacity = clamp(1 - Math.abs(o) * .16, .08, 1).toFixed(3);
+        filmShots[i].style.filter = 'brightness(' + (.52 + .48 * near).toFixed(3) + ')';
+      });
+
+      if (filmSpot) { filmSpot.style.opacity = (.55 + .45 * Math.max(0, 1 - Math.abs(filmPos - Math.round(filmPos)) * 2)).toFixed(3); }
+    }
+
+    function filmSetIndex(i) {
+      const n = clamp(i, 0, filmMax);
+      if (n === filmIndex) { return; }
+      filmIndex = n;
+      filmFrames.forEach((el, k) => el.classList.toggle('is-current', k === filmIndex));
+      [...filmDots.children].forEach((d, k) => d.setAttribute('aria-selected', String(k === filmIndex)));
+      filmPrev.disabled = filmIndex === 0;
+      filmNext.disabled = filmIndex === filmMax;
+      filmSync();
+    }
 
     /* 目前這一格的職稱與說明，跟著語言與選取狀態走 */
     filmSync = function () {
@@ -2262,68 +2352,74 @@
       filmNote.textContent = t('teams.b' + (filmIndex + 1));
     };
 
-    /* 依目前實際的位移量重算弧度：讀 track 的 matrix 而不是預期值，
-       GSAP 補間到一半時也拿得到正確位置 */
-    function filmCurve() {
-      const view = filmEl.getBoundingClientRect();
-      const mid = view.left + view.width / 2;
-      /* 基準取「畫面一半」與「片格寬度的 1.8 倍」中較大的那個：
-         寬螢幕照畫面算，窄螢幕才不會把左右兩格轉到近乎側面 */
-      const fw = filmFrames[0].getBoundingClientRect().width || 1;
-      const reach = Math.max(view.width / 2, fw * 1.8, 1);
-
-      filmFrames.forEach((f) => {
-        const r = f.getBoundingClientRect();
-        const d = clamp((r.left + r.width / 2 - mid) / reach, -1.6, 1.6);
-        if (reduce) {
-          f.style.transform = '';
-          return;
-        }
-        f.style.transform =
-          'rotateY(' + (-d * 26).toFixed(2) + 'deg) ' +
-          'translateZ(' + (-Math.abs(d) * 110).toFixed(1) + 'px) ' +
-          'translateY(' + (Math.abs(d) * 10).toFixed(1) + 'px)';
-      });
-    }
-
-    /* 補間期間持續重算弧度；停了就收掉，不留常駐的 rAF */
-    function filmTick(until) {
-      cancelAnimationFrame(filmRaf);
-      const stop = performance.now() + until;
-      const step = () => {
-        filmCurve();
-        if (performance.now() < stop) { filmRaf = requestAnimationFrame(step); }
-      };
-      step();
-    }
-
-    function filmGo(i, instant) {
-      filmIndex = clamp(i, 0, filmMax);
-
-      /* 把選到的那一格帶到膠卷正中央 */
-      const f = filmFrames[filmIndex];
-      const x = filmTrack.parentElement.clientWidth / 2 - (f.offsetLeft + f.offsetWidth / 2);
-
-      if (hasGsap && !reduce && !instant) {
-        gsap.to(filmTrack, { x: x, duration: 1, ease: 'power3.inOut' });
-        filmTick(1100);
-      } else if (hasGsap) {
-        gsap.set(filmTrack, { x: x });
-        filmCurve();
-      } else {
-        filmTrack.style.transition = instant ? 'none' : 'transform 1s cubic-bezier(.22,1,.36,1)';
-        filmTrack.style.transform = 'translateX(' + x + 'px)';
-        filmTick(instant ? 0 : 1100);
+    function filmFrame(now) {
+      if (!filmDrag.on) {
+        /* 慣性：沒有在拖曳時往目標收斂，離得越近走得越慢 */
+        filmPos += (filmTarget - filmPos) * (reduce ? 1 : .12);
+        if (Math.abs(filmTarget - filmPos) < .0005) { filmPos = filmTarget; }
       }
-
-      filmFrames.forEach((el, n) => el.classList.toggle('is-current', n === filmIndex));
-      [...filmDots.children].forEach((d, n) => d.setAttribute('aria-selected', String(n === filmIndex)));
-      filmPrev.disabled = filmIndex === 0;
-      filmNext.disabled = filmIndex === filmMax;
-      filmSync();
+      filmSetIndex(Math.round(filmPos));
+      filmRender(now);
+      filmRaf = requestAnimationFrame(filmFrame);
     }
 
-    /* 一格一個圓點 */
+    function filmStart() {
+      if (filmRunning) { return; }
+      filmRunning = true;
+      filmMetrics();
+      filmRaf = requestAnimationFrame(filmFrame);
+    }
+
+    function filmStop() {
+      filmRunning = false;
+      cancelAnimationFrame(filmRaf);
+    }
+
+    function filmGo(i) {
+      filmTarget = clamp(i, 0, filmMax);
+      filmStart();
+    }
+
+    /* ── 拖曳／滑動 ── */
+    filmEl.addEventListener('pointerdown', (e) => {
+      filmMetrics();
+      filmDrag.on = true;
+      filmDrag.id = e.pointerId;
+      filmDrag.x = e.clientX;
+      filmDrag.moved = 0;
+      filmDrag.v = 0;
+      filmDrag.last = performance.now();
+      filmEl.classList.add('is-dragging');
+      filmEl.setPointerCapture(e.pointerId);
+      filmStart();
+    });
+
+    filmEl.addEventListener('pointermove', (e) => {
+      if (!filmDrag.on || e.pointerId !== filmDrag.id) { return; }
+      const dx = e.clientX - filmDrag.x;
+      const dt = Math.max(performance.now() - filmDrag.last, 8);
+      filmDrag.x = e.clientX;
+      filmDrag.last = performance.now();
+      filmDrag.moved += Math.abs(dx);
+
+      const d = -dx / filmW;                       /* 一個片格寬＝一格 */
+      filmPos = filmResist(filmPos + d);
+      filmTarget = filmPos;
+      filmDrag.v = d / dt * 16;                    /* 換算成每幀的速度 */
+    });
+
+    function filmRelease(e) {
+      if (!filmDrag.on || (e && e.pointerId !== filmDrag.id)) { return; }
+      filmDrag.on = false;
+      filmEl.classList.remove('is-dragging');
+      /* 把放手當下的速度投射出去，再吸附到最近的一格 */
+      filmGo(Math.round(clamp(filmPos + filmDrag.v * 7, 0, filmMax)));
+    }
+
+    filmEl.addEventListener('pointerup', filmRelease);
+    filmEl.addEventListener('pointercancel', filmRelease);
+
+    /* ── 圓點、箭頭、鍵盤 ── */
     filmFrames.forEach((f, i) => {
       const b = document.createElement('button');
       b.type = 'button';
@@ -2333,8 +2429,8 @@
       b.addEventListener('click', () => filmGo(i));
       filmDots.appendChild(b);
 
-      /* 點旁邊的片格就把它轉到中間 */
-      f.addEventListener('click', () => { if (i !== filmIndex) { filmGo(i); } });
+      /* 點旁邊的片格把它轉到正面；剛剛在拖曳的話就不算點擊 */
+      f.addEventListener('click', () => { if (filmDrag.moved < 8 && i !== filmIndex) { filmGo(i); } });
     });
 
     filmPrev.addEventListener('click', () => filmGo(filmIndex - 1));
@@ -2347,25 +2443,27 @@
       if (e.key === 'ArrowLeft') { filmGo(filmIndex - 1); }
     });
 
-    /* 手機滑動 */
-    let swipeX = null;
-    filmTrack.addEventListener('pointerdown', (e) => { swipeX = e.clientX; });
-    addEventListener('pointerup', (e) => {
-      if (swipeX === null) { return; }
-      const dx = e.clientX - swipeX;
-      swipeX = null;
-      if (Math.abs(dx) > 45) { filmGo(filmIndex + (dx < 0 ? 1 : -1)); }
-    });
-
-    /* 一開場先停在中間那一格，弧形兩側才都有東西 */
-    filmIndex = Math.floor(filmMax / 2);
-    filmGo(filmIndex, true);
-    addEventListener('resize', () => filmGo(filmIndex, true));
-
-    /* 分鏡切進來時版面才算完成，重算一次位置與弧度 */
+    /* rAF 只在這個分鏡開著、分頁又在前景時跑，其餘時間不佔資源 */
     addEventListener('cy:scene', (e) => {
-      if (e.detail === 'teams') { requestAnimationFrame(() => filmGo(filmIndex, true)); }
+      if (e.detail === 'teams') { requestAnimationFrame(() => { filmMetrics(); filmStart(); }); }
+      else { filmStop(); }
     });
+
+    addEventListener('visibilitychange', () => {
+      if (document.hidden) { filmStop(); }
+      else if (current === 'teams') { filmStart(); }
+    });
+
+    addEventListener('resize', () => { filmMetrics(); filmRender(performance.now()); });
+
+    /* 開場先把中間那一格放到正面，兩側才都有東西 */
+    filmFrames[filmIndex].classList.add('is-current');
+    [...filmDots.children].forEach((d, k) => d.setAttribute('aria-selected', String(k === filmIndex)));
+    filmPrev.disabled = filmIndex === 0;
+    filmNext.disabled = filmIndex === filmMax;
+    filmSync();
+    filmMetrics();
+    filmRender(performance.now());
 
     /* ══ 聯絡表單 ══════════════════════════════════════════════
        這是純靜態頁面，沒有伺服器可以寫資料庫或寄信。

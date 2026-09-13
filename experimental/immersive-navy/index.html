@@ -65,6 +65,8 @@
     position: fixed;
     inset: 0;
     z-index: 0;
+    /* 調色層用混合模式，必須把混合範圍關在舞台內 */
+    isolation: isolate;
     transition: opacity 1.2s var(--ease), transform 1.2s var(--ease);
   }
 
@@ -76,6 +78,26 @@
       radial-gradient(70% 50% at 50% 8%, rgba(28, 90, 156, .55) 0%, rgba(15, 44, 92, 0) 62%),
       radial-gradient(90% 70% at 50% 42%, rgba(15, 44, 92, .85) 0%, rgba(7, 22, 52, .95) 58%, rgba(4, 9, 26, 1) 100%),
       linear-gradient(180deg, #0b2450 0%, #071634 45%, #04091a 100%);
+  }
+
+  .stage-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: .62;
+    /* 先抽掉原片的彩度，才不會和品牌藍打架 */
+    filter: saturate(.2) contrast(1.08) brightness(.85);
+  }
+
+  /* 品牌色調色：混合模式取上層的色相與彩度、下層的明度，
+     所以影片的明暗被保留，色相整個統一成深藍寶石 */
+  .stage-tint {
+    position: absolute;
+    inset: 0;
+    mix-blend-mode: color;
+    background: linear-gradient(180deg, #1a4b86 0%, #0f2c5c 55%, #071634 100%);
   }
 
   /* 兩道極淡的斜向光束，非常慢地掃過 */
@@ -652,6 +674,10 @@
 
 <div class="stage" id="stage" aria-hidden="true">
   <div class="stage-sky"></div>
+  <video class="stage-video" id="bgVideo" autoplay muted loop playsinline preload="auto">
+    <source src="../../assets/bg-loop.mp4" type="video/mp4" />
+  </video>
+  <div class="stage-tint"></div>
   <div class="stage-beam"></div>
   <canvas id="dust"></canvas>
   <div class="stage-veil"></div>
@@ -1154,6 +1180,20 @@
       requestAnimationFrame(updateCue);
     }
 
+
+    /* ══ 背景影片 ══════════════════════════════════════════════ */
+    const bgVideo = document.getElementById('bgVideo');
+    if (reduce) { bgVideo.pause(); }
+    else { bgVideo.play().catch(() => { /* 擋自動播放就維持靜幀，版面不受影響 */ }); }
+
+    /* 有些嵌入情境（iframe 的 autoplay 權限）會擋掉自動播放，第一次互動時再補播一次 */
+    const resumeVideo = () => {
+      if (!reduce && bgVideo.paused) { bgVideo.play().catch(() => {}); }
+      removeEventListener('pointerdown', resumeVideo);
+      removeEventListener('keydown', resumeVideo);
+    };
+    addEventListener('pointerdown', resumeVideo);
+    addEventListener('keydown', resumeVideo);
 
     /* ══ 背景金塵 ══════════════════════════════════════════════ */
     /* 取自品牌識別裡那圈金色微粒：緩慢上升、各自閃爍，不搶文字的注意力 */

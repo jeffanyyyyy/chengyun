@@ -578,23 +578,32 @@
 
       document.documentElement.classList.add('reveal-ready');
 
-      /* 捲到底時直接補完：頁尾元素落在 rootMargin 的下緣盲區，光靠 IO 永遠不會進場 */
+      function scrollable() {
+        return document.documentElement.scrollHeight > window.innerHeight + 4;
+      }
+
+      /* 捲到底時補完頁尾：頁尾元素落在 rootMargin 的下緣盲區，光靠 IO 永遠不會進場。
+         只在真的捲得動、而且真的捲到底時才動手；載入當下不檢查，否則版面還沒算完就會把特效整個關掉 */
       function checkBottom() {
+        if (!scrollable()) { return; }
         if (window.scrollY + window.innerHeight < document.documentElement.scrollHeight - 4) { return; }
         window.removeEventListener('scroll', checkBottom);
         io.disconnect();
         revealAll();
       }
       window.addEventListener('scroll', checkBottom, { passive: true });
-      checkBottom();
 
-      /* 保險絲：截圖工具、爬蟲等環境不送 IO 回呼，等一下若一個都沒進場就全部顯示 */
-      window.setTimeout(function () {
-        if (seen === 0) {
+      /* 版面穩定後再判斷兩種「IO 幫不上忙」的情況，不能在載入當下就判斷：
+         一是整頁捲不動（例如被嵌進會自動撐高的 iframe），下緣盲區的內容永遠不會進場；
+         二是截圖工具、爬蟲等環境根本不送 IO 回呼 */
+      function settle() {
+        if (seen === 0 || !scrollable()) {
           io.disconnect();
           revealAll();
         }
-      }, 1500);
+      }
+      window.setTimeout(settle, 1500);
+      window.addEventListener('load', function () { window.setTimeout(settle, 1500); });
     }
 
     /* 尊重減少動態偏好：背景影片停在第一幀 */
@@ -605,6 +614,15 @@
     }
     syncVideo();
     if (reduceMotion.addEventListener) { reduceMotion.addEventListener('change', syncVideo); }
+
+    /* 有些嵌入情境（iframe 的 autoplay 權限）會擋掉自動播放，第一次互動時再補播一次 */
+    function resumeVideo() {
+      if (!reduceMotion.matches && video.paused) { video.play().catch(function () {}); }
+      window.removeEventListener('pointerdown', resumeVideo);
+      window.removeEventListener('scroll', resumeVideo);
+    }
+    window.addEventListener('pointerdown', resumeVideo);
+    window.addEventListener('scroll', resumeVideo, { passive: true });
   })();
 </script>
 

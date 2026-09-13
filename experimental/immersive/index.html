@@ -235,15 +235,6 @@
     line-height: 1.2;
   }
 
-  .menu-row .sub {
-    margin-left: auto;
-    font-size: .6rem;
-    letter-spacing: .28em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, .3);
-    white-space: nowrap;
-    transition: color .45s var(--ease);
-  }
 
   .menu-row:hover,
   .menu-row:focus-visible {
@@ -252,15 +243,11 @@
     transform: translateX(.75rem);
   }
 
-  .menu-row:hover .idx,
-  .menu-row:hover .sub { color: rgba(255, 255, 255, .7); }
+  .menu-row:hover .idx { color: rgba(255, 255, 255, .7); }
 
   /* 滑過其中一項時，其他項退到更暗，焦點只有一個 */
   nav:hover .menu-row:not(:hover) { opacity: .4; }
 
-  @media (max-width: 480px) {
-    .menu-row .sub { display: none; }
-  }
 
   /* ── 章節內文 ───────────────────────── */
   .eyebrow {
@@ -583,22 +570,22 @@
   <div class="scene-inner grid place-items-center min-h-[100svh] px-6 md:px-10 py-24">
     <nav class="stagger w-full max-w-3xl">
       <a class="menu-row hover-target" href="#about" data-go="about">
-        <span class="idx">01</span><span class="label" data-i18n="menu.about">About Us</span><span class="sub" data-i18n="menu.about.sub">關於我們</span>
+        <span class="idx">01</span><span class="label" data-i18n="menu.about">About Us</span>
       </a>
       <a class="menu-row hover-target" href="#services" data-go="services">
-        <span class="idx">02</span><span class="label" data-i18n="menu.services">Services</span><span class="sub" data-i18n="menu.services.sub">服務項目</span>
+        <span class="idx">02</span><span class="label" data-i18n="menu.services">Services</span>
       </a>
       <a class="menu-row hover-target" href="#teams" data-go="teams">
-        <span class="idx">03</span><span class="label" data-i18n="menu.teams">Teams</span><span class="sub" data-i18n="menu.teams.sub">我們的團隊</span>
+        <span class="idx">03</span><span class="label" data-i18n="menu.teams">Teams</span>
       </a>
       <a class="menu-row hover-target" href="#portfolio" data-go="portfolio">
-        <span class="idx">04</span><span class="label" data-i18n="menu.portfolio">Portfolio</span><span class="sub" data-i18n="menu.portfolio.sub">活動成果</span>
+        <span class="idx">04</span><span class="label" data-i18n="menu.portfolio">Portfolio</span>
       </a>
       <a class="menu-row hover-target" href="#faq" data-go="faq">
-        <span class="idx">05</span><span class="label" data-i18n="menu.faq">Q&amp;A</span><span class="sub" data-i18n="menu.faq.sub">常見問題</span>
+        <span class="idx">05</span><span class="label" data-i18n="menu.faq">Q&amp;A</span>
       </a>
       <a class="menu-row hover-target" href="#contact" data-go="contact">
-        <span class="idx">06</span><span class="label" data-i18n="menu.contact">Contact Us</span><span class="sub" data-i18n="menu.contact.sub">聯繫我們</span>
+        <span class="idx">06</span><span class="label" data-i18n="menu.contact">Contact Us</span>
       </a>
     </nav>
   </div>
@@ -789,12 +776,12 @@
         'hint.hero': 'Chengyun Event Studio — Silent Market', 'hint.menu': 'Choose a chapter',
         'hint.portfolio': 'Click the event to expand', 'hint.faq': 'Click a question to expand',
         'hint.default': 'Esc to go back',
-        'menu.about': 'About Us', 'menu.about.sub': '關於我們',
-        'menu.services': 'Services', 'menu.services.sub': '服務項目',
-        'menu.teams': 'Teams', 'menu.teams.sub': '我們的團隊',
-        'menu.portfolio': 'Portfolio', 'menu.portfolio.sub': '活動成果',
-        'menu.faq': 'Q&A', 'menu.faq.sub': '常見問題',
-        'menu.contact': 'Contact Us', 'menu.contact.sub': '聯繫我們',
+        'menu.about': 'About Us',
+        'menu.services': 'Services',
+        'menu.teams': 'Teams',
+        'menu.portfolio': 'Portfolio',
+        'menu.faq': 'Q&A',
+        'menu.contact': 'Contact Us',
         'detail.meta': 'Curation · Brand Selection · Production',
         'detail.title': 'Silent Market《默者文畫》',
         'detail.body': '<p class="scene-body">A curated market built on one rule: silence. No loudspeakers, no PA, no microphones — hand-held signs, boards and purpose-built props carry the exchange instead, so attention stays on the work and the person who made it.</p><dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-7 mt-10"><div><dt class="term">Schedule</dt><dd class="desc">6 sessions on alternate weekends: 3–4 Oct, 17–18 Oct, 31 Oct–1 Nov, 14–15 Nov, 28–29 Nov, 12–13 Dec.</dd></div><div><dt class="term">Place &amp; hours</dt><dd class="desc">Shuangshi Plaza, Banqiao, New Taipei (next to Jiangzicui MRT).<br />Market 15:00–20:30, check-in 14:00–15:00.</dd></div><div><dt class="term">Site setup</dt><dd class="desc">Tent (3 x 1.5 m, shared by two stalls), table 120 x 60 cm, chair, custom brand sign and string lights. Brands bring nothing.</dd></div><div><dt class="term">Interaction</dt><dd class="desc">Silent props including the "let me haggle" sign and a 15-second lot-drawing intro. Join three sessions and receive a custom brand puzzle, redeemable against future stall fees.</dd></div></dl>'
@@ -808,12 +795,12 @@
         'hint.hero': '澄耘活動工作室 — 默者文畫 無聲風格聚落', 'hint.menu': '選擇章節',
         'hint.portfolio': '點擊活動可展開細節', 'hint.faq': '點擊問題可展開回答',
         'hint.default': '按 Esc 返回',
-        'menu.about': '關於我們', 'menu.about.sub': 'About Us',
-        'menu.services': '服務項目', 'menu.services.sub': 'Services',
-        'menu.teams': '我們的團隊', 'menu.teams.sub': 'Teams',
-        'menu.portfolio': '活動成果', 'menu.portfolio.sub': 'Portfolio',
-        'menu.faq': '常見問題', 'menu.faq.sub': 'Q&A',
-        'menu.contact': '聯繫我們', 'menu.contact.sub': 'Contact Us',
+        'menu.about': '關於我們',
+        'menu.services': '服務項目',
+        'menu.teams': '我們的團隊',
+        'menu.portfolio': '活動成果',
+        'menu.faq': '常見問題',
+        'menu.contact': '聯繫我們',
         'about.eyebrow': '01 — 關於我們', 'about.title': '市集不該只有叫賣聲。<br />我們想留一塊安靜的地方，<br />讓作品自己說話。',
         'about.p1': '《默者文畫》從一個觀察開始：逛市集的人常因為擴音器與叫賣聲快步走過，真正想停下來看作品的人反而沒被留住。於是我們把「無聲」訂為規則，而不是氣氛裝飾——現場不使用擴音器、喇叭與麥克風，取而代之的是手拿牌、看板與大會設計的無聲互動道具。',
         'about.p2': '我們也希望這是一個能長期累積的聚落，而不是一次性的擺攤。統一的視覺規格、客製品牌招牌、跨場次的品牌拼圖福利，都是為了讓固定參與的品牌被記住、被回訪。',
@@ -877,12 +864,12 @@
         'hint.hero': '澄耘イベントスタジオ — サイレントマーケット', 'hint.menu': '章を選んでください',
         'hint.portfolio': 'イベントをクリックで詳細', 'hint.faq': '質問をクリックで回答',
         'hint.default': 'Esc で戻る',
-        'menu.about': '私たちについて', 'menu.about.sub': 'About Us',
-        'menu.services': 'サービス', 'menu.services.sub': 'Services',
-        'menu.teams': 'チーム', 'menu.teams.sub': 'Teams',
-        'menu.portfolio': '実績', 'menu.portfolio.sub': 'Portfolio',
-        'menu.faq': 'よくある質問', 'menu.faq.sub': 'Q&A',
-        'menu.contact': 'お問い合わせ', 'menu.contact.sub': 'Contact Us',
+        'menu.about': '私たちについて',
+        'menu.services': 'サービス',
+        'menu.teams': 'チーム',
+        'menu.portfolio': '実績',
+        'menu.faq': 'よくある質問',
+        'menu.contact': 'お問い合わせ',
         'about.eyebrow': '01 — 私たちについて',
         'about.title': 'マーケットは呼び込みの声だけではないはず。<br />作品そのものが語る、<br />静かな場所をつくりたかった。',
         'about.p1': '『默者文畫』は一つの観察から始まりました。拡声器や呼び込みの声のせいで来場者は足早に通り過ぎ、本当に作品を見たい人ほど立ち止まれない。そこで私たちは「無音」を演出ではなくルールにしました。会場では拡声器・スピーカー・マイクを使わず、手持ちのサインやボード、主催が設計した無音の道具で伝えます。',

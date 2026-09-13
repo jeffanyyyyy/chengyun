@@ -1352,6 +1352,21 @@
           <article class="frame">
             <div class="frame-shot" style="--a:#20405e; --b:#0a131c"><span>06</span><span class="frame-role" data-i18n="teams.s6">Stallholder Support</span></div>
           </article>
+          <article class="frame">
+            <div class="frame-shot" style="--a:#2d4a3a; --b:#0b1510"><span>07</span><span class="frame-role" data-i18n="teams.s7">Role to be confirmed</span></div>
+          </article>
+          <article class="frame">
+            <div class="frame-shot" style="--a:#4a3556; --b:#140f1a"><span>08</span><span class="frame-role" data-i18n="teams.s8">Role to be confirmed</span></div>
+          </article>
+          <article class="frame">
+            <div class="frame-shot" style="--a:#563d2a; --b:#18100b"><span>09</span><span class="frame-role" data-i18n="teams.s9">Role to be confirmed</span></div>
+          </article>
+          <article class="frame">
+            <div class="frame-shot" style="--a:#25505a; --b:#0a1619"><span>10</span><span class="frame-role" data-i18n="teams.s10">Role to be confirmed</span></div>
+          </article>
+          <article class="frame">
+            <div class="frame-shot" style="--a:#3a3550; --b:#111018"><span>11</span><span class="frame-role" data-i18n="teams.s11">Role to be confirmed</span></div>
+          </article>
         </div>
       </div>
       </div>
@@ -1643,6 +1658,11 @@
         'teams.b4': 'Key visuals, brand signage and the on-site props.',
         'teams.b5': 'Site and social content, stall features, and the record kept after each session.',
         'teams.b6': 'Briefings, help on the day, and follow-up once the market closes.',
+        'teams.b7': 'Name, role and photo to be supplied.',
+        'teams.b8': 'Name, role and photo to be supplied.',
+        'teams.b9': 'Name, role and photo to be supplied.',
+        'teams.b10': 'Name, role and photo to be supplied.',
+        'teams.b11': 'Name, role and photo to be supplied.',
         'contact.t0': 'Chengyun Event Studio Co., Ltd.',
         'form.required': 'This field is required', 'form.badEmail': 'Please check the email address',
         'form.fixFields': 'Please complete the required fields marked with an asterisk.',
@@ -1753,6 +1773,11 @@
         'teams.s4': '視覺設計', 'teams.b4': '主視覺、品牌招牌與現場道具的設計與製作。',
         'teams.s5': '社群經營', 'teams.b5': '官網與社群內容、攤商曝光與活動後的紀錄整理。',
         'teams.s6': '攤商服務', 'teams.b6': '行前說明、現場協助與活動後的意見回收。',
+        'teams.s7': '職務待補', 'teams.b7': '姓名、職務與照片待提供。',
+        'teams.s8': '職務待補', 'teams.b8': '姓名、職務與照片待提供。',
+        'teams.s9': '職務待補', 'teams.b9': '姓名、職務與照片待提供。',
+        'teams.s10': '職務待補', 'teams.b10': '姓名、職務與照片待提供。',
+        'teams.s11': '職務待補', 'teams.b11': '姓名、職務與照片待提供。',
         'teams.note': '主辦單位：澄耘活動工作室 有限公司',
         'portfolio.eyebrow': '04 — 活動成果',
         'portfolio.meta': '市集策劃 · 品牌招商 · 現場執行',
@@ -1888,6 +1913,11 @@
         'teams.s4': 'デザイン', 'teams.b4': 'メインビジュアル、ブランド看板、会場の道具の設計と制作。',
         'teams.s5': '広報', 'teams.b5': 'サイトとSNSの発信、出店者の紹介、開催後の記録。',
         'teams.s6': '出店者サポート', 'teams.b6': '事前説明、当日の対応、開催後のフィードバック回収。',
+        'teams.s7': '担当は調整中', 'teams.b7': '氏名・担当・写真は後日追加。',
+        'teams.s8': '担当は調整中', 'teams.b8': '氏名・担当・写真は後日追加。',
+        'teams.s9': '担当は調整中', 'teams.b9': '氏名・担当・写真は後日追加。',
+        'teams.s10': '担当は調整中', 'teams.b10': '氏名・担当・写真は後日追加。',
+        'teams.s11': '担当は調整中', 'teams.b11': '氏名・担当・写真は後日追加。',
         'teams.note': '主催：澄耘活動工作室 有限公司（Chengyun Event Studio Co., Ltd.）',
         'portfolio.eyebrow': '04 — 実績',
         'portfolio.meta': 'キュレーション · 出店審査 · 現場運営',
@@ -2317,7 +2347,7 @@
       /* 一定要用 offsetWidth：getBoundingClientRect 量到的是「轉過之後的投影寬」，
          拿它回推半徑會讓圓柱太緊，相鄰片格就會互相穿插 */
       filmW = filmFrames[0].offsetWidth || 280;
-      filmStep = innerWidth < 760 ? 21 : 17;
+      filmStep = innerWidth < 760 ? 17 : 12.5;
       /* 弦長只比片格寬 2%：相鄰片格之間留一道框線的縫，
          連起來才像一整條底片，又不會在投影時互穿 */
       filmR = (filmW * 1.02 / 2) / Math.tan(filmStep * Math.PI / 360);
@@ -2349,7 +2379,7 @@
             'translateY(' + float.toFixed(2) + 'px)';
         }
 
-        f.style.opacity = clamp(1 - Math.abs(o) * .09, .14, 1).toFixed(3);
+        f.style.opacity = clamp(1 - Math.abs(o) * .21, 0, 1).toFixed(3);
 
         /* 縮放與失焦掛在畫面上，不掛在片格本身：
            片格一縮，整條底片就會出現縫、齒孔也會對不齊 */
@@ -2461,14 +2491,17 @@
       f.addEventListener('click', () => { if (filmDrag.moved < 8 && i !== filmIndex) { filmGo(i); } });
     });
 
-    filmPrev.addEventListener('click', () => filmGo(filmIndex - 1));
-    filmNext.addEventListener('click', () => filmGo(filmIndex + 1));
+    /* 一律以「目標位置」為基準往前後推：
+       filmIndex 要等動畫跑到才更新，用它當基準的話，
+       連按兩下箭頭只會走一格 */
+    filmPrev.addEventListener('click', () => filmGo(Math.round(filmTarget) - 1));
+    filmNext.addEventListener('click', () => filmGo(Math.round(filmTarget) + 1));
 
     /* 方向鍵：只在團隊分鏡、且沒有其他覆蓋層時才接手 */
     addEventListener('keydown', (e) => {
       if (current !== 'teams' || detail.classList.contains('is-on') || menuOverlay.classList.contains('is-open')) { return; }
-      if (e.key === 'ArrowRight') { filmGo(filmIndex + 1); }
-      if (e.key === 'ArrowLeft') { filmGo(filmIndex - 1); }
+      if (e.key === 'ArrowRight') { filmGo(Math.round(filmTarget) + 1); }
+      if (e.key === 'ArrowLeft') { filmGo(Math.round(filmTarget) - 1); }
     });
 
     /* rAF 只在這個分鏡開著、分頁又在前景時跑，其餘時間不佔資源 */

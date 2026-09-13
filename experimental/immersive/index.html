@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>CHENGYUN LAB — Obsidian</title>
+<meta name="description" content="沈浸式分鏡體驗：中央的黑水晶流體、長按展開的導覽、全螢幕遮罩轉場。" />
+<meta name="theme-color" content="#000000" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23222' stroke='%23888'/%3E%3C/svg%3E" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  if (window.tailwind) {
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { syne: ['Syne', 'Noto Sans TC', 'sans-serif'], inter: ['Inter', 'Noto Sans TC', 'sans-serif'] }
+      } }
+    };
+  }
+</script>
+
+<style>
+  /* 這裡只放 Tailwind 表達不了的東西，外加 CDN 失效時的保底外觀 */
+  :root {
+    --ease: cubic-bezier(.22, 1, .36, 1);
+    --scene-in: .9s;
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    background: #000;
+    color: #fff;
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
+    font-weight: 300;
+    /* 分鏡式體驗：整頁不捲動，內容一律鎖在視窗內 */
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { font-family: 'Syne', 'Noto Sans TC', sans-serif; margin: 0; }
+  ::selection { background: #fff; color: #000; }
+  :focus-visible { outline: 1px solid #fff; outline-offset: 6px; }
+
+  /* ── 分鏡層 ─────────────────────────── */
+  .scene {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(1.035);
+    transition: opacity var(--scene-in) var(--ease),
+                transform var(--scene-in) var(--ease),
+                visibility 0s linear var(--scene-in);
+    will-change: opacity, transform;
+  }
+
+  .scene.is-active {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 0s;
+  }
+
+  /* opacity:0 擋不住滑鼠，而子代（例如 .slide）還會把 visibility 改回 visible，
+     所以非作用中的分鏡一律關掉指標事件，免得隱形的那層攔走點擊 */
+  .scene { pointer-events: none; }
+  .scene.is-active { pointer-events: auto; }
+
+  /* 離場時往內縮，和進場的往外放形成推進感 */
+  .scene.is-leaving { transform: scale(.97); }
+
+  /* 分鏡內容若超出視窗（窄螢幕、橫躺手機）就自己捲，頁面本身仍然不捲 */
+  .scene-inner {
+    width: 100%;
+    max-height: 100svh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── 轉場遮罩：從中心擴散的圓 ───────── */
+  .wipe {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    background: #fff;
+    pointer-events: none;
+    clip-path: circle(0% at 50% 50%);
+    opacity: 0;
+  }
+
+  .wipe.is-on {
+    animation: wipe .95s var(--ease) forwards;
+  }
+
+  @keyframes wipe {
+    0%   { clip-path: circle(0% at 50% 50%); opacity: .92; }
+    45%  { clip-path: circle(75% at 50% 50%); opacity: .92; }
+    100% { clip-path: circle(150% at 50% 50%); opacity: 0; }
+  }
+
+  /* ── 自訂游標 ───────────────────────── */
+  .cursor { display: none; }
+
+  @media (hover: hover) and (pointer: fine) {
+    body { cursor: none; }
+
+    .cursor {
+      position: fixed;
+      top: 0; left: 0;
+      z-index: 120;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      pointer-events: none;
+      mix-blend-mode: difference;
+      will-change: transform;
+      transition: width .4s var(--ease), height .4s var(--ease),
+                  margin .4s var(--ease), background-color .4s var(--ease),
+                  border-color .4s var(--ease), opacity .3s ease;
+    }
+
+    .cursor-dot { width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; background: #fff; }
+    .cursor-ring { width: 36px; height: 36px; margin: -18px 0 0 -18px; border: 1px solid rgba(255,255,255,.4); }
+    .cursor.is-idle { opacity: 0; }
+
+    .cursor-ring.is-near {
+      width: 72px; height: 72px; margin: -36px 0 0 -36px;
+      background: rgba(255,255,255,.12);
+      border-color: transparent;
+    }
+
+    .cursor-ring.is-hold {
+      width: 96px; height: 96px; margin: -48px 0 0 -48px;
+      border-color: rgba(255,255,255,.85);
+    }
+  }
+
+  /* ── 水晶與其備援 ───────────────────── */
+  #gl, .crystal-fallback {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    transition: opacity 1.2s var(--ease), transform 1.2s var(--ease);
+  }
+
+  /* WebGL 不可用時的替身：靠漸層與模糊做出一顆有光澤的黑球 */
+  .crystal-fallback {
+    display: none;
+    place-items: center;
+  }
+
+  .crystal-fallback::before {
+    content: '';
+    width: min(42vmin, 320px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(38% 34% at 36% 28%, rgba(255,255,255,.85) 0%, rgba(255,255,255,0) 60%),
+      radial-gradient(60% 60% at 68% 72%, rgba(120,140,220,.4) 0%, rgba(0,0,0,0) 70%),
+      radial-gradient(100% 100% at 50% 50%, #1a1a1f 0%, #050507 70%);
+    box-shadow: 0 0 120px rgba(90,110,190,.22), inset 0 0 60px rgba(0,0,0,.8);
+    animation: bob 7s var(--ease) infinite;
+  }
+
+  .no-webgl #gl { display: none; }
+  .no-webgl .crystal-fallback { display: grid; }
+
+  @keyframes bob {
+    0%, 100% { transform: translateY(-1.5%) scale(1); }
+    50%      { transform: translateY(1.5%) scale(1.02); }
+  }
+
+  /* 進到內頁時水晶退到背景 */
+  .is-inner #gl,
+  .is-inner .crystal-fallback { opacity: .32; transform: scale(1.25); }
+
+  /* ── 長按進度環 ─────────────────────── */
+  .hold-ring circle { transition: stroke-dashoffset .12s linear; }
+
+  /* ── 導覽字 ─────────────────────────── */
+  .menu-item {
+    position: relative;
+    display: block;
+    line-height: .95;
+    color: rgba(255,255,255,.55);
+    transition: color .5s var(--ease), transform .6s var(--ease), opacity .6s var(--ease);
+  }
+
+  .menu-item:hover,
+  .menu-item:focus-visible { color: #fff; transform: translateX(1.2rem); }
+
+  .menu-item small {
+    position: absolute;
+    top: .35em;
+    margin-left: .8rem;
+    font-family: 'Inter', sans-serif;
+    font-size: .6rem;
+    letter-spacing: .25em;
+    color: rgba(255,255,255,.35);
+  }
+
+  /* 進場時逐項浮現 */
+  .scene.is-active .stagger > * {
+    animation: rise .9s var(--ease) backwards;
+  }
+
+  .scene.is-active .stagger > :nth-child(1) { animation-delay: .15s; }
+  .scene.is-active .stagger > :nth-child(2) { animation-delay: .27s; }
+  .scene.is-active .stagger > :nth-child(3) { animation-delay: .39s; }
+  .scene.is-active .stagger > :nth-child(4) { animation-delay: .51s; }
+  .scene.is-active .stagger > :nth-child(5) { animation-delay: .63s; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(2.2rem); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ── 作品分鏡 ───────────────────────── */
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    transform: scale(1.06);
+    visibility: hidden;
+    transition: opacity .8s var(--ease), transform .9s var(--ease), visibility 0s linear .8s;
+  }
+
+  .slide.is-on {
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  .slide-bg {
+    position: absolute;
+    inset: 0;
+    opacity: .5;
+    filter: grayscale(1) brightness(.55);
+    transition: filter 1s var(--ease), transform 1.4s var(--ease);
+  }
+
+  .slide.is-on .slide-bg { filter: grayscale(.15) brightness(.8); transform: scale(1.05); }
+
+  /* 展開後的作品細節 */
+  .detail {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    background: rgba(0,0,0,.92);
+    backdrop-filter: blur(18px);
+    clip-path: inset(50% 0 50% 0);
+    opacity: 0;
+    visibility: hidden;
+    transition: clip-path .8s var(--ease), opacity .5s ease, visibility 0s linear .8s;
+  }
+
+  .detail.is-on {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  /* ── 顆粒質感 ───────────────────────── */
+  .grain {
+    position: fixed;
+    inset: -150%;
+    z-index: 110;
+    pointer-events: none;
+    opacity: .13;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+    animation: grain 1.2s steps(6) infinite;
+  }
+
+  @keyframes grain {
+    0%   { transform: translate(0, 0); }
+    20%  { transform: translate(-8%, 4%); }
+    40%  { transform: translate(5%, -7%); }
+    60%  { transform: translate(-4%, -3%); }
+    80%  { transform: translate(7%, 6%); }
+    100% { transform: translate(0, 0); }
+  }
+
+  .breathe { animation: breathe 2.6s ease-in-out infinite; }
+
+  @keyframes breathe {
+    0%, 100% { opacity: .4; }
+    50%      { opacity: 1; }
+  }
+
+  /* Tailwind 沒載到時的保底：至少維持置中與可讀 */
+  .scene { align-items: center; justify-content: center; text-align: center; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .grain, .breathe, .crystal-fallback::before { animation: none; }
+    .scene, .slide, .detail { transition-duration: .2s; }
+    .scene.is-active .stagger > * { animation: none; }
+    .wipe.is-on { animation-duration: .3s; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="crystal-fallback" aria-hidden="true"></div>
+
+<div class="cursor cursor-dot" id="cursorDot" aria-hidden="true"></div>
+<div class="cursor cursor-ring" id="cursorRing" aria-hidden="true"></div>
+<div class="wipe" id="wipe" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ── 固定頁首／頁尾 ───────────────── -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 md:px-10 py-6 mix-blend-difference">
+  <button class="hover-target font-syne text-sm md:text-base font-extrabold tracking-[.22em] uppercase" id="brand" type="button">Chengyun.Lab</button>
+  <span class="text-[.6rem] tracking-[.3em] uppercase text-white/60" id="sceneLabel">Index</span>
+</header>
+
+<footer class="fixed bottom-0 left-0 w-full z-50 flex items-center justify-between px-6 md:px-10 py-6 mix-blend-difference text-[.6rem] tracking-[.3em] uppercase text-white/50">
+  <span id="footHint">Obsidian — Interactive Study</span>
+  <button class="hover-target tracking-[.3em] uppercase" id="backBtn" type="button" hidden>← Index</button>
+</footer>
+
+<!-- ── 1. 首頁：黑水晶 ───────────────── -->
+<section class="scene is-active" data-scene="hero">
+  <div class="scene-inner relative grid place-items-center min-h-[100svh] px-6">
+
+    <p class="absolute top-[18svh] left-1/2 -translate-x-1/2 text-[.65rem] md:text-xs tracking-[.4em] uppercase text-white/70 whitespace-nowrap">
+      View All Projects
+    </p>
+
+    <!-- 水晶的互動熱區：本身透明，視覺全部交給後面的 canvas -->
+    <button class="hold-zone hover-target relative grid place-items-center rounded-full"
+            style="width:min(62vmin,520px);aspect-ratio:1;background:transparent;border:0"
+            id="holdZone" type="button" aria-label="長按展開導覽">
+      <svg class="hold-ring absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 200 200" aria-hidden="true">
+        <circle cx="100" cy="100" r="96" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1" />
+        <circle cx="100" cy="100" r="96" fill="none" stroke="#fff" stroke-width="1.5"
+                stroke-dasharray="603" stroke-dashoffset="603" id="holdProgress" />
+      </svg>
+    </button>
+
+    <p class="absolute bottom-[16svh] left-1/2 -translate-x-1/2 text-[.65rem] md:text-xs tracking-[.4em] uppercase text-white breathe whitespace-nowrap">
+      Click &amp; Hold
+    </p>
+  </div>
+</section>
+
+<!-- ── 2. 導覽 ───────────────────────── -->
+<section class="scene" data-scene="menu" aria-hidden="true">
+  <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16">
+    <nav class="stagger w-full max-w-4xl text-left font-syne font-extrabold uppercase tracking-[-.02em] text-[clamp(2.75rem,13vw,8rem)]">
+      <a class="menu-item hover-target" href="#about" data-go="about">About<small>01</small></a>
+      <a class="menu-item hover-target" href="#work" data-go="work">Work<small>02</small></a>
+      <a class="menu-item hover-target" href="#contact" data-go="contact">Contact<small>03</small></a>
+    </nav>
+  </div>
+</section>
+
+<!-- ── 3. About ──────────────────────── -->
+<section class="scene" data-scene="about" aria-hidden="true">
+  <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
+    <div class="stagger w-full max-w-4xl text-left">
+      <span class="block text-[.6rem] tracking-[.35em] uppercase text-white/45 mb-8">01 — About</span>
+      <h2 class="font-syne font-extrabold uppercase leading-[1.05] tracking-[-.02em] text-[clamp(1.9rem,6vw,4.25rem)] mb-10">
+        We shape light,<br />matter and motion<br />into interfaces.
+      </h2>
+      <p class="max-w-xl text-white/60 leading-relaxed mb-12">
+        Real-time rendering, generative systems and obsessive art direction. Every surface is simulated, every transition is authored — nothing is a stock component.
+      </p>
+      <ul class="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-3 text-[.7rem] tracking-[.2em] uppercase text-white/45">
+        <li>Real-time WebGL</li>
+        <li>Shader Systems</li>
+        <li>Art Direction</li>
+        <li>Motion Design</li>
+        <li>Sound &amp; Interaction</li>
+        <li>Creative Engineering</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. Work：全螢幕分鏡 ───────────── -->
+<section class="scene" data-scene="work" aria-hidden="true">
+  <div class="relative w-full min-h-[100svh]">
+
+    <div class="slide is-on" data-slide="0">
+      <div class="slide-bg" style="background:radial-gradient(75% 60% at 30% 35%, #3b2a5e 0%, #050507 70%)"></div>
+      <button class="hover-target relative z-10 px-8 text-center" type="button" data-detail="0">
+        <span class="block text-[.6rem] tracking-[.35em] uppercase text-white/50 mb-6">WebGL / Interaction</span>
+        <h3 class="font-syne font-extrabold uppercase leading-[.9] tracking-[-.03em] text-[clamp(2.5rem,11vw,8rem)]">Neural Void</h3>
+        <span class="inline-block mt-8 text-[.6rem] tracking-[.35em] uppercase text-white/70 border border-white/30 rounded-full px-5 py-2">Click to expand</span>
+      </button>
+    </div>
+
+    <div class="slide" data-slide="1">
+      <div class="slide-bg" style="background:radial-gradient(75% 60% at 70% 40%, #0f4c4c 0%, #050507 70%)"></div>
+      <button class="hover-target relative z-10 px-8 text-center" type="button" data-detail="1">
+        <span class="block text-[.6rem] tracking-[.35em] uppercase text-white/50 mb-6">Branding / 3D Motion</span>
+        <h3 class="font-syne font-extrabold uppercase leading-[.9] tracking-[-.03em] text-[clamp(2.5rem,11vw,8rem)]">Liquid Cyber</h3>
+        <span class="inline-block mt-8 text-[.6rem] tracking-[.35em] uppercase text-white/70 border border-white/30 rounded-full px-5 py-2">Click to expand</span>
+      </button>
+    </div>
+
+    <div class="slide" data-slide="2">
+      <div class="slide-bg" style="background:radial-gradient(75% 60% at 45% 65%, #5e2a2a 0%, #050507 70%)"></div>
+      <button class="hover-target relative z-10 px-8 text-center" type="button" data-detail="2">
+        <span class="block text-[.6rem] tracking-[.35em] uppercase text-white/50 mb-6">Art Direction / Shaders</span>
+        <h3 class="font-syne font-extrabold uppercase leading-[.9] tracking-[-.03em] text-[clamp(2.5rem,11vw,8rem)]">Static Bloom</h3>
+        <span class="inline-block mt-8 text-[.6rem] tracking-[.35em] uppercase text-white/70 border border-white/30 rounded-full px-5 py-2">Click to expand</span>
+      </button>
+    </div>
+
+    <div class="slide" data-slide="3">
+      <div class="slide-bg" style="background:radial-gradient(75% 60% at 60% 45%, #4a4416 0%, #050507 70%)"></div>
+      <button class="hover-target relative z-10 px-8 text-center" type="button" data-detail="3">
+        <span class="block text-[.6rem] tracking-[.35em] uppercase text-white/50 mb-6">Sound / Real-time</span>
+        <h3 class="font-syne font-extrabold uppercase leading-[.9] tracking-[-.03em] text-[clamp(2.5rem,11vw,8rem)]">Echo Chamber</h3>
+        <span class="inline-block mt-8 text-[.6rem] tracking-[.35em] uppercase text-white/70 border border-white/30 rounded-full px-5 py-2">Click to expand</span>
+      </button>
+    </div>
+
+    <!-- 分鏡切換 -->
+    <div class="absolute bottom-[14svh] left-1/2 -translate-x-1/2 z-20 flex items-center gap-6">
+      <button class="hover-target w-11 h-11 grid place-items-center rounded-full border border-white/25 text-lg leading-none" id="prevSlide" type="button" aria-label="上一件作品">←</button>
+      <span class="text-[.65rem] tracking-[.3em] tabular-nums text-white/60"><b id="slideIndex" class="font-normal text-white">01</b> / 04</span>
+      <button class="hover-target w-11 h-11 grid place-items-center rounded-full border border-white/25 text-lg leading-none" id="nextSlide" type="button" aria-label="下一件作品">→</button>
+    </div>
+  </div>
+</section>
+
+<!-- ── 5. Contact ────────────────────── -->
+<section class="scene" data-scene="contact" aria-hidden="true">
+  <div class="scene-inner grid place-items-center min-h-[100svh] px-8 text-center">
+    <div class="stagger">
+      <span class="block text-[.6rem] tracking-[.35em] uppercase text-white/45 mb-8">03 — Contact</span>
+      <a class="hover-target block font-syne font-extrabold uppercase leading-[.95] tracking-[-.02em] text-[clamp(1.75rem,7vw,5rem)] hover:opacity-60 transition-opacity duration-500 break-all"
+         href="mailto:hello@chengyun.studio">hello@chengyun.studio</a>
+      <p class="mt-10 text-[.65rem] tracking-[.3em] uppercase text-white/40">Taipei — Available for 2026</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 作品細節 ──────────────────────── -->
+<div class="detail" id="detail" aria-hidden="true">
+  <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
+    <div class="w-full max-w-3xl text-left">
+      <span class="block text-[.6rem] tracking-[.35em] uppercase text-white/45 mb-6" id="detailMeta">WebGL / Interaction</span>
+      <h3 class="font-syne font-extrabold uppercase leading-[.95] tracking-[-.02em] text-[clamp(2rem,7vw,4.5rem)] mb-8" id="detailTitle">Neural Void</h3>
+      <p class="text-white/60 leading-relaxed mb-10" id="detailBody"></p>
+      <button class="hover-target text-[.6rem] tracking-[.35em] uppercase border border-white/30 rounded-full px-6 py-3" id="detailClose" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const root = document.documentElement;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+
+    /* ── 水晶：在 fragment shader 裡 raymarch 一團 SDF 流體 ───────────────── */
+    class Crystal {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.charge = 0;        // 長按蓄力 0..1
+        this.targetCharge = 0;
+        this.dim = 0;           // 進內頁後的收斂
+        this.targetDim = 0;
+        this.mx = 0; this.my = 0;
+        this.smx = 0; this.smy = 0;
+        this.gl = null;
+        this.start = performance.now();
+      }
+
+      init() {
+        const gl = this.canvas.getContext('webgl', { alpha: false, antialias: false, powerPreference: 'low-power' })
+          || this.canvas.getContext('experimental-webgl');
+        if (!gl) { return false; }
+        this.gl = gl;
+
+        const vert = `
+          attribute vec2 aPos;
+          varying vec2 vUv;
+          void main() { vUv = aPos; gl_Position = vec4(aPos, 0.0, 1.0); }
+        `;
+
+        const frag = `
+          precision highp float;
+          uniform vec2 uRes;
+          uniform float uTime;
+          uniform float uCharge;
+          uniform float uDim;
+          uniform vec2 uMouse;
+          varying vec2 vUv;
+
+          // 兩個距離場平滑相接，讓球體像水滴一樣融合
+          float smin(float a, float b, float k) {
+            float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+            return mix(b, a, h) - k * h * (1.0 - h);
+          }
+
+          float sdSphere(vec3 p, float r) { return length(p) - r; }
+
+          float map(vec3 p) {
+            float t = uTime * 0.42;
+            float grow = 1.0 + uCharge * 0.17;
+            float d = sdSphere(p, 0.86 * grow);
+            d = smin(d, sdSphere(p - vec3(sin(t * 1.1) * 0.52, cos(t * 0.9) * 0.42, sin(t * 0.7) * 0.4) * grow, 0.42 * grow), 0.52);
+            d = smin(d, sdSphere(p - vec3(cos(t * 0.8) * 0.48, sin(t * 1.3) * 0.5, cos(t * 1.05) * 0.34) * grow, 0.36 * grow), 0.48);
+            d = smin(d, sdSphere(p - vec3(sin(t * 0.6) * 0.44, cos(t * 0.52) * 0.58, sin(t * 0.95) * 0.5) * grow, 0.3 * grow), 0.44);
+            // 表面細碎起伏：蓄力時更激烈
+            d += sin(p.x * 5.5 + t * 2.1) * sin(p.y * 4.8 + t * 1.7) * sin(p.z * 5.2 + t * 1.4) * (0.022 + uCharge * 0.05);
+            return d;
+          }
+
+          vec3 normalAt(vec3 p) {
+            vec2 e = vec2(0.0022, 0.0);
+            return normalize(vec3(
+              map(p + e.xyy) - map(p - e.xyy),
+              map(p + e.yxy) - map(p - e.yxy),
+              map(p + e.yyx) - map(p - e.yyx)
+            ));
+          }
+
+          // 極簡棚拍環境：上方一盞主燈、下方冷色反光、幾道細亮條
+          vec3 env(vec3 d) {
+            float y = d.y * 0.5 + 0.5;
+            vec3 c = mix(vec3(0.012, 0.013, 0.019), vec3(0.10, 0.11, 0.15), y);
+            c += vec3(1.0, 0.98, 0.95) * pow(max(d.y, 0.0), 7.0) * 0.9;
+            c += vec3(0.30, 0.38, 0.75) * pow(max(-d.y, 0.0), 4.0) * 0.35;
+            float band = smoothstep(0.990, 1.0, sin(d.x * 7.0 + d.z * 4.0) * 0.5 + 0.5);
+            c += vec3(0.9, 0.93, 1.0) * band * 0.38;
+            return c;
+          }
+
+          void main() {
+            float aspect = uRes.x / uRes.y;
+            vec2 uv = vUv;
+            uv.x *= aspect;
+            /* 直式畫面時整體縮小視野，水晶以短邊為準，不會撐出左右 */
+            uv /= min(aspect, 1.0);
+
+            vec3 ro = vec3(uMouse.x * 0.55, uMouse.y * 0.4, 4.8);
+            vec3 ta = vec3(0.0);
+            vec3 fw = normalize(ta - ro);
+            vec3 rt = normalize(cross(vec3(0.0, 1.0, 0.0), fw));
+            vec3 up = cross(fw, rt);
+            vec3 rd = normalize(uv.x * rt + uv.y * up + 1.9 * fw);
+
+            float t = 0.0;
+            float hit = 0.0;
+            for (int i = 0; i < 72; i++) {
+              vec3 p = ro + rd * t;
+              float d = map(p);
+              if (d < 0.0016) { hit = 1.0; break; }
+              t += d * 0.82;
+              if (t > 7.0) { break; }
+            }
+
+            vec3 col = vec3(0.0);
+
+            if (hit > 0.5) {
+              vec3 p = ro + rd * t;
+              vec3 n = normalAt(p);
+              vec3 r = reflect(rd, n);
+              float fres = pow(1.0 - max(dot(n, -rd), 0.0), 3.4);
+
+              vec3 key = normalize(vec3(0.65, 0.95, 0.55));
+              vec3 rim = normalize(vec3(-0.85, -0.25, 0.45));
+              float spec = pow(max(dot(r, key), 0.0), 90.0);
+              float spec2 = pow(max(dot(r, rim), 0.0), 26.0);
+
+              col = vec3(0.008);                                   // 本體近乎全黑
+              col += env(r) * 0.30;                                // 環境反射，克制一點才像黑曜石
+              col += vec3(1.0) * spec * 1.7;                       // 銳利高光
+              col += vec3(0.55, 0.62, 0.95) * spec2 * 0.20;        // 冷色補光
+              col += vec3(0.30, 0.34, 0.56) * fres * (0.34 + uCharge * 0.9);  // 邊緣冷光，蓄力時才亮起來
+              col += vec3(0.85, 0.82, 1.0) * uCharge * 0.05;
+            } else {
+              // 背景維持純黑，只在水晶周圍留一圈極淡的光暈
+              float glow = exp(-length(uv) * 2.2) * (0.05 + uCharge * 0.16);
+              col = vec3(0.30, 0.36, 0.7) * glow;
+            }
+
+            col *= 1.0 - uDim * 0.55;
+            gl_FragColor = vec4(col, 1.0);
+          }
+        `;
+
+        const compile = (type, src) => {
+          const sh = gl.createShader(type);
+          gl.shaderSource(sh, src);
+          gl.compileShader(sh);
+          return gl.getShaderParameter(sh, gl.COMPILE_STATUS) ? sh : null;
+        };
+
+        const vs = compile(gl.VERTEX_SHADER, vert);
+        const fs = compile(gl.FRAGMENT_SHADER, frag);
+        if (!vs || !fs) { return false; }
+
+        const prog = gl.createProgram();
+        gl.attachShader(prog, vs);
+        gl.attachShader(prog, fs);
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { return false; }
+        gl.useProgram(prog);
+
+        const buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+        const loc = gl.getAttribLocation(prog, 'aPos');
+        gl.enableVertexAttribArray(loc);
+        gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+        this.u = {
+          res: gl.getUniformLocation(prog, 'uRes'),
+          time: gl.getUniformLocation(prog, 'uTime'),
+          charge: gl.getUniformLocation(prog, 'uCharge'),
+          dim: gl.getUniformLocation(prog, 'uDim'),
+          mouse: gl.getUniformLocation(prog, 'uMouse')
+        };
+
+        this.resize();
+        addEventListener('resize', () => this.resize());
+        return true;
+      }
+
+      resize() {
+        /* raymarching 很吃填充率，像素比壓到 1.25 以內就夠銳利了 */
+        const dpr = Math.min(devicePixelRatio || 1, 1.25);
+        const w = Math.round(this.canvas.clientWidth * dpr);
+        const h = Math.round(this.canvas.clientHeight * dpr);
+        if (!w || !h || (this.canvas.width === w && this.canvas.height === h)) { return; }
+        this.canvas.width = w;
+        this.canvas.height = h;
+        this.gl.viewport(0, 0, w, h);
+      }
+
+      render(now) {
+        if (!this.gl) { return; }
+        const gl = this.gl;
+        this.charge = lerp(this.charge, this.targetCharge, 0.12);
+        this.dim = lerp(this.dim, this.targetDim, 0.06);
+        this.smx = lerp(this.smx, this.mx, 0.05);
+        this.smy = lerp(this.smy, this.my, 0.05);
+        gl.uniform2f(this.u.res, this.canvas.width, this.canvas.height);
+        gl.uniform1f(this.u.time, reduce ? 0 : (now - this.start) * 0.001);
+        gl.uniform1f(this.u.charge, this.charge);
+        gl.uniform1f(this.u.dim, this.dim);
+        gl.uniform2f(this.u.mouse, this.smx, this.smy);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      }
+    }
+
+    const crystal = new Crystal(document.getElementById('gl'));
+    if (!crystal.init()) { root.classList.add('no-webgl'); }
+
+    if (fine) {
+      addEventListener('mousemove', (e) => {
+        crystal.mx = (e.clientX / innerWidth - 0.5) * 2;
+        crystal.my = -(e.clientY / innerHeight - 0.5) * 2;
+      });
+    }
+
+    /* ── 分鏡切換 ─────────────────────── */
+    const scenes = new Map();
+    document.querySelectorAll('[data-scene]').forEach((el) => scenes.set(el.dataset.scene, el));
+    const wipe = document.getElementById('wipe');
+    const sceneLabel = document.getElementById('sceneLabel');
+    const backBtn = document.getElementById('backBtn');
+    const footHint = document.getElementById('footHint');
+    let current = 'hero';
+    let busy = false;
+
+    const LABELS = { hero: 'Index', menu: 'Menu', about: '01 — About', work: '02 — Work', contact: '03 — Contact' };
+    const HINTS = {
+      hero: 'Obsidian — Interactive Study',
+      menu: 'Choose a chapter',
+      about: 'Esc to go back',
+      work: '← → to browse',
+      contact: 'Esc to go back'
+    };
+
+    function goTo(name) {
+      if (busy || name === current || !scenes.has(name)) { return; }
+      busy = true;
+
+      /* 轉場遮罩從中心擴散，趁畫面被蓋住時換場 */
+      wipe.classList.remove('is-on');
+      void wipe.offsetWidth;                 // 重啟動畫
+      wipe.classList.add('is-on');
+
+      const from = scenes.get(current);
+      from.classList.add('is-leaving');
+
+      const swapAt = reduce ? 60 : 380;
+      setTimeout(() => {
+        from.classList.remove('is-active', 'is-leaving');
+        from.setAttribute('aria-hidden', 'true');
+        const to = scenes.get(name);
+        to.classList.add('is-active');
+        to.removeAttribute('aria-hidden');
+        current = name;
+
+        root.classList.toggle('is-inner', name !== 'hero');
+        crystal.targetDim = name === 'hero' ? 0 : (name === 'menu' ? 0.35 : 1);
+        sceneLabel.textContent = LABELS[name] || '';
+        footHint.textContent = HINTS[name] || '';
+        backBtn.hidden = name === 'hero';
+
+        /* 焦點移到新分鏡，鍵盤使用者不會被留在看不見的地方 */
+        const focusable = to.querySelector('a, button');
+        if (focusable && name !== 'hero') { focusable.focus({ preventScroll: true }); }
+
+        setTimeout(() => { busy = false; }, reduce ? 60 : 420);
+      }, swapAt);
+    }
+
+    /* ── 長按展開 ─────────────────────── */
+    const holdZone = document.getElementById('holdZone');
+    const holdProgress = document.getElementById('holdProgress');
+    const RING = 603;
+    const HOLD_MS = 850;
+    let holdStart = 0;
+    let holding = false;
+
+    function setProgress(p) {
+      holdProgress.style.strokeDashoffset = String(RING * (1 - p));
+    }
+
+    function startHold() {
+      if (current !== 'hero' || busy) { return; }
+      holding = true;
+      holdStart = performance.now();
+      crystal.targetCharge = 1;
+      document.getElementById('cursorRing').classList.add('is-hold');
+    }
+
+    function endHold(completed) {
+      holding = false;
+      crystal.targetCharge = 0;
+      document.getElementById('cursorRing').classList.remove('is-hold');
+      if (!completed) { setProgress(0); }
+    }
+
+    holdZone.addEventListener('pointerdown', (e) => { e.preventDefault(); startHold(); });
+    addEventListener('pointerup', () => { if (holding) { endHold(false); } });
+    addEventListener('pointercancel', () => { if (holding) { endHold(false); } });
+
+    /* 鍵盤同樣能展開：長按對鍵盤與輔助技術並不友善，按下即視同完成 */
+    holdZone.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setProgress(1); goTo('menu'); }
+    });
+
+    /* ── 導覽與返回 ───────────────────── */
+    document.addEventListener('click', (e) => {
+      const go = e.target.closest('[data-go]');
+      if (go) { e.preventDefault(); goTo(go.dataset.go); }
+    });
+
+    document.getElementById('brand').addEventListener('click', () => goTo('hero'));
+    backBtn.addEventListener('click', () => goTo(current === 'menu' ? 'hero' : 'menu'));
+
+    addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (detail.classList.contains('is-on')) { closeDetail(); }
+        else if (current !== 'hero') { goTo(current === 'menu' ? 'hero' : 'menu'); }
+      }
+    });
+
+    /* ── Work 分鏡 ────────────────────── */
+    const slides = [...document.querySelectorAll('.slide')];
+    const slideIndex = document.getElementById('slideIndex');
+    let slide = 0;
+
+    const PROJECTS = [
+      { meta: 'WebGL / Interaction', title: 'Neural Void', body: 'A real-time particle field driven by a compute-style feedback loop. Ten thousand agents negotiate a shared attractor, and the viewer’s pointer becomes the only force that can break the consensus.' },
+      { meta: 'Branding / 3D Motion', title: 'Liquid Cyber', body: 'An identity built on a single material study: chrome that never fully resolves. Every asset in the system is rendered from the same shader, so print, screen and motion share one physical logic.' },
+      { meta: 'Art Direction / Shaders', title: 'Static Bloom', body: 'Signal noise treated as a growth medium. A procedural bloom expands along the luminance gradients of the source footage, so the image appears to corrode and flower at the same time.' },
+      { meta: 'Sound / Real-time', title: 'Echo Chamber', body: 'A room that listens. Incoming audio is analysed per band and re-emitted as geometry, giving the space a visible memory of everything said inside it over the last sixty seconds.' }
+    ];
+
+    function showSlide(next) {
+      slide = (next + slides.length) % slides.length;
+      slides.forEach((el, i) => el.classList.toggle('is-on', i === slide));
+      slideIndex.textContent = String(slide + 1).padStart(2, '0');
+    }
+
+    document.getElementById('prevSlide').addEventListener('click', () => showSlide(slide - 1));
+    document.getElementById('nextSlide').addEventListener('click', () => showSlide(slide + 1));
+
+    addEventListener('keydown', (e) => {
+      if (current !== 'work' || detail.classList.contains('is-on')) { return; }
+      if (e.key === 'ArrowRight') { showSlide(slide + 1); }
+      if (e.key === 'ArrowLeft') { showSlide(slide - 1); }
+    });
+
+    /* ── 作品細節：上下對開的遮罩 ─────── */
+    const detail = document.getElementById('detail');
+    const detailMeta = document.getElementById('detailMeta');
+    const detailTitle = document.getElementById('detailTitle');
+    const detailBody = document.getElementById('detailBody');
+
+    function openDetail(i) {
+      const p = PROJECTS[i];
+      if (!p) { return; }
+      detailMeta.textContent = p.meta;
+      detailTitle.textContent = p.title;
+      detailBody.textContent = p.body;
+      detail.classList.add('is-on');
+      detail.removeAttribute('aria-hidden');
+      document.getElementById('detailClose').focus({ preventScroll: true });
+    }
+
+    function closeDetail() {
+      detail.classList.remove('is-on');
+      detail.setAttribute('aria-hidden', 'true');
+      slides[slide].querySelector('[data-detail]').focus({ preventScroll: true });
+    }
+
+    document.addEventListener('click', (e) => {
+      const open = e.target.closest('[data-detail]');
+      if (open) { openDetail(Number(open.dataset.detail)); }
+    });
+    document.getElementById('detailClose').addEventListener('click', closeDetail);
+
+    /* ── 自訂游標 ─────────────────────── */
+    const dot = document.getElementById('cursorDot');
+    const ring = document.getElementById('cursorRing');
+    let mouseX = innerWidth / 2, mouseY = innerHeight / 2;
+    let ringX = mouseX, ringY = mouseY;
+
+    if (fine) {
+      dot.classList.add('is-idle');
+      ring.classList.add('is-idle');
+      addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        dot.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+        dot.classList.remove('is-idle');
+        ring.classList.remove('is-idle');
+      });
+      document.addEventListener('mouseover', (e) => {
+        if (e.target.closest('.hover-target')) { ring.classList.add('is-near'); }
+      });
+      document.addEventListener('mouseout', (e) => {
+        if (e.target.closest('.hover-target')) { ring.classList.remove('is-near'); }
+      });
+    }
+
+    /* ── 單一 rAF ─────────────────────── */
+    function frame(now) {
+      if (holding) {
+        const p = clamp((now - holdStart) / HOLD_MS, 0, 1);
+        setProgress(p);
+        if (p >= 1) { endHold(true); goTo('menu'); }
+      }
+
+      if (fine) {
+        ringX = lerp(ringX, mouseX, 0.16);
+        ringY = lerp(ringY, mouseY, 0.16);
+        ring.style.transform = `translate(${ringX}px, ${ringY}px)`;
+      }
+
+      crystal.render(now);
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+</script>
+
+</body>
+</html>

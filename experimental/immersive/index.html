@@ -471,6 +471,27 @@
   }
 
   /* ── 常見問題：用原生 details，不必為了展開再寫一套 JS ── */
+  .faq-group {
+    display: block;
+    margin: 2.75rem 0 .5rem;
+    font-size: .6rem;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .4);
+  }
+
+  .faq-group:first-child { margin-top: 0; }
+
+  .faq-steps {
+    margin: 0 0 1.4rem;
+    padding: 0 2rem 0 1.1rem;
+    font-size: .8rem;
+    line-height: 2;
+    color: rgba(255, 255, 255, .5);
+  }
+
+  .faq-steps li { margin-bottom: .35rem; }
+
   .faq { border-bottom: 1px solid rgba(255, 255, 255, .1); }
 
   .faq summary {
@@ -851,32 +872,79 @@
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-3xl text-left">
       <span class="eyebrow" data-i18n="faq.eyebrow">05 — Q&amp;A</span>
-      <h2 class="scene-title" data-i18n="faq.title">What stallholders ask most.</h2>
+      <h2 class="scene-title" data-i18n="faq.title">The questions we are asked most.</h2>
 
-      <div class="mt-10">
+      <div class="mt-12">
+        <span class="faq-group" data-i18n="faq.g1">01　Services &amp; Planning</span>
         <details class="faq">
-          <summary class="hover-target" data-i18n="faq.q1">Is talking really not allowed?</summary>
-          <p data-i18n="faq.a1">Silent interaction comes first: please use the hand-held signs, cards and gestures we provide. Loudspeakers, microphones and sales patter are strictly prohibited. When a crowd arrives, serving the customer takes priority and quiet conversation is fine.</p>
+          <summary class="hover-target" data-i18n="faq.q1">How do you price an event?</summary>
+          <p data-i18n="faq.a1">We plan the scale and direction of an event around your budget. Every event is different, and each proposal is made to order.</p>
         </details>
         <details class="faq">
-          <summary class="hover-target" data-i18n="faq.q2">Do we bring our own tent, table and chairs?</summary>
-          <p data-i18n="faq.a2">No. We provide the tent (3 x 1.5 m, shared by two stalls), one table (approx. 120 x 60 cm), one chair, a custom brand sign and ambient string lights.</p>
+          <summary class="hover-target" data-i18n="faq.q2">Is there a minimum budget? Will you take small jobs?</summary>
+          <p data-i18n="faq.a2">Chengyun takes on projects from NT$10,000 to over NT$10,000,000. Tell us what you need and we will come back to you quickly.</p>
         </details>
         <details class="faq">
-          <summary class="hover-target" data-i18n="faq.q3">How much power does each stall get?</summary>
-          <p data-i18n="faq.a3">Basic lighting and device power are free, capped at 200 W per stall. Undeclared high-draw heating, cooking or high-output lighting equipment is not permitted.</p>
+          <summary class="hover-target" data-i18n="faq.q3">Does the quote include scripting?</summary>
+          <p data-i18n="faq.a3">Some packages cover basic linking segments only. A full host script, run sheet and prize-draw mechanics may be quoted separately, listed line by line.</p>
         </details>
         <details class="faq">
-          <summary class="hover-target" data-i18n="faq.q4">What time is load-in and load-out?</summary>
-          <p data-i18n="faq.a4">Check-in 14:00–15:00, with set-up finished by 14:50. The market runs 15:00–20:30. Load-out is 20:30–21:30, with the site cleared and restored by 21:30.</p>
+          <summary class="hover-target" data-i18n="faq.q4">Does it include rehearsal?</summary>
+          <p data-i18n="faq.a4">How long the team is on site for rehearsal, and whether blocking and cue checks are included, is written down explicitly.</p>
         </details>
         <details class="faq">
-          <summary class="hover-target" data-i18n="faq.q5">How does the early-bird discount work?</summary>
-          <p data-i18n="faq.a5">Apply and pay in full before 10 September 2026 for 5% off the total. Brands joining three or more sessions also receive a custom brand puzzle, redeemable against future stall fees.</p>
+          <summary class="hover-target" data-i18n="faq.q5">How is overtime calculated?</summary>
+          <p data-i18n="faq.a5">Whether the increment is half-hourly or hourly, and whether waiting time for executives counts, is defined with you before the quotation is issued.</p>
+        </details>
+
+        <span class="faq-group" data-i18n="faq.g2">02　Hosting &amp; Coordination</span>
+        <details class="faq">
+          <summary class="hover-target" data-i18n="faq.q6">How do you work with the rest of the crew to keep an event on track?</summary>
+          <div data-i18n-html="faq.a6">
+            <p>Behind a successful event there is more than a good host: there is close coordination with sound, lighting and the rest of the technical crew.</p>
+            <ol class="faq-steps">
+              <li>Brief in advance — walk through the run sheet, entrances and exits, and the timing of music and lighting cues; share the script.</li>
+              <li>Rehearse on site — simulate the real thing, check sound, lighting and stage blocking, and solve problems early.</li>
+              <li>Keep talking during the event — radios, hand signals or agreed cues, so the team can adapt as things move.</li>
+              <li>Respect professional judgement — trust the technical crew on their own equipment, and work through problems together.</li>
+            </ol>
+          </div>
+        </details>
+
+        <span class="faq-group" data-i18n="faq.g3">03　Band &amp; Sound</span>
+        <details class="faq">
+          <summary class="hover-target" data-i18n="faq.q7">The venue already has a sound system — can the band use that instead?</summary>
+          <p data-i18n="faq.a7">Hardware is the backstage soul of a live band. A dedicated engineer and a crew used to the same equipment handle the room, the balance across frequencies and the effects for the whole event. Venue systems usually cannot meet a band's needs — controlling the character of each instrument, for one — and if equipment is damaged, liability becomes unclear. So every performance runs on the band's own professional hardware.</p>
         </details>
         <details class="faq">
-          <summary class="hover-target" data-i18n="faq.q6">Can we get a refund if we can't make it?</summary>
-          <p data-i18n="faq.a6">Cancel 14 days or more before the date: full refund less NT$200 in handling and transfer fees. 7–13 days before: 50% refunded. Within 6 days, including the day itself: no refund or transfer.</p>
+          <summary class="hover-target" data-i18n="faq.q8">Why do we need an equipment upgrade above 20 tables? Can we skip it?</summary>
+          <p data-i18n="faq.a8">Up to 20 tables, the standard setup is two monitors on stage and two speakers out front — four in total. Above 20 tables without an upgrade, the front speakers are pushed too loud while guests at the back cannot hear. We recommend adding two more front-of-house speakers so the sound is even across the room.</p>
+        </details>
+        <details class="faq">
+          <summary class="hover-target" data-i18n="faq.q9">Can we choose all the music ourselves?</summary>
+          <p data-i18n="faq.a9">A band's set is normally built from songs the singers and players know well, which is what keeps the standard up. For a particular favourite, tell us at least two months ahead so the band has time to rehearse it. If the band cannot perform it, we suggest burning it to MP3 for the DJ to play at three points: the welcome, the table toasts and the send-off.</p>
+        </details>
+
+        <span class="faq-group" data-i18n="faq.g4">04　Visual Design</span>
+        <details class="faq">
+          <summary class="hover-target" data-i18n="faq.q10">What do you need from us to start a visual design?</summary>
+          <p data-i18n="faq.a10">First, clarify what you need. After an initial conversation about style, send us copy, images, links, proposals and any other reference material.</p>
+        </details>
+        <details class="faq">
+          <summary class="hover-target" data-i18n="faq.q11">How many rounds of revision are included?</summary>
+          <div data-i18n-html="faq.a11">
+            <p>Design projects include four rounds of proofing. Beyond four, additional design fees may apply.</p>
+            <ol class="faq-steps">
+              <li>Round one (major) — style and layout of the first draft. If the first draft misses the mark, a second version can be requested, with a clear direction given.</li>
+              <li>Round two — replacing content within the agreed direction: images, text, assets.</li>
+              <li>Round three — final precise detail adjustments; the overall direction is fixed by this point.</li>
+              <li>Round four — a last check before release for typos and fine visual details, then sign-off.</li>
+            </ol>
+          </div>
+        </details>
+        <details class="faq">
+          <summary class="hover-target" data-i18n="faq.q12">We don't like either of the two initial designs. Can we have another?</summary>
+          <p data-i18n="faq.a12">At kick-off we present two visual directions based on the brief. If neither works, a design fee applies from the third version onward.</p>
         </details>
       </div>
 
@@ -1037,19 +1105,36 @@
         'portfolio.f1': '檔期場次（隔週六日）', 'portfolio.f2': '活動天數',
         'portfolio.f3': '每日開攤，至 20:30', 'portfolio.f4': '首屆舉辦年度',
         'portfolio.note': '更多活動成果陸續更新。',
-        'faq.eyebrow': '05 — 常見問題', 'faq.title': '擺攤前最常被問的事。',
-        'faq.q1': '現場真的完全不能說話嗎？',
-        'faq.a1': '原則上以「無聲互動」為主，請優先使用大會提供的手拿牌、字卡與手勢引導。嚴格禁止擴音喇叭、麥克風與大聲叫賣；人潮湧入時以服務客人為第一優先，允許輕聲低語交流。',
-        'faq.q2': '帳篷、桌椅需要自備嗎？',
-        'faq.a2': '不需要。大會提供阿里山帳（兩攤共用一帳，3x1.5m）、1 桌（約 120x60cm）、1 靠背椅、客製品牌招牌與氣氛燈串。',
-        'faq.q3': '每攤可以用多少電？',
-        'faq.a3': '大會免費提供基本照明與 3C 設備用電，每攤位限額 200W 以內。未報備之高功率加熱、烹煮與高亮度照明電器一律禁止。',
-        'faq.q4': '當天幾點進場、幾點撤場？',
-        'faq.a4': '報到進場 14:00–15:00，請於 14:50 前完成佈展；擺攤 15:00–20:30；撤場 20:30–21:30，並於 21:30 前清理完畢還原場地。',
-        'faq.q5': '早鳥優惠怎麼計算？',
-        'faq.a5': '於 2026 年 9 月 10 日前完成報名與全額匯款，總費用享 95 折。參展滿 3 場（週）以上另贈客製品牌拼圖，可折抵未來檔期攤租。',
-        'faq.q6': '臨時無法參加可以退費嗎？',
-        'faq.a6': '活動日 14 天以前（含）取消，扣除手續與轉帳費 NT$ 200 後退還剩餘全額；7 至 13 天內取消退還 50%；6 天內（含當日）取消恕不退費或順延。',
+        'faq.eyebrow': '05 — 常見問題',
+        'faq.title': '客戶最常問的問題。',
+        'faq.g1': '01　服務與規劃流程',
+        'faq.q1': '貴公司承辦活動如何計費？',
+        'faq.a1': '視廠商的預算來規畫活動的豐富度以及方向性，活動變化多元，皆依客戶需求量身訂製。',
+        'faq.q2': '辦活動有預算限制嗎？太小的案子願意承接嗎？',
+        'faq.a2': '澄耘從 1 萬元到 1000 萬元以上的案子都願意承接！只要將您的需求告訴我們，我們會盡速與您聯繫。',
+        'faq.q3': '含不含腳本？',
+        'faq.a3': '有些方案只含基本串場；完整主持稿、流程表與抽獎機制可能另計，並於報價中逐項列出。',
+        'faq.q4': '含不含彩排？',
+        'faq.a4': '彩排到場多久、是否含走位與 cue 點確認，都會明確寫清楚。',
+        'faq.q5': '超時怎麼算？',
+        'faq.a5': '以半小時或一小時為級距、是否含等待長官的時間，都會在報價前先與您定義清楚。',
+        'faq.g2': '02　主持與活動配合',
+        'faq.q6': '如何與其他工作人員配合確保活動順利？',
+        'faq.a6': '<p>一場成功的活動背後，除了有出色的主持人外，還需要與音響、燈光和其他技術人員的密切合作。</p><ol class="faq-steps"><li>事前溝通：詳細了解活動流程、進退場時間、音樂及燈光切換時機，分享活動腳本。</li><li>現場彩排：模擬實際場景，檢查音效、燈光與舞台走位，及早解決潛在問題。</li><li>活動中保持即時溝通：透過對講機、手勢或約定號誌靈活應變。</li><li>尊重專業意見：尊重技術人員對設備的專業判斷，共同分析並解決問題。</li></ol>',
+        'faq.g3': '03　樂團與音響設備',
+        'faq.q7': '餐廳已有音響設備，能不要用樂團的設備嗎？',
+        'faq.a7': '硬體就像樂團表演的幕後靈魂，需要專業音控師與長期搭配的硬體人員來處理整場音場、高低音及效果。餐廳設備通常無法滿足樂團需求（如每種樂器的特性控制），且若設備損壞會有責任歸屬問題。因此，每一次表演都需要配合樂團自己的專業硬體設備。',
+        'faq.q8': '為何超出 20 桌需要升級硬體設備？能夠不升級嗎？',
+        'faq.a8': '20 桌以內基本配備為台上 2 個監聽喇叭加上台下 2 個喇叭（共 4 顆）。若超出 20 桌卻不升級，會導致前面喇叭音壓過大、後面賓客聽不到聲音。專業建議增加 2 個台下觀眾喇叭，才能平均音場。',
+        'faq.q9': '可以整場都用我們自己喜歡的音樂點歌嗎？',
+        'faq.a9': '樂團曲目通常以歌手和樂手熟悉的歌曲為主，以確保呈現水準。若有特別喜愛的歌曲，須提前兩個月告知，讓樂團有時間練習準備；若樂團無法演出，建議燒錄成 MP3，在迎賓、逐桌敬酒、送客三個時間點請 DJ 播放。',
+        'faq.g4': '04　視覺設計',
+        'faq.q10': '請你們做視覺設計，需要準備哪些資料？',
+        'faq.a10': '首先需釐清自身需求，經初步設計風格溝通後，提供文案、圖片、網址、企劃書等相關資料。',
+        'faq.q11': '設計出來的視覺如果不滿意，可以更改幾次？',
+        'faq.a11': '<p>設計專案提供四次校稿，超過四次將視情況增加設計費用。</p><ol class="faq-steps"><li>第一次校稿（大校）：針對初稿的風格與排版討論調整。若初稿未達標準可要求製作第二款，須明確告知設計方向。</li><li>第二次校稿：針對大校內容進行置換（圖片／文字／素材）。</li><li>第三次校稿：進行最後精確的細部調整，整體風格方向不可置換。</li><li>第四次校稿：出稿前的最後檢查，針對錯字等畫面微細節調整並定案。</li></ol>',
+        'faq.q12': '一開始提出的兩款設計都不喜歡，可以額外設計一款嗎？',
+        'faq.a12': '一開始會針對想法設計兩款視覺供參考；若客戶都不喜歡，從第三款設計開始將會酌收設計費用。',
         'faq.note': '其他問題歡迎透過官方 IG／FB／LINE 來訊詢問。',
         'contact.eyebrow': '06 — 聯繫我們', 'contact.title': '準備好一起<br />安靜地擺攤了嗎？',
         'contact.t1': '官方 LINE', 'contact.d1': '報名、審核與行前問題請由官方帳號來訊。',
@@ -1137,19 +1222,36 @@
         'portfolio.f1': '開催回（隔週の土日）', 'portfolio.f2': '開催日数',
         'portfolio.f3': '毎日15:00開場、20:30まで', 'portfolio.f4': '初開催の年',
         'portfolio.note': '実績は順次追加します。',
-        'faq.eyebrow': '05 — よくある質問', 'faq.title': '出店前によくいただく質問。',
-        'faq.q1': '会場では本当に話せないのですか？',
-        'faq.a1': '基本は「無音のやり取り」です。主催が用意する手持ちサイン、カード、ジェスチャーをお使いください。拡声器・マイク・大声での呼び込みは禁止です。混雑時はお客様対応を最優先とし、小声での会話は問題ありません。',
-        'faq.q2': 'テントや机・椅子は自分で用意しますか？',
-        'faq.a2': '不要です。テント（3×1.5m、2区画で1張を共用）、机1台（約120×60cm）、背もたれ付き椅子1脚、オリジナルのブランド看板、ライトを主催が用意します。',
-        'faq.q3': '1区画あたりの電力はどれくらいですか？',
-        'faq.a3': '基本照明とモバイル機器用の電源を無料で提供し、1区画200Wまでです。申告のない高出力の加熱・調理・照明機器は使用できません。',
-        'faq.q4': '当日の搬入・搬出は何時ですか？',
-        'faq.a4': '受付・搬入は14:00–15:00、14:50までに設営完了。出店時間は15:00–20:30。搬出は20:30–21:30で、21:30までに清掃と原状回復をお願いします。',
-        'faq.q5': '早割はどう計算しますか？',
-        'faq.a5': '2026年9月10日までに申し込みと全額入金で総額5%off。3回以上参加のブランドにはオリジナルのブランドパズルを進呈し、次回以降の出店料に充当できます。',
-        'faq.q6': '参加できなくなった場合、返金されますか？',
-        'faq.a6': '開催日の14日前まで：手数料・振込料NT$200を差し引いた全額を返金。7〜13日前：50%を返金。6日前から当日まで：返金・振替はいたしかねます。',
+        'faq.eyebrow': '05 — よくある質問',
+        'faq.title': 'お客様からよくいただく質問。',
+        'faq.g1': '01　サービスと進め方',
+        'faq.q1': 'イベントの費用はどのように決まりますか？',
+        'faq.a1': 'ご予算に合わせて内容の密度と方向性を設計します。イベントは一つとして同じものがなく、すべてご要望に合わせたオーダーメイドです。',
+        'faq.q2': '予算の下限はありますか。小規模な案件も受けてもらえますか？',
+        'faq.a2': '澄耘は1万台湾ドルから1,000万台湾ドル以上の案件までお受けしています。ご要望をお聞かせいただければ、すぐにご連絡いたします。',
+        'faq.q3': '台本は含まれますか？',
+        'faq.a3': '基本的なつなぎのみを含むプランもあります。司会台本一式、進行表、抽選の仕組みは別途お見積りとなる場合があり、見積書に項目ごとに明記します。',
+        'faq.q4': 'リハーサルは含まれますか？',
+        'faq.a4': 'リハーサルの所要時間、立ち位置確認やキュー出しの確認を含むかどうかは、あらかじめ明文化します。',
+        'faq.q5': '超過時間はどう計算しますか？',
+        'faq.a5': '30分単位か1時間単位か、役員の方をお待ちする時間を含むかどうかも、見積書をお出しする前に定義します。',
+        'faq.g2': '02　司会と現場連携',
+        'faq.q6': '他のスタッフとどのように連携して進行を守りますか？',
+        'faq.a6': '<p>成功するイベントの背後には、優れた司会者だけでなく、音響・照明をはじめとする技術スタッフとの緊密な連携があります。</p><ol class="faq-steps"><li>事前の打ち合わせ：進行、入退場のタイミング、音楽と照明の切り替え時機を共有し、台本を配布します。</li><li>現場リハーサル：本番を想定し、音響・照明・立ち位置を確認して、問題を早めに解消します。</li><li>本番中の連絡：インカム、ハンドサイン、取り決めた合図で臨機応変に対応します。</li><li>専門性の尊重：機材については技術スタッフの判断を尊重し、一緒に解決します。</li></ol>',
+        'faq.g3': '03　バンドと音響機材',
+        'faq.q7': '会場に音響設備があります。バンドの機材を使わない選択はできますか？',
+        'faq.a7': '機材はバンド演奏の裏方の要です。専任のミキサーと長く組んでいる機材スタッフが、会場全体の音場、低音と高音のバランス、エフェクトを通して管理します。会場の設備では、楽器ごとの特性の作り込みなどバンドの要件を満たせないことが多く、万一破損した場合の責任の所在も不明確になります。そのため、毎回バンド自身の専用機材でお届けしています。',
+        'faq.q8': '20卓を超えると機材の追加が必要なのはなぜですか。省略できますか？',
+        'faq.a8': '20卓までは、ステージ上のモニター2台と客席側のスピーカー2台、計4台が基本構成です。20卓を超えて追加しない場合、前方のスピーカーだけ音圧が強くなり、後方のお客様には届きません。客席側にスピーカーを2台追加し、音場を均一にすることをお勧めします。',
+        'faq.q9': '全曲を自分たちの好きな音楽にできますか？',
+        'faq.a9': 'バンドの曲目は、歌手と演奏者が弾き慣れた曲を中心に組みます。それが仕上がりの水準を守るからです。どうしてもという曲があれば、2か月前までにお知らせください。練習の時間が必要です。演奏が難しい場合は、MP3にしてDJがウェルカム、テーブル回り、お見送りの三つの場面で流す形をお勧めします。',
+        'faq.g4': '04　ビジュアルデザイン',
+        'faq.q10': 'デザインを依頼する際、何を用意すればよいですか？',
+        'faq.a10': 'まずご要望を整理してください。デザインの方向性を一度すり合わせたうえで、原稿、画像、URL、企画書などの資料をお送りください。',
+        'faq.q11': '気に入らない場合、何回まで修正できますか？',
+        'faq.a11': '<p>デザイン案件には4回の校正が含まれます。4回を超える場合は、状況に応じてデザイン費を加算させていただきます。</p><ol class="faq-steps"><li>1回目（大きな修正）：初稿のスタイルとレイアウトについて調整します。初稿が水準に届かない場合は、方向性を明確にお示しいただいたうえで2案目を制作できます。</li><li>2回目：決まった方向の中で、画像・文字・素材を差し替えます。</li><li>3回目：最後の細部調整。全体の方向性はこの時点で確定です。</li><li>4回目：入稿前の最終確認。誤字など細部を整えて決定稿とします。</li></ol>',
+        'faq.q12': '最初の2案がどちらも好みでない場合、追加で作ってもらえますか？',
+        'faq.a12': '最初にご要望をもとに2案をご提案します。どちらもご希望に沿わない場合、3案目からはデザイン費を申し受けます。',
         'faq.note': 'その他のご質問は公式 IG／FB／LINE までお気軽にどうぞ。',
         'contact.eyebrow': '06 — お問い合わせ', 'contact.title': '静けさのなかで、<br />出店してみませんか？',
         'contact.t1': '公式 LINE', 'contact.d1': '申し込み・審査・事前のご質問はこちらから。',

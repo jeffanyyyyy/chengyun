@@ -598,7 +598,7 @@
      兩者共用同一組狀態（位置、目標、慣性）與同一排控制項。 */
   .film-gl-wrap {
     position: relative;
-    height: clamp(260px, 48svh, 660px);
+    height: clamp(250px, 45svh, 640px);
   }
 
   .film-gl {
@@ -629,11 +629,15 @@
 
   :root.has-filmgl .film-stage { display: none; }
 
-  /* 前往活動成果 */
+  /* 連結列：人物介紹、活動成果 */
   .film-cta {
     position: relative;
     z-index: 3;
     margin: .7rem 0 0;
+    display: flex;
+    justify-content: center;
+    gap: 1.75rem;
+    flex-wrap: wrap;
   }
 
   .film-link {
@@ -647,6 +651,43 @@
   }
 
   .film-link:hover { color: #fff; border-color: rgba(255, 255, 255, .8); }
+
+  /* 提示片格可以點 */
+  .film-hint {
+    position: relative;
+    z-index: 3;
+    margin: .55rem 0 0;
+    font-size: .62rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .3);
+  }
+
+  /* ── 人物介紹：左照片、右文字 ─────── */
+  .person {
+    display: grid;
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+    gap: 2.5rem;
+    align-items: start;
+    margin-top: 2rem;
+  }
+
+  .person-shot {
+    aspect-ratio: 3 / 4;
+    border-radius: 4px;
+    background-size: cover;
+    background-position: center;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12), 0 26px 70px rgba(0, 0, 0, .6);
+  }
+
+  @media (max-width: 720px) {
+    .person {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.75rem;
+    }
+
+    .person-shot { aspect-ratio: 4 / 3; }
+  }
 
   /* ── 團隊：3D 圓柱膠卷轉盤（CSS 3D 備援）─
      每一格排在同一個圓柱面上（rotateY + translateZ），
@@ -1396,7 +1437,11 @@
 
       <!-- 目前這一格的說明，跟著輪播切換 -->
       <p class="film-caption"><b id="filmRole"></b><span class="sep">•</span><span id="filmNote"></span></p>
-      <p class="film-cta"><a class="film-link hover-target" id="filmLink" href="#portfolio" data-i18n="teams.link">View our work →</a></p>
+      <p class="film-cta">
+        <a class="film-link hover-target" id="filmProfile" href="#profile" data-i18n="teams.profile">Profile →</a>
+        <a class="film-link hover-target" id="filmLink" href="#portfolio" data-i18n="teams.link">View our work →</a>
+      </p>
+      <p class="film-hint" data-i18n="teams.tapHint">Click the frame to read more</p>
     </div>
 
     <!-- 膠卷：滿版出血、帶透視與傾斜，兩端切出畫面外 -->
@@ -1742,6 +1787,9 @@
         'teams.b10': 'Name, role and photo to be supplied.',
         'teams.b11': 'Name, role and photo to be supplied.',
         'teams.link': 'View our work →',
+        'teams.profile': 'Profile →',
+        'teams.bioTodo': 'A fuller introduction for this person is still to be supplied.',
+        'teams.tapHint': 'Click the frame to read more',
         'contact.t0': 'Chengyun Event Studio Co., Ltd.',
         'form.required': 'This field is required', 'form.badEmail': 'Please check the email address',
         'form.fixFields': 'Please complete the required fields marked with an asterisk.',
@@ -1857,7 +1905,10 @@
         'teams.s9': '職務待補', 'teams.b9': '姓名、職務與照片待提供。',
         'teams.s10': '職務待補', 'teams.b10': '姓名、職務與照片待提供。',
         'teams.s11': '職務待補', 'teams.b11': '姓名、職務與照片待提供。',
-        'teams.link': '看看我們的活動成果 →',
+        'teams.link': '活動成果 →',
+        'teams.profile': '人物介紹 →',
+        'teams.bioTodo': '這位夥伴的完整介紹待提供。',
+        'teams.tapHint': '點片格看介紹',
         'teams.note': '主辦單位：澄耘活動工作室 有限公司',
         'portfolio.eyebrow': '04 — 活動成果',
         'portfolio.meta': '市集策劃 · 品牌招商 · 現場執行',
@@ -1998,7 +2049,10 @@
         'teams.s9': '担当は調整中', 'teams.b9': '氏名・担当・写真は後日追加。',
         'teams.s10': '担当は調整中', 'teams.b10': '氏名・担当・写真は後日追加。',
         'teams.s11': '担当は調整中', 'teams.b11': '氏名・担当・写真は後日追加。',
-        'teams.link': '活動実績を見る →',
+        'teams.link': '活動実績 →',
+        'teams.profile': 'プロフィール →',
+        'teams.bioTodo': 'このメンバーの詳しい紹介は後日追加します。',
+        'teams.tapHint': 'フレームをクリックで詳細',
         'teams.note': '主催：澄耘活動工作室 有限公司（Chengyun Event Studio Co., Ltd.）',
         'portfolio.eyebrow': '04 — 実績',
         'portfolio.meta': 'キュレーション · 出店審査 · 現場運営',
@@ -2318,13 +2372,65 @@
     const detailBody = document.getElementById('detailBody');
     const workCard = document.querySelector('[data-detail]');
 
-    function renderDetail() {
+    /* 覆蓋層可以裝兩種東西：活動細節，或膠卷點進去的人物介紹。
+       記住目前裝的是哪一種，換語言時才知道要重畫哪一份 */
+    let detailKind = 'work';
+    let detailIndex = 0;
+    let detailReturn = null;
+
+    function renderWork() {
       detailMeta.textContent = t('detail.meta');
       detailTitle.textContent = t('detail.title');
       detailBody.innerHTML = t('detail.body');
     }
 
-    function openDetail() {
+    function renderPerson() {
+      const n = detailIndex + 1;
+      const art = FILM_ART[detailIndex] || {};
+      const bio = t('teams.p' + n);
+
+      detailMeta.textContent = t('label.teams');
+      detailTitle.textContent = t('teams.s' + n);
+
+      /* 用 DOM 組，不走 innerHTML：文案裡有引號、括號也不會壞掉 */
+      detailBody.textContent = '';
+      const wrap = document.createElement('div');
+      wrap.className = 'person';
+
+      const shot = document.createElement('div');
+      shot.className = 'person-shot';
+      if (art.src) {
+        shot.style.backgroundImage = 'url(' + art.src + ')';
+        shot.style.backgroundPosition = 'center ' + Math.round((typeof art.focus === 'number' ? art.focus : .42) * 100) + '%';
+      } else {
+        shot.style.background = 'radial-gradient(120% 90% at 30% 15%, ' + (art.a || '#2b3a66') + ' 0%, ' + (art.b || '#0d1220') + ' 65%)';
+      }
+
+      const text = document.createElement('div');
+      const duty = document.createElement('p');
+      duty.className = 'scene-body';
+      duty.textContent = t('teams.b' + n);
+      text.appendChild(duty);
+
+      const more = document.createElement('p');
+      /* 有寫介紹就顯示介紹，沒有就明說待補，不編故事 */
+      more.className = bio ? 'scene-body mt-7' : 'note mt-7';
+      more.textContent = bio || t('teams.bioTodo');
+      text.appendChild(more);
+
+      wrap.appendChild(shot);
+      wrap.appendChild(text);
+      detailBody.appendChild(wrap);
+    }
+
+    function renderDetail() {
+      if (detailKind === 'person') { renderPerson(); } else { renderWork(); }
+    }
+
+    function openDetail(kind, index, from) {
+      detailKind = kind || 'work';
+      detailIndex = typeof index === 'number' ? index : 0;
+      detailReturn = from || null;
       renderDetail();
       detail.classList.add('is-on');
       detail.removeAttribute('aria-hidden');
@@ -2334,12 +2440,14 @@
     function closeDetail() {
       detail.classList.remove('is-on');
       detail.setAttribute('aria-hidden', 'true');
-      if (workCard) { workCard.focus({ preventScroll: true }); }
+      const back = detailReturn || workCard;
+      if (back) { back.focus({ preventScroll: true }); }
+      detailReturn = null;
     }
 
     document.addEventListener('click', (e) => {
       const open = e.target.closest('[data-detail]');
-      if (open) { openDetail(); }
+      if (open) { openDetail('work', 0, open); }
     });
     document.getElementById('detailClose').addEventListener('click', closeDetail);
 
@@ -2762,6 +2870,31 @@
         resize: resize,
         /* 一格在畫面上的寬度，拖曳要用它換算才會跟手 */
         pitch: function () { return (filmGLWrap.clientWidth || 1) / want; },
+
+        /* 點到的是第幾格：把畫面座標反推回曲面上的世界座標。
+           螢幕 u = x / ((d - z)·tan)，而 z = -BEND·x²，
+           代入整理成 BEND·k·x² - x + k·d = 0（k = u·tan），解二次式即可。
+           膠卷本身還有幾度的傾角，這裡忽略不計 —— 只要分得出是中間那格還是隔壁就夠了。 */
+        pick: function (clientX) {
+          const r = filmCanvas.getBoundingClientRect();
+          if (!r.width) { return null; }
+          const u = (clientX - r.left) / r.width * 2 - 1;
+          const tanY = Math.tan(camera.fov * Math.PI / 360);
+          const k = u * Math.tan(Math.atan(tanY * camera.aspect));
+          const d = camera.position.z;
+          const a = BEND * k;
+          let x;
+          if (Math.abs(a) < 1e-6) {
+            x = k * d;
+          } else {
+            const disc = 1 - 4 * a * (k * d);
+            if (disc < 0) { return null; }
+            const r1 = (1 - Math.sqrt(disc)) / (2 * a);
+            const r2 = (1 + Math.sqrt(disc)) / (2 * a);
+            x = Math.abs(r1) < Math.abs(r2) ? r1 : r2;   /* 靠觀眾這一側的交點 */
+          }
+          return filmPos + x / PANEL_W;
+        },
         render: function (now) {
           panels.forEach((p, i) => {
             const o = i - filmPos;
@@ -2876,8 +3009,31 @@
       b.addEventListener('click', () => filmGo(i));
       filmDots.appendChild(b);
 
-      /* 點旁邊的片格把它轉到正面；剛剛在拖曳的話就不算點擊 */
-      f.addEventListener('click', () => { if (filmDrag.moved < 8 && i !== filmIndex) { filmGo(i); } });
+    });
+
+    /* 點擊：中間那一格開人物介紹，旁邊的先轉到正面。
+       剛剛在拖曳的話不算點擊。GL 版本沒有 DOM 片格，用反推的方式判斷點到哪一格 */
+    filmSurface.addEventListener('click', (e) => {
+      if (filmDrag.moved >= 8) { return; }
+
+      let idx = filmIndex;
+      if (filmGL) {
+        const hit = filmGL.pick(e.clientX);
+        if (hit === null) { return; }
+        idx = clamp(Math.round(hit), 0, filmMax);
+      } else {
+        const f = e.target.closest('.frame');
+        if (!f) { return; }
+        idx = filmFrames.indexOf(f);
+      }
+
+      if (idx === filmIndex) { openDetail('person', filmIndex, filmSurface); }
+      else { filmGo(idx); }
+    });
+
+    document.getElementById('filmProfile').addEventListener('click', (e) => {
+      e.preventDefault();
+      openDetail('person', filmIndex, document.getElementById('filmProfile'));
     });
 
     /* 一律以「目標位置」為基準往前後推：

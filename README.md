@@ -24,7 +24,8 @@ assets/poster.jpg        宣傳海報
 assets/booth-layout.jpg  招商示意圖
 assets/hero-loop.mp4           橫式背景影片
 assets/hero-loop-portrait.mp4  直式背景影片（捲動式頁面）
-assets/bg-loop.mp4             直式背景影片（分鏡式頁面）
+assets/bg-loop.mp4             直式背景影片（分鏡式頁面 — 品牌色版）
+assets/bg-obsidian.mp4         直式背景影片（分鏡式頁面 — 黑色版）
 experimental/index.html        實驗性作品頁：捲動式（獨立頁面，不影響主站）
 experimental/immersive/        實驗性作品頁：分鏡式，滿版影片背景
 experimental/immersive-navy/   同上，改用品牌色（深藍寶石＋金）

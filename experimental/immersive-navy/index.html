@@ -278,39 +278,6 @@
     50%      { transform: translate(-50%, .35rem); }
   }
 
-  /* ── 中央徽記 ───────────────────────── */
-  .emblem {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: min(42vmin, 340px);
-    aspect-ratio: 1;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    animation: breathe-em 7s ease-in-out infinite;
-  }
-
-  .emblem svg { width: 100%; height: 100%; overflow: visible; }
-
-  /* 一小段亮線沿著輪廓繞行；輪廓本身是完整的，不會被切斷 */
-  .emblem .trace {
-    fill: none;
-    stroke-dasharray: 26 300;
-    animation: trace 13s linear infinite;
-  }
-
-  @keyframes breathe-em {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); }
-    50%      { transform: translate(-50%, -51%) scale(1.03); }
-  }
-
-  @keyframes trace {
-    to { stroke-dashoffset: -326; }
-  }
-
-  /* 長按蓄力時整個徽記亮起來 */
-  .is-holding .emblem { filter: drop-shadow(0 0 18px rgba(232, 207, 143, .45)); }
-
   /* ── 首屏短版簡介 ───────────────────── */
   .hero-lede {
     position: absolute;
@@ -663,7 +630,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .grain, .breathe, .stage-beam, .emblem, .emblem .trace { animation: none; }
+    .grain, .breathe, .stage-beam { animation: none; }
     .scene, .slide, .detail { transition-duration: .2s; }
     .scene.is-active .stagger > * { animation: none; }
     .wipe.is-on { animation-duration: .3s; }
@@ -719,36 +686,6 @@
     <p class="absolute top-[16svh] left-1/2 -translate-x-1/2 text-[.6rem] md:text-[.7rem] tracking-[.35em] uppercase text-white/80 whitespace-nowrap border-b border-white/25 pb-2" data-i18n="hero.top">
       View All Projects
     </p>
-
-    <!-- 中央徽記：純裝飾，點擊一律穿透給後面的長按感應區 -->
-    <div class="emblem" aria-hidden="true">
-      <svg viewBox="0 0 120 120">
-        <defs>
-          <linearGradient id="au" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#f3e0ae" /><stop offset="45%" stop-color="#c9a227" /><stop offset="100%" stop-color="#8a6c16" />
-          </linearGradient>
-          <radialGradient id="halo">
-            <stop offset="0%" stop-color="rgba(232,207,143,.26)" /><stop offset="65%" stop-color="rgba(28,90,156,.12)" /><stop offset="100%" stop-color="rgba(4,9,26,0)" />
-          </radialGradient>
-        </defs>
-
-        <circle cx="60" cy="64" r="58" fill="url(#halo)" />
-
-        <!-- 水滴輪廓與內襯，完整畫出 -->
-        <path id="dropOuter" d="M60 10 C 60 34, 94 44, 94 68 A 34 34 0 1 1 26 68 C 26 44, 60 34, 60 10 Z"
-              fill="none" stroke="url(#au)" stroke-width=".9" opacity=".8" />
-        <path d="M60 24 C 60 42, 86 50, 86 68 A 26 26 0 1 1 34 68 C 34 50, 60 42, 60 24 Z"
-              fill="none" stroke="rgba(232,207,143,.22)" stroke-width=".4" />
-
-        <!-- 金字塔 -->
-        <path d="M60 50 L 78 84 L 42 84 Z" fill="none" stroke="url(#au)" stroke-width=".9" />
-        <path d="M60 50 L 60 84" stroke="rgba(232,207,143,.35)" stroke-width=".35" />
-        <path d="M60 50 L 70 84" stroke="rgba(232,207,143,.22)" stroke-width=".3" />
-
-        <!-- 一小段亮線沿著輪廓走，靜止時畫面也有微光在動 -->
-        <use class="trace" href="#dropOuter" stroke="#f6e6bc" stroke-width="1.1" opacity=".9" />
-      </svg>
-    </div>
 
     <!-- 感應區：完全看不見，疊在影片中央的水晶上，讓人直接按畫面裡的東西 -->
     <button class="hover-target rounded-full"
@@ -1319,14 +1256,12 @@
       holding = true;
       holdStart = performance.now();
       ring.classList.add('is-hold');
-      root.classList.add('is-holding');
     }
 
     function endHold(completed) {
       holding = false;
       if (!completed) { setProgress(0); }
       ring.classList.remove('is-hold');
-      root.classList.remove('is-holding');
     }
 
     holdZone.addEventListener('pointerdown', (e) => { e.preventDefault(); startHold(); });

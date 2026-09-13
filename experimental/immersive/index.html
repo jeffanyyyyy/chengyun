@@ -178,6 +178,50 @@
     }
   }
 
+  /* ── 區塊內捲提示 ───────────────────── */
+  /* 整頁不捲動，章節內容超出時使用者不會知道還能往下，給一個淡淡的提示 */
+  .scroll-cue {
+    position: fixed;
+    left: 50%;
+    bottom: 4.25rem;
+    z-index: 60;
+    transform: translateX(-50%);
+    pointer-events: none;
+    font-size: .8rem;
+    line-height: 1;
+    color: rgba(255, 255, 255, .5);
+    opacity: 0;
+    transition: opacity .5s var(--ease);
+  }
+
+  .scroll-cue.is-on { opacity: 1; animation: cue 2.2s ease-in-out infinite; }
+
+  @keyframes cue {
+    0%, 100% { transform: translate(-50%, 0); }
+    50%      { transform: translate(-50%, .35rem); }
+  }
+
+  /* ── 首屏短版簡介 ───────────────────── */
+  .hero-lede {
+    position: absolute;
+    left: 50%;
+    bottom: 21svh;
+    transform: translateX(-50%);
+    width: min(44rem, 86vw);
+    margin: 0;
+    text-align: center;
+    font-size: .74rem;
+    line-height: 2.1;
+    letter-spacing: .02em;
+    color: rgba(255, 255, 255, .62);
+    /* 它壓在長按感應區上，點擊要穿透過去 */
+    pointer-events: none;
+  }
+
+  @media (max-width: 640px) {
+    .hero-lede { bottom: 24svh; font-size: .68rem; line-height: 1.95; }
+  }
+
   /* ── 語言切換 ───────────────────────── */
   .lang { display: flex; align-items: center; gap: .5rem; }
 
@@ -523,6 +567,7 @@
 <div class="cursor cursor-dot" id="cursorDot" aria-hidden="true"></div>
 <div class="cursor cursor-ring" id="cursorRing" aria-hidden="true"></div>
 <div class="wipe" id="wipe" aria-hidden="true"></div>
+<div class="scroll-cue" id="scrollCue" aria-hidden="true">↓</div>
 <div class="grain" aria-hidden="true"></div>
 
 <!-- ── 固定頁首／頁尾 ───────────────── -->
@@ -558,6 +603,9 @@
     <button class="hover-target rounded-full"
             style="width:min(62vmin,520px);aspect-ratio:1;background:transparent;border:0"
             id="holdZone" type="button" aria-label="長按展開導覽"></button>
+
+    <!-- 壓在感應區之上，必須讓點擊穿透，否則按到文字就長按不了 -->
+    <p class="hero-lede" data-i18n="hero.lede">Founded in 2026, Chengyun Event Studio works across high-end event integration, brand visual design and ESG-minded exhibitions. We run on the discipline of corporate management and a modular, transparent pricing system — costs and specifications broken down scientifically, so every line of the budget can be seen and checked. From concept to delivery, end to end.</p>
 
     <p class="absolute bottom-[14svh] left-1/2 -translate-x-1/2 text-[.6rem] md:text-[.7rem] tracking-[.35em] uppercase text-white breathe whitespace-nowrap">
       <span class="relative inline-block"><span data-i18n="hero.hold">Click &amp; Hold</span><i class="hold-line" id="holdLine"></i></span>
@@ -596,13 +644,19 @@
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-3xl text-left">
       <span class="eyebrow" data-i18n="about.eyebrow">01 — About Us</span>
-      <h2 class="scene-title" data-i18n-html="about.title">A market shouldn't be all shouting.<br />We wanted a quiet place<br />where the work speaks for itself.</h2>
-      <p class="scene-body" data-i18n="about.p1">Silent Market began with an observation: shoppers hurry past because of loudspeakers and sales patter, while the people who actually want to stop and look are never held. So we made silence a rule rather than a decoration — no loudspeakers, no PA, no microphones. Hand-held signs, boards and purpose-built silent props take their place.</p>
-      <p class="scene-body" data-i18n="about.p2">We also want this to be a settlement that accumulates over time, not a one-off market. A unified visual standard, custom brand signage and cross-session rewards all exist so that returning brands are remembered.</p>
-      <dl class="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-6 mt-12">
-        <div><dt class="term" data-i18n="about.t1">Silent</dt><dd class="desc" data-i18n="about.d1">No amplification, no shouting. The acoustic space is left for conversation and for the work.</dd></div>
-        <div><dt class="term" data-i18n="about.t2">Interaction</dt><dd class="desc" data-i18n="about.d2">Hand-held signs and lot-drawing props turn buying and selling into a shared game.</dd></div>
-        <div><dt class="term" data-i18n="about.t3">Settlement</dt><dd class="desc" data-i18n="about.d3">One visual system and cross-session benefits, so a brand is remembered in one place.</dd></div>
+      <h2 class="scene-title" data-i18n-html="about.tagline">Cheng — clarity, made transparent.<br />Yun — the ground worked, step by step.</h2>
+
+      <p class="scene-body" data-i18n="about.p1">In this industry, asymmetry of information is the most expensive cost of all. Companies spend heavily and still get a rough result, because the work has been subcontracted down through layer after layer; meanwhile the performers on stage and the technicians on the front line meet squeezed rates and deductions nobody explains. Chengyun was founded to change that.</p>
+      <p class="scene-body" data-i18n="about.p2">We run on the discipline of corporate management, with a modular, transparent pricing system that breaks event costs and service specifications down scientifically — giving corporate clients a clear, standardised process with real control over budget. Our work spans large corporate annual events and brand launches, high-end visual and physical craft design, integration of local artisans and art IP, and low-carbon event delivery.</p>
+      <p class="scene-body" data-i18n="about.p3">We work founder-led, backed by a network of senior specialists. Precise project control and a deep visual standard carry a project from planning through specification to delivery on site — one team, end to end.</p>
+      <p class="scene-body" data-i18n="about.p4">However lavish an event looks, without sound trust and dignity in labour it is a tower built on sand. Chengyun stands on integrity and transparency, and on execution done slowly and carefully, so that every brand appearance creates both the highest return and lasting value.</p>
+
+      <span class="eyebrow mt-16" data-i18n="about.cv">Core Values</span>
+      <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+        <div><dt class="term" data-i18n="about.v1">Transparency &amp; Integrity</dt><dd class="desc" data-i18n="about.c1">No black boxes. Modular, transparent pricing, against an industry habit of asymmetry and vague quotes.</dd></div>
+        <div><dt class="term" data-i18n="about.v2">Craftsmanship &amp; Precision</dt><dd class="desc" data-i18n="about.c2">Management SOP as the skeleton; visual aesthetics, materials and on-site detail held to a strict standard. Each event is worked like a made object.</dd></div>
+        <div><dt class="term" data-i18n="about.v3">Sustainability &amp; Shared Value</dt><dd class="desc" data-i18n="about.c3">ESG thinking applied to events, turning commercial activity into an ecosystem that supports local artisans and the places they work in.</dd></div>
+        <div><dt class="term" data-i18n="about.v4">Humanity &amp; Respect</dt><dd class="desc" data-i18n="about.c4">A stage for creators, and fair pay, safety and dignity for the people working the front line — a commercial path with warmth in it.</dd></div>
       </dl>
     </div>
   </div>
@@ -795,18 +849,25 @@
         'hint.hero': '澄耘活動工作室 — 默者文畫 無聲風格聚落', 'hint.menu': '選擇章節',
         'hint.portfolio': '點擊活動可展開細節', 'hint.faq': '點擊問題可展開回答',
         'hint.default': '按 Esc 返回',
+        'hero.lede': '澄耘活動工作室創立於 2026 年，專注高質感活動整合、品牌視覺設計與 ESG 永續會展。我們以企業管理的嚴謹架構為核心，推行「模組化透明報價」，把成本與規格科學化拆解，讓每一筆預算都看得見、算得清。從企劃設計到現場執行，一站到位。',
+        'about.eyebrow': '01 — 關於澄耘',
+        'about.tagline': '澄，為澄清透明；<br />耘，乃步履耕耘。',
+        'about.p1': '在活動產業裡，資訊不對等是最昂貴的成本。企業花了高額預算，卻因層層轉包換來粗糙的現場；舞台上的表演者與前線的軟硬體技師，則常遭遇低價壓榨與不透明扣款。澄耘的成立，就是為了改變這件事。',
+        'about.p2': '我們以企業管理的嚴謹架構為核心，推行「模組化透明報價體系」，將活動成本與服務規格科學化拆解，為企業客戶建立清晰、標準且具備高度預算掌控力的服務流程。業務範疇涵蓋大型企業年會與品牌發布會策劃、高端視覺與實體工藝設計、在地職人與藝術 IP 整合，以及綠色低碳活動執行方案。',
+        'about.p3': '澄耘採取「創辦人親自操刀 × 頂級職人網絡」的運作模式。結合精準的專案流程控管（SOP）與深厚的視覺審美，從前期企劃、設計規格設定到現場執行控管，提供一站式的高品質解決方案。',
+        'about.p4': '我們相信，再華麗的活動，若沒有健全的信任與勞務尊嚴，都只是沙上築塔。澄耘以誠信透明為根基、以深耕細作的執行力為標準，致力於讓每一次的品牌亮相，都創造最高效益與永續價值。',
+        'about.cv': '核心價值',
+        'about.v1': '澄澈誠信', 'about.c1': '打破黑箱，透明計價。堅持模組化透明報價，杜絕業界資訊不對等與模糊報價的陋習。',
+        'about.v2': '深耕細作', 'about.c2': '以企管 SOP 與流程控管為骨架，對視覺美學、材質工藝與現場細節嚴格把關，把每一場活動當作一件工藝品雕琢。',
+        'about.v3': '永續共好', 'about.c3': '導入 ESG 永續會展思維，將商業活動轉化為扶植在地職人、帶動地域發展的良善生態圈。',
+        'about.v4': '人本尊嚴', 'about.c4': '為創作者提供展演舞台，給予一線勞動夥伴合理報酬與安全尊嚴，走出一條有溫度的商業之路。',
         'menu.about': '關於我們',
         'menu.services': '服務項目',
         'menu.teams': '我們的團隊',
         'menu.portfolio': '活動成果',
         'menu.faq': '常見問題',
         'menu.contact': '聯繫我們',
-        'about.eyebrow': '01 — 關於我們', 'about.title': '市集不該只有叫賣聲。<br />我們想留一塊安靜的地方，<br />讓作品自己說話。',
-        'about.p1': '《默者文畫》從一個觀察開始：逛市集的人常因為擴音器與叫賣聲快步走過，真正想停下來看作品的人反而沒被留住。於是我們把「無聲」訂為規則，而不是氣氛裝飾——現場不使用擴音器、喇叭與麥克風，取而代之的是手拿牌、看板與大會設計的無聲互動道具。',
-        'about.p2': '我們也希望這是一個能長期累積的聚落，而不是一次性的擺攤。統一的視覺規格、客製品牌招牌、跨場次的品牌拼圖福利，都是為了讓固定參與的品牌被記住、被回訪。',
-        'about.t1': '無聲', 'about.d1': '現場零擴音、零叫賣，聲音的空間留給對話與作品。',
-        'about.t2': '互動', 'about.d2': '以手舉牌、籤筒等道具設計買賣之間的默契與遊戲。',
-        'about.t3': '聚落', 'about.d3': '統一視覺與跨場次福利，讓品牌在同一個場域被記住。',
+        'about.eyebrow': '01 — 關於我們',
         'services.eyebrow': '02 — 服務項目', 'services.title': '從主題設定到現場執行，<br />一個團隊完成。',
         'services.s1': '市集策劃與執行', 'services.b1': '主題設定、檔期規劃、現場動線與進撤場管理。',
         'services.s2': '品牌招商與審核', 'services.b2': '以品牌風格與主題契合度評估，維持聚落整體調性。',
@@ -864,6 +925,18 @@
         'hint.hero': '澄耘イベントスタジオ — サイレントマーケット', 'hint.menu': '章を選んでください',
         'hint.portfolio': 'イベントをクリックで詳細', 'hint.faq': '質問をクリックで回答',
         'hint.default': 'Esc で戻る',
+        'hero.lede': '澄耘活動工作室は2026年設立。上質なイベント統合、ブランドビジュアルデザイン、ESGを踏まえたMICEを手がけます。企業経営の厳密な枠組みを軸に「モジュール型の透明な見積」を採用し、コストと仕様を科学的に分解。予算の一つひとつが見え、確かめられる状態にします。企画から当日の運営まで、ワンストップで。',
+        'about.eyebrow': '01 — 澄耘について',
+        'about.tagline': '澄は、澄みわたる透明さ。<br />耘は、一歩ずつ耕すこと。',
+        'about.p1': 'イベント産業において、情報の非対称性こそ最も高くつくコストです。企業は多額の予算を投じながら、幾重もの下請けを経て粗い現場を受け取る。一方で舞台に立つ演者や最前線の技術者は、買い叩きや不透明な減額に遭う。澄耘はそれを変えるために設立されました。',
+        'about.p2': '企業経営の厳密な枠組みを軸に「モジュール型の透明な見積体系」を推進し、イベントのコストとサービス仕様を科学的に分解。企業のお客様に、明快で標準化された、予算を確実に管理できるプロセスを提供します。業務範囲は、大規模な社内式典やブランド発表会の企画、ハイエンドなビジュアルと実物工芸のデザイン、地域の職人とアートIPの統合、そして低炭素なイベント運営に及びます。',
+        'about.p3': '澄耘は「創業者が自ら手を動かす × 一流の職人ネットワーク」という体制をとります。精緻なプロジェクト管理（SOP）と確かな視覚的審美眼を組み合わせ、前期の企画から仕様設定、現場の運営管理まで、ワンストップで高品質な解決策をご提供します。',
+        'about.p4': 'どれほど華やかなイベントでも、健全な信頼と労働の尊厳がなければ砂上の楼閣にすぎません。澄耘は誠実さと透明性を土台に、丁寧に作り込む実行力を基準として、ブランドが姿を見せるその一回ごとに、最大の効果と持続的な価値を生み出すことを目指します。',
+        'about.cv': 'コアバリュー',
+        'about.v1': '澄んだ誠実さ', 'about.c1': 'ブラックボックスをなくし、透明に算出する。モジュール型の透明な見積を貫き、業界の情報格差と曖昧な見積という悪習を断ちます。',
+        'about.v2': '丁寧な作り込み', 'about.c2': '企業経営のSOPと工程管理を骨格に、ビジュアル、素材の工芸性、現場のディテールまで厳しく管理。一回のイベントを一つの工芸品として彫琢します。',
+        'about.v3': '持続可能な共栄', 'about.c3': 'ESGの視点をMICEに導入し、商業活動を地域の職人を支え、地域の発展を促す良い生態系へと変えていきます。',
+        'about.v4': '人としての尊厳', 'about.c4': 'つくり手には発表の舞台を、最前線で働く仲間には正当な報酬と安全・尊厳を。温度のある商いの道を歩みます。',
         'menu.about': '私たちについて',
         'menu.services': 'サービス',
         'menu.teams': 'チーム',
@@ -871,12 +944,6 @@
         'menu.faq': 'よくある質問',
         'menu.contact': 'お問い合わせ',
         'about.eyebrow': '01 — 私たちについて',
-        'about.title': 'マーケットは呼び込みの声だけではないはず。<br />作品そのものが語る、<br />静かな場所をつくりたかった。',
-        'about.p1': '『默者文畫』は一つの観察から始まりました。拡声器や呼び込みの声のせいで来場者は足早に通り過ぎ、本当に作品を見たい人ほど立ち止まれない。そこで私たちは「無音」を演出ではなくルールにしました。会場では拡声器・スピーカー・マイクを使わず、手持ちのサインやボード、主催が設計した無音の道具で伝えます。',
-        'about.p2': '一度きりの出店ではなく、積み重なる集落にしたいと考えています。統一されたビジュアル規格、ブランドごとの専用サイン、開催回をまたぐ特典は、継続して参加するブランドが記憶され、再訪されるための仕組みです。',
-        'about.t1': '無音', 'about.d1': '拡声も呼び込みもなし。音の空間は会話と作品のために空けておきます。',
-        'about.t2': 'インタラクション', 'about.d2': '手持ちサインやくじ引きの道具で、売り買いを共通の遊びに変えます。',
-        'about.t3': '集落', 'about.d3': '統一されたビジュアルと回をまたぐ特典で、同じ場所でブランドが記憶されます。',
         'services.eyebrow': '02 — サービス', 'services.title': '企画から当日の運営まで、<br />一つのチームで。',
         'services.s1': '企画・運営', 'services.b1': 'テーマ設定、日程、当日の動線、搬入出の管理。',
         'services.s2': 'ブランド審査', 'services.b2': '世界観との相性で審査し、集落全体のトーンを保ちます。',
@@ -927,7 +994,17 @@
       }
     };
 
-    /* 英文是 HTML 裡的原文，翻譯表只補其他兩種語言時需要的鍵 */
+    /* 英文原文寫在 HTML 裡，開場先收一份進 I18N.en，
+       否則從其他語言切回英文時，表裡沒有的鍵會找不到原文、停在上一個語言 */
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      const k = el.dataset.i18n;
+      if (!(k in I18N.en)) { I18N.en[k] = el.textContent.trim(); }
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach((el) => {
+      const k = el.dataset.i18nHtml;
+      if (!(k in I18N.en)) { I18N.en[k] = el.innerHTML.trim(); }
+    });
+
     let lang = 'en';
     const t = (key) => (I18N[lang] && I18N[lang][key]) || I18N.en[key] || '';
 
@@ -949,6 +1026,7 @@
       try { localStorage.setItem('cy-lang', next); } catch (err) { /* 無痕視窗寫不進去，忽略即可 */ }
       syncChrome();
       if (detail.classList.contains('is-on')) { renderDetail(); }
+      requestAnimationFrame(updateCue);
     }
 
 
@@ -1013,6 +1091,7 @@
         root.classList.toggle('is-inner', name !== 'hero' && name !== 'menu');
         root.classList.toggle('is-menu', name === 'menu');
         syncChrome();
+        watchScene(to);
         backBtn.hidden = name === 'hero';
 
         /* 焦點移到新分鏡，鍵盤使用者不會被留在看不見的地方 */
@@ -1125,6 +1204,24 @@
         if (e.target.closest('.hover-target')) { ring.classList.remove('is-near'); }
       });
     }
+
+    /* ══ 區塊內捲提示 ══════════════════════════════════════════ */
+    const scrollCue = document.getElementById('scrollCue');
+    let cueTarget = null;
+
+    function updateCue() {
+      if (!cueTarget) { scrollCue.classList.remove('is-on'); return; }
+      const more = cueTarget.scrollHeight - cueTarget.clientHeight - cueTarget.scrollTop;
+      scrollCue.classList.toggle('is-on', more > 24);
+    }
+
+    function watchScene(scene) {
+      if (cueTarget) { cueTarget.removeEventListener('scroll', updateCue); }
+      cueTarget = scene.querySelector('.scene-inner');
+      if (cueTarget) { cueTarget.addEventListener('scroll', updateCue, { passive: true }); }
+      updateCue();
+    }
+    addEventListener('resize', updateCue);
 
     /* ══ 語言切換 ══════════════════════════════════════════════ */
     document.getElementById('langSwitch').addEventListener('click', (e) => {

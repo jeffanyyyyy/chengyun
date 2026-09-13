@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="zh-Hant-TW">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>CHENGYUN STUDIO — Obsidian</title>
-<meta name="description" content="沈浸式分鏡體驗：中央的碎裂黑水晶、長按展開的導覽、全螢幕遮罩轉場。" />
+<title>CHENGYUN STUDIO — Silent Market</title>
+<meta name="description" content="Chengyun Event Studio — curation, brand selection and production for Silent Market, a quiet settlement of makers in Banqiao, New Taipei." />
 <meta name="theme-color" content="#0b0b0c" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0c'/%3E%3Cpath d='M16 5l9 11-9 11-9-11z' fill='%23191919' stroke='%239aa0b5' stroke-width='.8'/%3E%3C/svg%3E" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Noto+Sans+TC:wght@200;300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Noto+Sans+JP:wght@200;300;400&family=Noto+Sans+TC:wght@200;300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -27,6 +27,7 @@
   /* 這裡只放 Tailwind 表達不了的東西，外加 CDN 失效時的保底外觀 */
   :root {
     --bg: #0b0b0c;
+    --font: 'Inter', 'Noto Sans TC', sans-serif;
     --ease: cubic-bezier(.22, 1, .36, 1);
     --scene-in: .9s;
   }
@@ -37,13 +38,15 @@
     margin: 0;
     background: var(--bg);
     color: #fff;
-    font-family: 'Inter', 'Noto Sans TC', sans-serif;
+    font-family: var(--font);
     font-weight: 300;
     /* 分鏡式體驗：整頁不捲動，內容一律鎖在視窗內 */
     overflow: hidden;
     overscroll-behavior: none;
     -webkit-font-smoothing: antialiased;
   }
+
+  :root[lang="ja"] { --font: 'Inter', 'Noto Sans JP', sans-serif; }
 
   ::selection { background: #fff; color: #000; }
   :focus-visible { outline: 1px solid #fff; outline-offset: 6px; }
@@ -175,6 +178,22 @@
     }
   }
 
+  /* ── 語言切換 ───────────────────────── */
+  .lang { display: flex; align-items: center; gap: .5rem; }
+
+  .lang button {
+    font-size: .6rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .4);
+    padding: .25rem .1rem;
+    transition: color .4s var(--ease);
+  }
+
+  .lang button[aria-current="true"] { color: #fff; }
+  .lang button:hover { color: rgba(255, 255, 255, .8); }
+  .lang i { font-style: normal; color: rgba(255, 255, 255, .2); font-size: .55rem; }
+
   /* ── 長按進度 ───────────────────────── */
   /* 靜止時寬度是零，畫面上不留任何裝飾；長按時才從左往右長出來 */
   .hold-line {
@@ -209,14 +228,14 @@
     transition: color .45s var(--ease);
   }
 
-  .menu-row .zh {
+  .menu-row .label {
     font-size: clamp(1.5rem, 5vw, 2.6rem);
     font-weight: 300;
     letter-spacing: .06em;
     line-height: 1.2;
   }
 
-  .menu-row .en {
+  .menu-row .sub {
     margin-left: auto;
     font-size: .6rem;
     letter-spacing: .28em;
@@ -234,13 +253,13 @@
   }
 
   .menu-row:hover .idx,
-  .menu-row:hover .en { color: rgba(255, 255, 255, .7); }
+  .menu-row:hover .sub { color: rgba(255, 255, 255, .7); }
 
   /* 滑過其中一項時，其他項退到更暗，焦點只有一個 */
   nav:hover .menu-row:not(:hover) { opacity: .4; }
 
   @media (max-width: 480px) {
-    .menu-row .en { display: none; }
+    .menu-row .sub { display: none; }
   }
 
   /* ── 章節內文 ───────────────────────── */
@@ -520,9 +539,14 @@
 <div class="grain" aria-hidden="true"></div>
 
 <!-- ── 固定頁首／頁尾 ───────────────── -->
-<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 md:px-10 py-6 mix-blend-difference">
+<header class="fixed top-0 left-0 w-full z-[95] flex items-center justify-between px-6 md:px-10 py-6 mix-blend-difference">
   <button class="hover-target font-syne text-sm font-extrabold tracking-[.22em] uppercase" id="brand" type="button">Chengyun.Studio</button>
   <div class="flex items-center gap-5">
+    <div class="lang" id="langSwitch" role="group" aria-label="Language">
+      <button class="hover-target" type="button" data-lang="en" aria-current="true">EN</button><i>/</i>
+      <button class="hover-target" type="button" data-lang="zh">中</button><i>/</i>
+      <button class="hover-target" type="button" data-lang="ja">日</button>
+    </div>
     <span class="text-[.6rem] tracking-[.3em] uppercase text-white/60 hidden sm:block" id="sceneLabel">Index</span>
     <button class="burger hover-target py-2" id="burger" type="button" aria-label="開關導覽">
       <span></span><span></span><span></span>
@@ -530,16 +554,16 @@
   </div>
 </header>
 
-<footer class="fixed bottom-0 left-0 w-full z-50 flex items-center justify-between px-6 md:px-10 py-6 mix-blend-difference text-[.6rem] tracking-[.3em] uppercase text-white/50">
+<footer class="fixed bottom-0 left-0 w-full z-[95] flex items-center justify-between px-6 md:px-10 py-6 mix-blend-difference text-[.6rem] tracking-[.3em] uppercase text-white/50">
   <span id="footHint">Obsidian — Interactive Study</span>
-  <button class="hover-target tracking-[.3em] uppercase" id="backBtn" type="button" hidden>← Index</button>
+  <button class="hover-target tracking-[.3em] uppercase" id="backBtn" type="button" hidden data-i18n="ui.back">← Index</button>
 </footer>
 
 <!-- ── 1. 首頁：黑水晶 ───────────────── -->
 <section class="scene is-active" data-scene="hero">
   <div class="scene-inner relative grid place-items-center min-h-[100svh] px-6">
 
-    <p class="absolute top-[16svh] left-1/2 -translate-x-1/2 text-[.6rem] md:text-[.7rem] tracking-[.35em] uppercase text-white/80 whitespace-nowrap border-b border-white/25 pb-2">
+    <p class="absolute top-[16svh] left-1/2 -translate-x-1/2 text-[.6rem] md:text-[.7rem] tracking-[.35em] uppercase text-white/80 whitespace-nowrap border-b border-white/25 pb-2" data-i18n="hero.top">
       View All Projects
     </p>
 
@@ -549,7 +573,7 @@
             id="holdZone" type="button" aria-label="長按展開導覽"></button>
 
     <p class="absolute bottom-[14svh] left-1/2 -translate-x-1/2 text-[.6rem] md:text-[.7rem] tracking-[.35em] uppercase text-white breathe whitespace-nowrap">
-      <span class="relative inline-block">Click &amp; Hold<i class="hold-line" id="holdLine"></i></span>
+      <span class="relative inline-block"><span data-i18n="hero.hold">Click &amp; Hold</span><i class="hold-line" id="holdLine"></i></span>
     </p>
   </div>
 </section>
@@ -559,179 +583,175 @@
   <div class="scene-inner grid place-items-center min-h-[100svh] px-6 md:px-10 py-24">
     <nav class="stagger w-full max-w-3xl">
       <a class="menu-row hover-target" href="#about" data-go="about">
-        <span class="idx">01</span><span class="zh">關於我們</span><span class="en">About Us</span>
+        <span class="idx">01</span><span class="label" data-i18n="menu.about">About Us</span><span class="sub" data-i18n="menu.about.sub">關於我們</span>
       </a>
       <a class="menu-row hover-target" href="#services" data-go="services">
-        <span class="idx">02</span><span class="zh">服務項目</span><span class="en">Services</span>
+        <span class="idx">02</span><span class="label" data-i18n="menu.services">Services</span><span class="sub" data-i18n="menu.services.sub">服務項目</span>
       </a>
       <a class="menu-row hover-target" href="#teams" data-go="teams">
-        <span class="idx">03</span><span class="zh">我們的團隊</span><span class="en">Teams</span>
+        <span class="idx">03</span><span class="label" data-i18n="menu.teams">Teams</span><span class="sub" data-i18n="menu.teams.sub">我們的團隊</span>
       </a>
       <a class="menu-row hover-target" href="#portfolio" data-go="portfolio">
-        <span class="idx">04</span><span class="zh">活動成果</span><span class="en">Portfolio</span>
+        <span class="idx">04</span><span class="label" data-i18n="menu.portfolio">Portfolio</span><span class="sub" data-i18n="menu.portfolio.sub">活動成果</span>
       </a>
       <a class="menu-row hover-target" href="#faq" data-go="faq">
-        <span class="idx">05</span><span class="zh">常見問題</span><span class="en">Q&amp;A</span>
+        <span class="idx">05</span><span class="label" data-i18n="menu.faq">Q&amp;A</span><span class="sub" data-i18n="menu.faq.sub">常見問題</span>
       </a>
       <a class="menu-row hover-target" href="#contact" data-go="contact">
-        <span class="idx">06</span><span class="zh">聯繫我們</span><span class="en">Contact Us</span>
+        <span class="idx">06</span><span class="label" data-i18n="menu.contact">Contact Us</span><span class="sub" data-i18n="menu.contact.sub">聯繫我們</span>
       </a>
     </nav>
   </div>
 </section>
 
-<!-- ── 01 關於我們 ─────────────────── -->
+<!-- ── 01 About ────────────────────── -->
 <section class="scene" data-scene="about" aria-hidden="true">
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-3xl text-left">
-      <span class="eyebrow">01 — 關於我們 / About Us</span>
-      <h2 class="scene-title">市集不該只有叫賣聲。<br />我們想留一塊安靜的地方，<br />讓作品自己說話。</h2>
-      <p class="scene-body">
-        《默者文畫》從一個觀察開始：逛市集的人常因為擴音器與叫賣聲快步走過，真正想停下來看作品的人反而沒被留住。於是我們把「無聲」訂為規則，而不是氣氛裝飾——現場不使用擴音器、喇叭與麥克風，取而代之的是手拿牌、看板與大會設計的無聲互動道具。
-      </p>
-      <p class="scene-body">
-        我們也希望這是一個能長期累積的聚落，而不是一次性的擺攤。統一的視覺規格、客製品牌招牌、跨場次的品牌拼圖福利，都是為了讓固定參與的品牌被記住、被回訪。
-      </p>
+      <span class="eyebrow" data-i18n="about.eyebrow">01 — About Us</span>
+      <h2 class="scene-title" data-i18n-html="about.title">A market shouldn't be all shouting.<br />We wanted a quiet place<br />where the work speaks for itself.</h2>
+      <p class="scene-body" data-i18n="about.p1">Silent Market began with an observation: shoppers hurry past because of loudspeakers and sales patter, while the people who actually want to stop and look are never held. So we made silence a rule rather than a decoration — no loudspeakers, no PA, no microphones. Hand-held signs, boards and purpose-built silent props take their place.</p>
+      <p class="scene-body" data-i18n="about.p2">We also want this to be a settlement that accumulates over time, not a one-off market. A unified visual standard, custom brand signage and cross-session rewards all exist so that returning brands are remembered.</p>
       <dl class="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-6 mt-12">
-        <div><dt class="term">無聲</dt><dd class="desc">現場零擴音、零叫賣，聲音的空間留給對話與作品。</dd></div>
-        <div><dt class="term">互動</dt><dd class="desc">以手舉牌、籤筒等道具設計買賣之間的默契與遊戲。</dd></div>
-        <div><dt class="term">聚落</dt><dd class="desc">統一視覺與跨場次福利，讓品牌在同一個場域被記住。</dd></div>
+        <div><dt class="term" data-i18n="about.t1">Silent</dt><dd class="desc" data-i18n="about.d1">No amplification, no shouting. The acoustic space is left for conversation and for the work.</dd></div>
+        <div><dt class="term" data-i18n="about.t2">Interaction</dt><dd class="desc" data-i18n="about.d2">Hand-held signs and lot-drawing props turn buying and selling into a shared game.</dd></div>
+        <div><dt class="term" data-i18n="about.t3">Settlement</dt><dd class="desc" data-i18n="about.d3">One visual system and cross-session benefits, so a brand is remembered in one place.</dd></div>
       </dl>
     </div>
   </div>
 </section>
 
-<!-- ── 02 服務項目 ─────────────────── -->
+<!-- ── 02 Services ─────────────────── -->
 <section class="scene" data-scene="services" aria-hidden="true">
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-4xl text-left">
-      <span class="eyebrow">02 — 服務項目 / Services</span>
-      <h2 class="scene-title">從主題設定到現場執行，<br />一個團隊完成。</h2>
+      <span class="eyebrow" data-i18n="services.eyebrow">02 — Services</span>
+      <h2 class="scene-title" data-i18n-html="services.title">From concept to the day itself,<br />handled by one team.</h2>
       <ol class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-7 mt-12">
-        <li class="svc"><b>市集策劃與執行</b><span>主題設定、檔期規劃、現場動線與進撤場管理。</span></li>
-        <li class="svc"><b>品牌招商與審核</b><span>以品牌風格與主題契合度評估，維持聚落整體調性。</span></li>
-        <li class="svc"><b>場域與硬體規劃</b><span>帳篷、桌椅、氣氛燈串與攤位配置，品牌不需自備硬體。</span></li>
-        <li class="svc"><b>品牌視覺與招牌</b><span>客製品牌招牌與統一視覺規格，讓整場看起來是一件作品。</span></li>
-        <li class="svc"><b>無聲互動道具設計</b><span>手舉牌、籤筒 15 秒介紹等機制，把安靜變成可玩的體驗。</span></li>
-        <li class="svc"><b>社群與媒體曝光</b><span>官方網站與 IG／FB／LINE 宣傳，累積跨場次的品牌能見度。</span></li>
+        <li class="svc"><b data-i18n="services.s1">Curation &amp; Production</b><span data-i18n="services.b1">Theme, schedule, on-site flow, load-in and load-out.</span></li>
+        <li class="svc"><b data-i18n="services.s2">Brand Selection</b><span data-i18n="services.b2">Reviewed on style and fit with the theme, keeping the settlement coherent.</span></li>
+        <li class="svc"><b data-i18n="services.s3">Site &amp; Equipment</b><span data-i18n="services.b3">Tents, tables, chairs, ambient lighting and stall layout. Brands bring nothing.</span></li>
+        <li class="svc"><b data-i18n="services.s4">Brand Signage</b><span data-i18n="services.b4">Custom signs on one visual standard, so the whole market reads as a single piece.</span></li>
+        <li class="svc"><b data-i18n="services.s5">Silent Interaction Design</b><span data-i18n="services.b5">Hand-held signs and a 15-second lot-drawing intro turn quiet into play.</span></li>
+        <li class="svc"><b data-i18n="services.s6">Social &amp; Media</b><span data-i18n="services.b6">Official site and IG / FB / LINE, building visibility across sessions.</span></li>
       </ol>
     </div>
   </div>
 </section>
 
-<!-- ── 03 我們的團隊 ───────────────── -->
+<!-- ── 03 Teams ────────────────────── -->
 <section class="scene" data-scene="teams" aria-hidden="true">
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-4xl text-left">
-      <span class="eyebrow">03 — 我們的團隊 / Teams</span>
-      <h2 class="scene-title">一個小團隊，<br />各自守住一段流程。</h2>
+      <span class="eyebrow" data-i18n="teams.eyebrow">03 — Teams</span>
+      <h2 class="scene-title" data-i18n-html="teams.title">A small team,<br />each holding one part of the process.</h2>
       <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-7 mt-12">
-        <li class="svc"><b>策展統籌</b><span>主題發想、檔期與整體節奏，對外代表大會發言。</span></li>
-        <li class="svc"><b>招商審核</b><span>品牌溝通、資格審核與名額調度，維持聚落調性。</span></li>
-        <li class="svc"><b>現場執行</b><span>進撤場、動線、用電與安規，活動當天的所有臨場判斷。</span></li>
-        <li class="svc"><b>視覺設計</b><span>主視覺、品牌招牌與現場道具的設計與製作。</span></li>
-        <li class="svc"><b>社群經營</b><span>官網與社群內容、攤商曝光與活動後的紀錄整理。</span></li>
-        <li class="svc"><b>攤商服務</b><span>行前說明、現場協助與活動後的意見回收。</span></li>
+        <li class="svc"><b data-i18n="teams.s1">Curation Lead</b><span data-i18n="teams.b1">Theme, schedule and overall pacing; speaks for the organiser.</span></li>
+        <li class="svc"><b data-i18n="teams.s2">Brand Review</b><span data-i18n="teams.b2">Brand communication, screening and allocation; keeps the tone of the settlement.</span></li>
+        <li class="svc"><b data-i18n="teams.s3">Site Operations</b><span data-i18n="teams.b3">Load-in, flow, power and safety — every call made on the day.</span></li>
+        <li class="svc"><b data-i18n="teams.s4">Design</b><span data-i18n="teams.b4">Key visuals, brand signage and the on-site props.</span></li>
+        <li class="svc"><b data-i18n="teams.s5">Social</b><span data-i18n="teams.b5">Site and social content, stall features, and the record kept after each session.</span></li>
+        <li class="svc"><b data-i18n="teams.s6">Stallholder Support</b><span data-i18n="teams.b6">Briefings, help on the day, and follow-up once the market closes.</span></li>
       </ul>
-      <p class="note mt-10">主辦單位：澄耘活動工作室 有限公司</p>
+      <p class="note mt-10" data-i18n="teams.note">Organised by Chengyun Event Studio Co., Ltd.</p>
     </div>
   </div>
 </section>
 
-<!-- ── 04 活動成果 ─────────────────── -->
+<!-- ── 04 Portfolio ────────────────── -->
 <section class="scene" data-scene="portfolio" aria-hidden="true">
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-4xl text-left">
-      <span class="eyebrow">04 — 活動成果 / Portfolio</span>
+      <span class="eyebrow" data-i18n="portfolio.eyebrow">04 — Portfolio</span>
 
       <button class="work-card hover-target" type="button" data-detail="silent">
-        <span class="work-meta">市集策劃 · 品牌招商 · 現場執行</span>
-        <span class="work-title">《默者文畫》<br />無聲風格聚落</span>
-        <span class="work-line">2026.10.03 – 12.13　|　新北市板橋區雙十廣場</span>
-        <span class="work-open">Click to expand</span>
+        <span class="work-meta" data-i18n="portfolio.meta">Curation · Brand Selection · Production</span>
+        <span class="work-title" data-i18n-html="portfolio.title">Silent Market<br />默者文畫</span>
+        <span class="work-line" data-i18n="portfolio.line">3 Oct – 13 Dec 2026　|　Shuangshi Plaza, Banqiao, New Taipei</span>
+        <span class="work-open" data-i18n="portfolio.open">Click to expand</span>
       </button>
 
       <dl class="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-6 mt-12">
-        <div><dt class="fig">6</dt><dd class="desc">檔期場次（隔週六日）</dd></div>
-        <div><dt class="fig">12</dt><dd class="desc">活動天數</dd></div>
-        <div><dt class="fig">15:00</dt><dd class="desc">每日開攤，至 20:30</dd></div>
-        <div><dt class="fig">2026</dt><dd class="desc">首屆舉辦年度</dd></div>
+        <div><dt class="fig">6</dt><dd class="desc" data-i18n="portfolio.f1">Sessions, alternate weekends</dd></div>
+        <div><dt class="fig">12</dt><dd class="desc" data-i18n="portfolio.f2">Days of market</dd></div>
+        <div><dt class="fig">15:00</dt><dd class="desc" data-i18n="portfolio.f3">Opens daily, until 20:30</dd></div>
+        <div><dt class="fig">2026</dt><dd class="desc" data-i18n="portfolio.f4">First edition</dd></div>
       </dl>
 
-      <p class="note mt-10">更多活動成果陸續更新。</p>
+      <p class="note mt-10" data-i18n="portfolio.note">More work to be added.</p>
     </div>
   </div>
 </section>
 
-<!-- ── 05 常見問題 ─────────────────── -->
+<!-- ── 05 Q&A ──────────────────────── -->
 <section class="scene" data-scene="faq" aria-hidden="true">
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-3xl text-left">
-      <span class="eyebrow">05 — 常見問題 / Q&amp;A</span>
-      <h2 class="scene-title">擺攤前最常被問的事。</h2>
+      <span class="eyebrow" data-i18n="faq.eyebrow">05 — Q&amp;A</span>
+      <h2 class="scene-title" data-i18n="faq.title">What stallholders ask most.</h2>
 
       <div class="mt-10">
         <details class="faq">
-          <summary class="hover-target">現場真的完全不能說話嗎？</summary>
-          <p>原則上以「無聲互動」為主，請優先使用大會提供的手拿牌、字卡與手勢引導。嚴格禁止擴音喇叭、麥克風與大聲叫賣；人潮湧入時以服務客人為第一優先，允許輕聲低語交流。</p>
+          <summary class="hover-target" data-i18n="faq.q1">Is talking really not allowed?</summary>
+          <p data-i18n="faq.a1">Silent interaction comes first: please use the hand-held signs, cards and gestures we provide. Loudspeakers, microphones and sales patter are strictly prohibited. When a crowd arrives, serving the customer takes priority and quiet conversation is fine.</p>
         </details>
         <details class="faq">
-          <summary class="hover-target">帳篷、桌椅需要自備嗎？</summary>
-          <p>不需要。大會提供阿里山帳（兩攤共用一帳，3x1.5m）、1 桌（約 120x60cm）、1 靠背椅、客製品牌招牌與氣氛燈串。</p>
+          <summary class="hover-target" data-i18n="faq.q2">Do we bring our own tent, table and chairs?</summary>
+          <p data-i18n="faq.a2">No. We provide the tent (3 x 1.5 m, shared by two stalls), one table (approx. 120 x 60 cm), one chair, a custom brand sign and ambient string lights.</p>
         </details>
         <details class="faq">
-          <summary class="hover-target">每攤可以用多少電？</summary>
-          <p>大會免費提供基本照明與 3C 設備用電，每攤位限額 200W 以內。未報備之高功率加熱、烹煮與高亮度照明電器一律禁止。</p>
+          <summary class="hover-target" data-i18n="faq.q3">How much power does each stall get?</summary>
+          <p data-i18n="faq.a3">Basic lighting and device power are free, capped at 200 W per stall. Undeclared high-draw heating, cooking or high-output lighting equipment is not permitted.</p>
         </details>
         <details class="faq">
-          <summary class="hover-target">當天幾點進場、幾點撤場？</summary>
-          <p>報到進場 14:00–15:00，請於 14:50 前完成佈展；擺攤 15:00–20:30；撤場 20:30–21:30，並於 21:30 前清理完畢還原場地。</p>
+          <summary class="hover-target" data-i18n="faq.q4">What time is load-in and load-out?</summary>
+          <p data-i18n="faq.a4">Check-in 14:00–15:00, with set-up finished by 14:50. The market runs 15:00–20:30. Load-out is 20:30–21:30, with the site cleared and restored by 21:30.</p>
         </details>
         <details class="faq">
-          <summary class="hover-target">早鳥優惠怎麼計算？</summary>
-          <p>於 2026 年 9 月 10 日前完成報名與全額匯款，總費用享 95 折。參展滿 3 場（週）以上另贈客製品牌拼圖，可折抵未來檔期攤租。</p>
+          <summary class="hover-target" data-i18n="faq.q5">How does the early-bird discount work?</summary>
+          <p data-i18n="faq.a5">Apply and pay in full before 10 September 2026 for 5% off the total. Brands joining three or more sessions also receive a custom brand puzzle, redeemable against future stall fees.</p>
         </details>
         <details class="faq">
-          <summary class="hover-target">臨時無法參加可以退費嗎？</summary>
-          <p>活動日 14 天以前（含）取消，扣除手續與轉帳費 NT$ 200 後退還剩餘全額；7 至 13 天內取消退還 50%；6 天內（含當日）取消恕不退費或順延。</p>
+          <summary class="hover-target" data-i18n="faq.q6">Can we get a refund if we can't make it?</summary>
+          <p data-i18n="faq.a6">Cancel 14 days or more before the date: full refund less NT$200 in handling and transfer fees. 7–13 days before: 50% refunded. Within 6 days, including the day itself: no refund or transfer.</p>
         </details>
       </div>
 
-      <p class="note mt-8">其他問題歡迎透過官方 IG／FB／LINE 來訊詢問。</p>
+      <p class="note mt-8" data-i18n="faq.note">For anything else, message us on IG / FB / LINE.</p>
     </div>
   </div>
 </section>
 
-<!-- ── 06 聯繫我們 ─────────────────── -->
+<!-- ── 06 Contact ──────────────────── -->
 <section class="scene" data-scene="contact" aria-hidden="true">
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-3xl text-left">
-      <span class="eyebrow">06 — 聯繫我們 / Contact Us</span>
-      <h2 class="scene-title">準備好一起<br />安靜地擺攤了嗎？</h2>
+      <span class="eyebrow" data-i18n="contact.eyebrow">06 — Contact Us</span>
+      <h2 class="scene-title" data-i18n-html="contact.title">Ready to set up a stall<br />in the quiet?</h2>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8 mt-12">
         <div>
-          <span class="term">官方 LINE</span>
+          <span class="term" data-i18n="contact.t1">Official LINE</span>
           <a class="link hover-target" href="https://lin.ee/niY5HtU" target="_blank" rel="noopener">lin.ee/niY5HtU</a>
-          <span class="desc">報名、審核與行前問題請由官方帳號來訊。</span>
+          <span class="desc" data-i18n="contact.d1">For applications, review and pre-event questions.</span>
         </div>
         <div>
-          <span class="term">Email</span>
+          <span class="term" data-i18n="contact.t2">Email</span>
           <a class="link hover-target" href="mailto:chengyuneventstudio@gmail.com">chengyuneventstudio@gmail.com</a>
-          <span class="desc">合作提案與媒體聯繫。</span>
+          <span class="desc" data-i18n="contact.d2">Partnerships and press.</span>
         </div>
         <div>
-          <span class="term">聯絡電話</span>
+          <span class="term" data-i18n="contact.t3">Phone</span>
           <a class="link hover-target" href="tel:0922531118">0922-531-118</a>
         </div>
         <div>
-          <span class="term">活動地點</span>
-          <span class="link">新北市板橋區雙十廣場</span>
-          <span class="desc">捷運江子翠站旁　擺攤 15:00 – 20:30</span>
+          <span class="term" data-i18n="contact.t4">Location</span>
+          <span class="link" data-i18n="contact.v4">Shuangshi Plaza, Banqiao, New Taipei</span>
+          <span class="desc" data-i18n="contact.d4">Next to Jiangzicui MRT　Open 15:00 – 20:30</span>
         </div>
       </div>
 
-      <p class="note mt-12">澄耘活動工作室 有限公司　|　統一編號 62164766</p>
+      <p class="note mt-12" data-i18n="contact.note">Chengyun Event Studio Co., Ltd.　|　Tax ID 62164766</p>
     </div>
   </div>
 </section>
@@ -743,7 +763,7 @@
       <span class="eyebrow" id="detailMeta"></span>
       <h3 class="scene-title" id="detailTitle"></h3>
       <div id="detailBody"></div>
-      <button class="pill hover-target mt-10" id="detailClose" type="button">關閉 Close</button>
+      <button class="pill hover-target mt-10" id="detailClose" type="button" data-i18n="ui.close">Close</button>
     </div>
   </div>
 </div>
@@ -755,6 +775,195 @@
     const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
     const lerp = (a, b, t) => a + (b - a) * t;
     const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+
+    /* ══ 三語對照 ══════════════════════════════════════════════
+       英文直接寫在 HTML 裡（沒有 JS 也讀得到），這裡只在切換時改寫。
+       事實性內容（日期、費用、規範）三語一致，只換語言不換條件。 */
+    const I18N = {
+      en: {
+        'hero.top': 'View All Projects', 'hero.hold': 'Click & Hold',
+        'ui.back': '← Index', 'ui.close': 'Close',
+        'label.hero': 'Index', 'label.menu': 'Menu', 'label.about': '01 — About Us',
+        'label.services': '02 — Services', 'label.teams': '03 — Teams',
+        'label.portfolio': '04 — Portfolio', 'label.faq': '05 — Q&A', 'label.contact': '06 — Contact Us',
+        'hint.hero': 'Chengyun Event Studio — Silent Market', 'hint.menu': 'Choose a chapter',
+        'hint.portfolio': 'Click the event to expand', 'hint.faq': 'Click a question to expand',
+        'hint.default': 'Esc to go back',
+        'menu.about': 'About Us', 'menu.about.sub': '關於我們',
+        'menu.services': 'Services', 'menu.services.sub': '服務項目',
+        'menu.teams': 'Teams', 'menu.teams.sub': '我們的團隊',
+        'menu.portfolio': 'Portfolio', 'menu.portfolio.sub': '活動成果',
+        'menu.faq': 'Q&A', 'menu.faq.sub': '常見問題',
+        'menu.contact': 'Contact Us', 'menu.contact.sub': '聯繫我們',
+        'detail.meta': 'Curation · Brand Selection · Production',
+        'detail.title': 'Silent Market《默者文畫》',
+        'detail.body': '<p class="scene-body">A curated market built on one rule: silence. No loudspeakers, no PA, no microphones — hand-held signs, boards and purpose-built props carry the exchange instead, so attention stays on the work and the person who made it.</p><dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-7 mt-10"><div><dt class="term">Schedule</dt><dd class="desc">6 sessions on alternate weekends: 3–4 Oct, 17–18 Oct, 31 Oct–1 Nov, 14–15 Nov, 28–29 Nov, 12–13 Dec.</dd></div><div><dt class="term">Place &amp; hours</dt><dd class="desc">Shuangshi Plaza, Banqiao, New Taipei (next to Jiangzicui MRT).<br />Market 15:00–20:30, check-in 14:00–15:00.</dd></div><div><dt class="term">Site setup</dt><dd class="desc">Tent (3 x 1.5 m, shared by two stalls), table 120 x 60 cm, chair, custom brand sign and string lights. Brands bring nothing.</dd></div><div><dt class="term">Interaction</dt><dd class="desc">Silent props including the "let me haggle" sign and a 15-second lot-drawing intro. Join three sessions and receive a custom brand puzzle, redeemable against future stall fees.</dd></div></dl>'
+      },
+      zh: {
+        'hero.top': '瀏覽所有章節', 'hero.hold': '長按進入',
+        'ui.back': '← 首頁', 'ui.close': '關閉',
+        'label.hero': '首頁', 'label.menu': '選單', 'label.about': '01 — 關於我們',
+        'label.services': '02 — 服務項目', 'label.teams': '03 — 我們的團隊',
+        'label.portfolio': '04 — 活動成果', 'label.faq': '05 — 常見問題', 'label.contact': '06 — 聯繫我們',
+        'hint.hero': '澄耘活動工作室 — 默者文畫 無聲風格聚落', 'hint.menu': '選擇章節',
+        'hint.portfolio': '點擊活動可展開細節', 'hint.faq': '點擊問題可展開回答',
+        'hint.default': '按 Esc 返回',
+        'menu.about': '關於我們', 'menu.about.sub': 'About Us',
+        'menu.services': '服務項目', 'menu.services.sub': 'Services',
+        'menu.teams': '我們的團隊', 'menu.teams.sub': 'Teams',
+        'menu.portfolio': '活動成果', 'menu.portfolio.sub': 'Portfolio',
+        'menu.faq': '常見問題', 'menu.faq.sub': 'Q&A',
+        'menu.contact': '聯繫我們', 'menu.contact.sub': 'Contact Us',
+        'about.eyebrow': '01 — 關於我們', 'about.title': '市集不該只有叫賣聲。<br />我們想留一塊安靜的地方，<br />讓作品自己說話。',
+        'about.p1': '《默者文畫》從一個觀察開始：逛市集的人常因為擴音器與叫賣聲快步走過，真正想停下來看作品的人反而沒被留住。於是我們把「無聲」訂為規則，而不是氣氛裝飾——現場不使用擴音器、喇叭與麥克風，取而代之的是手拿牌、看板與大會設計的無聲互動道具。',
+        'about.p2': '我們也希望這是一個能長期累積的聚落，而不是一次性的擺攤。統一的視覺規格、客製品牌招牌、跨場次的品牌拼圖福利，都是為了讓固定參與的品牌被記住、被回訪。',
+        'about.t1': '無聲', 'about.d1': '現場零擴音、零叫賣，聲音的空間留給對話與作品。',
+        'about.t2': '互動', 'about.d2': '以手舉牌、籤筒等道具設計買賣之間的默契與遊戲。',
+        'about.t3': '聚落', 'about.d3': '統一視覺與跨場次福利，讓品牌在同一個場域被記住。',
+        'services.eyebrow': '02 — 服務項目', 'services.title': '從主題設定到現場執行，<br />一個團隊完成。',
+        'services.s1': '市集策劃與執行', 'services.b1': '主題設定、檔期規劃、現場動線與進撤場管理。',
+        'services.s2': '品牌招商與審核', 'services.b2': '以品牌風格與主題契合度評估，維持聚落整體調性。',
+        'services.s3': '場域與硬體規劃', 'services.b3': '帳篷、桌椅、氣氛燈串與攤位配置，品牌不需自備硬體。',
+        'services.s4': '品牌視覺與招牌', 'services.b4': '客製品牌招牌與統一視覺規格，讓整場看起來是一件作品。',
+        'services.s5': '無聲互動道具設計', 'services.b5': '手舉牌、籤筒 15 秒介紹等機制，把安靜變成可玩的體驗。',
+        'services.s6': '社群與媒體曝光', 'services.b6': '官方網站與 IG／FB／LINE 宣傳，累積跨場次的品牌能見度。',
+        'teams.eyebrow': '03 — 我們的團隊', 'teams.title': '一個小團隊，<br />各自守住一段流程。',
+        'teams.s1': '策展統籌', 'teams.b1': '主題發想、檔期與整體節奏，對外代表大會發言。',
+        'teams.s2': '招商審核', 'teams.b2': '品牌溝通、資格審核與名額調度，維持聚落調性。',
+        'teams.s3': '現場執行', 'teams.b3': '進撤場、動線、用電與安規，活動當天的所有臨場判斷。',
+        'teams.s4': '視覺設計', 'teams.b4': '主視覺、品牌招牌與現場道具的設計與製作。',
+        'teams.s5': '社群經營', 'teams.b5': '官網與社群內容、攤商曝光與活動後的紀錄整理。',
+        'teams.s6': '攤商服務', 'teams.b6': '行前說明、現場協助與活動後的意見回收。',
+        'teams.note': '主辦單位：澄耘活動工作室 有限公司',
+        'portfolio.eyebrow': '04 — 活動成果',
+        'portfolio.meta': '市集策劃 · 品牌招商 · 現場執行',
+        'portfolio.title': '《默者文畫》<br />無聲風格聚落',
+        'portfolio.line': '2026.10.03 – 12.13　|　新北市板橋區雙十廣場',
+        'portfolio.open': '點擊展開細節',
+        'portfolio.f1': '檔期場次（隔週六日）', 'portfolio.f2': '活動天數',
+        'portfolio.f3': '每日開攤，至 20:30', 'portfolio.f4': '首屆舉辦年度',
+        'portfolio.note': '更多活動成果陸續更新。',
+        'faq.eyebrow': '05 — 常見問題', 'faq.title': '擺攤前最常被問的事。',
+        'faq.q1': '現場真的完全不能說話嗎？',
+        'faq.a1': '原則上以「無聲互動」為主，請優先使用大會提供的手拿牌、字卡與手勢引導。嚴格禁止擴音喇叭、麥克風與大聲叫賣；人潮湧入時以服務客人為第一優先，允許輕聲低語交流。',
+        'faq.q2': '帳篷、桌椅需要自備嗎？',
+        'faq.a2': '不需要。大會提供阿里山帳（兩攤共用一帳，3x1.5m）、1 桌（約 120x60cm）、1 靠背椅、客製品牌招牌與氣氛燈串。',
+        'faq.q3': '每攤可以用多少電？',
+        'faq.a3': '大會免費提供基本照明與 3C 設備用電，每攤位限額 200W 以內。未報備之高功率加熱、烹煮與高亮度照明電器一律禁止。',
+        'faq.q4': '當天幾點進場、幾點撤場？',
+        'faq.a4': '報到進場 14:00–15:00，請於 14:50 前完成佈展；擺攤 15:00–20:30；撤場 20:30–21:30，並於 21:30 前清理完畢還原場地。',
+        'faq.q5': '早鳥優惠怎麼計算？',
+        'faq.a5': '於 2026 年 9 月 10 日前完成報名與全額匯款，總費用享 95 折。參展滿 3 場（週）以上另贈客製品牌拼圖，可折抵未來檔期攤租。',
+        'faq.q6': '臨時無法參加可以退費嗎？',
+        'faq.a6': '活動日 14 天以前（含）取消，扣除手續與轉帳費 NT$ 200 後退還剩餘全額；7 至 13 天內取消退還 50%；6 天內（含當日）取消恕不退費或順延。',
+        'faq.note': '其他問題歡迎透過官方 IG／FB／LINE 來訊詢問。',
+        'contact.eyebrow': '06 — 聯繫我們', 'contact.title': '準備好一起<br />安靜地擺攤了嗎？',
+        'contact.t1': '官方 LINE', 'contact.d1': '報名、審核與行前問題請由官方帳號來訊。',
+        'contact.t2': 'Email', 'contact.d2': '合作提案與媒體聯繫。',
+        'contact.t3': '聯絡電話',
+        'contact.t4': '活動地點', 'contact.v4': '新北市板橋區雙十廣場',
+        'contact.d4': '捷運江子翠站旁　擺攤 15:00 – 20:30',
+        'contact.note': '澄耘活動工作室 有限公司　|　統一編號 62164766',
+        'detail.meta': '市集策劃 · 品牌招商 · 現場執行',
+        'detail.title': '《默者文畫》無聲風格聚落',
+        'detail.body': '<p class="scene-body">以「沉浸式無聲風格聚落」為核心的策展型市集。現場不使用擴音器、喇叭與麥克風，改以手拿牌、看板與大會設計的互動道具溝通，把注意力留給桌上的作品與創作者本人。</p><dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-7 mt-10"><div><dt class="term">檔期</dt><dd class="desc">全期 6 場（隔週六日）：10/03–10/04、10/17–10/18、10/31–11/01、11/14–11/15、11/28–11/29、12/12–12/13</dd></div><div><dt class="term">地點與時間</dt><dd class="desc">新北市板橋區雙十廣場（捷運江子翠站旁）<br />擺攤 15:00 – 20:30，報到 14:00 – 15:00</dd></div><div><dt class="term">場域配置</dt><dd class="desc">阿里山帳（兩攤共用一帳，3x1.5m）、桌 120x60cm、靠背椅、客製品牌招牌與氣氛燈串，品牌不需自備硬體。</dd></div><div><dt class="term">互動機制</dt><dd class="desc">「老闆我要殺價」手舉牌、「籤筒 15 秒介紹」等無聲道具；參展滿 3 場贈客製品牌拼圖，可折抵未來檔期攤租。</dd></div></dl>'
+      },
+      ja: {
+        'hero.top': 'すべての章を見る', 'hero.hold': '長押しで開く',
+        'ui.back': '← トップ', 'ui.close': '閉じる',
+        'label.hero': 'トップ', 'label.menu': 'メニュー', 'label.about': '01 — 私たちについて',
+        'label.services': '02 — サービス', 'label.teams': '03 — チーム',
+        'label.portfolio': '04 — 実績', 'label.faq': '05 — よくある質問', 'label.contact': '06 — お問い合わせ',
+        'hint.hero': '澄耘イベントスタジオ — サイレントマーケット', 'hint.menu': '章を選んでください',
+        'hint.portfolio': 'イベントをクリックで詳細', 'hint.faq': '質問をクリックで回答',
+        'hint.default': 'Esc で戻る',
+        'menu.about': '私たちについて', 'menu.about.sub': 'About Us',
+        'menu.services': 'サービス', 'menu.services.sub': 'Services',
+        'menu.teams': 'チーム', 'menu.teams.sub': 'Teams',
+        'menu.portfolio': '実績', 'menu.portfolio.sub': 'Portfolio',
+        'menu.faq': 'よくある質問', 'menu.faq.sub': 'Q&A',
+        'menu.contact': 'お問い合わせ', 'menu.contact.sub': 'Contact Us',
+        'about.eyebrow': '01 — 私たちについて',
+        'about.title': 'マーケットは呼び込みの声だけではないはず。<br />作品そのものが語る、<br />静かな場所をつくりたかった。',
+        'about.p1': '『默者文畫』は一つの観察から始まりました。拡声器や呼び込みの声のせいで来場者は足早に通り過ぎ、本当に作品を見たい人ほど立ち止まれない。そこで私たちは「無音」を演出ではなくルールにしました。会場では拡声器・スピーカー・マイクを使わず、手持ちのサインやボード、主催が設計した無音の道具で伝えます。',
+        'about.p2': '一度きりの出店ではなく、積み重なる集落にしたいと考えています。統一されたビジュアル規格、ブランドごとの専用サイン、開催回をまたぐ特典は、継続して参加するブランドが記憶され、再訪されるための仕組みです。',
+        'about.t1': '無音', 'about.d1': '拡声も呼び込みもなし。音の空間は会話と作品のために空けておきます。',
+        'about.t2': 'インタラクション', 'about.d2': '手持ちサインやくじ引きの道具で、売り買いを共通の遊びに変えます。',
+        'about.t3': '集落', 'about.d3': '統一されたビジュアルと回をまたぐ特典で、同じ場所でブランドが記憶されます。',
+        'services.eyebrow': '02 — サービス', 'services.title': '企画から当日の運営まで、<br />一つのチームで。',
+        'services.s1': '企画・運営', 'services.b1': 'テーマ設定、日程、当日の動線、搬入出の管理。',
+        'services.s2': 'ブランド審査', 'services.b2': '世界観との相性で審査し、集落全体のトーンを保ちます。',
+        'services.s3': '会場・設備', 'services.b3': 'テント、机、椅子、ライト、区画配置。出店者の持ち込みは不要です。',
+        'services.s4': 'ブランドサイン', 'services.b4': '統一規格のオリジナル看板で、会場全体が一つの作品になります。',
+        'services.s5': '無音インタラクション設計', 'services.b5': '手持ちサインや「15秒くじ引き紹介」で、静けさを遊びに変えます。',
+        'services.s6': '発信・広報', 'services.b6': '公式サイトと IG／FB／LINE で、回を重ねて認知を積み上げます。',
+        'teams.eyebrow': '03 — チーム', 'teams.title': '小さなチームが、<br />それぞれの工程を受け持ちます。',
+        'teams.s1': '企画統括', 'teams.b1': 'テーマ、日程、全体のテンポ。主催として対外的に発言します。',
+        'teams.s2': 'ブランド審査', 'teams.b2': 'ブランドとのやり取り、審査、枠の調整。集落のトーンを守ります。',
+        'teams.s3': '現場運営', 'teams.b3': '搬入出、動線、電源と安全。当日の判断はすべてここで。',
+        'teams.s4': 'デザイン', 'teams.b4': 'メインビジュアル、ブランド看板、会場の道具の設計と制作。',
+        'teams.s5': '広報', 'teams.b5': 'サイトとSNSの発信、出店者の紹介、開催後の記録。',
+        'teams.s6': '出店者サポート', 'teams.b6': '事前説明、当日の対応、開催後のフィードバック回収。',
+        'teams.note': '主催：澄耘活動工作室 有限公司（Chengyun Event Studio Co., Ltd.）',
+        'portfolio.eyebrow': '04 — 実績',
+        'portfolio.meta': 'キュレーション · 出店審査 · 現場運営',
+        'portfolio.title': 'サイレントマーケット<br />默者文畫',
+        'portfolio.line': '2026年10月3日 – 12月13日　|　新北市板橋区 双十広場',
+        'portfolio.open': 'クリックで詳細',
+        'portfolio.f1': '開催回（隔週の土日）', 'portfolio.f2': '開催日数',
+        'portfolio.f3': '毎日15:00開場、20:30まで', 'portfolio.f4': '初開催の年',
+        'portfolio.note': '実績は順次追加します。',
+        'faq.eyebrow': '05 — よくある質問', 'faq.title': '出店前によくいただく質問。',
+        'faq.q1': '会場では本当に話せないのですか？',
+        'faq.a1': '基本は「無音のやり取り」です。主催が用意する手持ちサイン、カード、ジェスチャーをお使いください。拡声器・マイク・大声での呼び込みは禁止です。混雑時はお客様対応を最優先とし、小声での会話は問題ありません。',
+        'faq.q2': 'テントや机・椅子は自分で用意しますか？',
+        'faq.a2': '不要です。テント（3×1.5m、2区画で1張を共用）、机1台（約120×60cm）、背もたれ付き椅子1脚、オリジナルのブランド看板、ライトを主催が用意します。',
+        'faq.q3': '1区画あたりの電力はどれくらいですか？',
+        'faq.a3': '基本照明とモバイル機器用の電源を無料で提供し、1区画200Wまでです。申告のない高出力の加熱・調理・照明機器は使用できません。',
+        'faq.q4': '当日の搬入・搬出は何時ですか？',
+        'faq.a4': '受付・搬入は14:00–15:00、14:50までに設営完了。出店時間は15:00–20:30。搬出は20:30–21:30で、21:30までに清掃と原状回復をお願いします。',
+        'faq.q5': '早割はどう計算しますか？',
+        'faq.a5': '2026年9月10日までに申し込みと全額入金で総額5%off。3回以上参加のブランドにはオリジナルのブランドパズルを進呈し、次回以降の出店料に充当できます。',
+        'faq.q6': '参加できなくなった場合、返金されますか？',
+        'faq.a6': '開催日の14日前まで：手数料・振込料NT$200を差し引いた全額を返金。7〜13日前：50%を返金。6日前から当日まで：返金・振替はいたしかねます。',
+        'faq.note': 'その他のご質問は公式 IG／FB／LINE までお気軽にどうぞ。',
+        'contact.eyebrow': '06 — お問い合わせ', 'contact.title': '静けさのなかで、<br />出店してみませんか？',
+        'contact.t1': '公式 LINE', 'contact.d1': '申し込み・審査・事前のご質問はこちらから。',
+        'contact.t2': 'Email', 'contact.d2': '協業のご提案と取材のお問い合わせ。',
+        'contact.t3': '電話',
+        'contact.t4': '会場', 'contact.v4': '新北市板橋区 双十広場',
+        'contact.d4': 'MRT江子翠駅すぐ　出店 15:00 – 20:30',
+        'contact.note': '澄耘活動工作室 有限公司　|　統一番号 62164766',
+        'detail.meta': 'キュレーション · 出店審査 · 現場運営',
+        'detail.title': 'サイレントマーケット『默者文畫』',
+        'detail.body': '<p class="scene-body">「無音」を軸に据えたキュレーション型マーケット。拡声器・スピーカー・マイクは使わず、手持ちサインやボード、主催が設計した道具でやり取りします。注目が集まるのは、机の上の作品とつくり手本人です。</p><dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-7 mt-10"><div><dt class="term">日程</dt><dd class="desc">全6回（隔週の土日）：10/03–10/04、10/17–10/18、10/31–11/01、11/14–11/15、11/28–11/29、12/12–12/13</dd></div><div><dt class="term">会場と時間</dt><dd class="desc">新北市板橋区 双十広場（MRT江子翠駅すぐ）<br />出店 15:00–20:30、受付 14:00–15:00</dd></div><div><dt class="term">設備</dt><dd class="desc">テント（3×1.5m、2区画で共用）、机120×60cm、椅子、オリジナル看板、ライト。持ち込みは不要です。</dd></div><div><dt class="term">インタラクション</dt><dd class="desc">「値切らせて」サインや「15秒くじ引き紹介」などの無音の道具。3回以上の参加でブランドパズルを進呈し、次回以降の出店料に充当できます。</dd></div></dl>'
+      }
+    };
+
+    /* 英文是 HTML 裡的原文，翻譯表只補其他兩種語言時需要的鍵 */
+    let lang = 'en';
+    const t = (key) => (I18N[lang] && I18N[lang][key]) || I18N.en[key] || '';
+
+    function applyLang(next) {
+      if (!I18N[next]) { return; }
+      lang = next;
+      root.setAttribute('lang', next === 'zh' ? 'zh-Hant' : next);
+      document.querySelectorAll('[data-i18n]').forEach((el) => {
+        const v = t(el.dataset.i18n);
+        if (v) { el.textContent = v; }
+      });
+      document.querySelectorAll('[data-i18n-html]').forEach((el) => {
+        const v = t(el.dataset.i18nHtml);
+        if (v) { el.innerHTML = v; }
+      });
+      document.querySelectorAll('#langSwitch button').forEach((b) => {
+        b.setAttribute('aria-current', String(b.dataset.lang === next));
+      });
+      try { localStorage.setItem('cy-lang', next); } catch (err) { /* 無痕視窗寫不進去，忽略即可 */ }
+      syncChrome();
+      if (detail.classList.contains('is-on')) { renderDetail(); }
+    }
+
 
     /* ══ 背景影片 ══════════════════════════════════════════════ */
     const bgVideo = document.getElementById('bgVideo');
@@ -787,21 +996,15 @@
     }, true);
     addEventListener('pointerdown', () => { keyboardNav = false; }, true);
 
-    const LABELS = {
-      hero: 'Index', menu: 'Menu',
-      about: '01 — 關於我們', services: '02 — 服務項目', teams: '03 — 我們的團隊',
-      portfolio: '04 — 活動成果', faq: '05 — 常見問題', contact: '06 — 聯繫我們'
-    };
-    const HINTS = {
-      hero: '澄耘活動工作室 — 默者文畫 無聲風格聚落',
-      menu: '選擇章節',
-      portfolio: '點擊活動可展開細節',
-      faq: '點擊問題可展開回答'
-    };
-    const DEFAULT_HINT = 'Esc 返回選單';
+    /* 頁首標籤與頁尾提示跟著語言走 */
+    function syncChrome() {
+      sceneLabel.textContent = t('label.' + current);
+      footHint.textContent = t('hint.' + current) || t('hint.default');
+    }
 
     function goTo(name) {
       if (busy || name === current || !scenes.has(name)) { return; }
+      if (detail.classList.contains('is-on')) { closeDetail(); }
       busy = true;
 
       wipe.classList.remove('is-on');
@@ -822,8 +1025,7 @@
         if (name === 'hero') { setProgress(0); }
         root.classList.toggle('is-inner', name !== 'hero' && name !== 'menu');
         root.classList.toggle('is-menu', name === 'menu');
-        sceneLabel.textContent = LABELS[name] || '';
-        footHint.textContent = HINTS[name] || DEFAULT_HINT;
+        syncChrome();
         backBtn.hidden = name === 'hero';
 
         /* 焦點移到新分鏡，鍵盤使用者不會被留在看不見的地方 */
@@ -889,27 +1091,14 @@
     const detailBody = document.getElementById('detailBody');
     const workCard = document.querySelector('[data-detail]');
 
-    const EVENTS = {
-      silent: {
-        meta: '市集策劃 · 品牌招商 · 現場執行',
-        title: '《默者文畫》無聲風格聚落',
-        body: `
-          <p class="scene-body">以「沉浸式無聲風格聚落」為核心的策展型市集。現場不使用擴音器、喇叭與麥克風，改以手拿牌、看板與大會設計的互動道具溝通，把注意力留給桌上的作品與創作者本人。</p>
-          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-7 mt-10">
-            <div><dt class="term">檔期</dt><dd class="desc">全期 6 場（隔週六日）：10/03–10/04、10/17–10/18、10/31–11/01、11/14–11/15、11/28–11/29、12/12–12/13</dd></div>
-            <div><dt class="term">地點與時間</dt><dd class="desc">新北市板橋區雙十廣場（捷運江子翠站旁）<br />擺攤 15:00 – 20:30，報到 14:00 – 15:00</dd></div>
-            <div><dt class="term">場域配置</dt><dd class="desc">阿里山帳（兩攤共用一帳，3x1.5m）、桌 120x60cm、靠背椅、客製品牌招牌與氣氛燈串，品牌不需自備硬體。</dd></div>
-            <div><dt class="term">互動機制</dt><dd class="desc">「老闆我要殺價」手舉牌、「籤筒 15 秒介紹」等無聲道具；參展滿 3 場贈客製品牌拼圖，可折抵未來檔期攤租。</dd></div>
-          </dl>`
-      }
-    };
+    function renderDetail() {
+      detailMeta.textContent = t('detail.meta');
+      detailTitle.textContent = t('detail.title');
+      detailBody.innerHTML = t('detail.body');
+    }
 
-    function openDetail(key) {
-      const e = EVENTS[key];
-      if (!e) { return; }
-      detailMeta.textContent = e.meta;
-      detailTitle.textContent = e.title;
-      detailBody.innerHTML = e.body;
+    function openDetail() {
+      renderDetail();
       detail.classList.add('is-on');
       detail.removeAttribute('aria-hidden');
       document.getElementById('detailClose').focus({ preventScroll: true });
@@ -923,7 +1112,7 @@
 
     document.addEventListener('click', (e) => {
       const open = e.target.closest('[data-detail]');
-      if (open) { openDetail(open.dataset.detail); }
+      if (open) { openDetail(); }
     });
     document.getElementById('detailClose').addEventListener('click', closeDetail);
 
@@ -949,6 +1138,17 @@
         if (e.target.closest('.hover-target')) { ring.classList.remove('is-near'); }
       });
     }
+
+    /* ══ 語言切換 ══════════════════════════════════════════════ */
+    document.getElementById('langSwitch').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-lang]');
+      if (btn) { applyLang(btn.dataset.lang); }
+    });
+
+    let saved = null;
+    try { saved = localStorage.getItem('cy-lang'); } catch (err) { /* 讀不到就用預設 */ }
+    if (saved && saved !== 'en') { applyLang(saved); }
+    else { syncChrome(); }
 
     /* ══ 單一 rAF ══════════════════════════════════════════════ */
     function frame(now) {

@@ -172,12 +172,45 @@
 
     .cursor-ring.is-hold {
       width: 96px; height: 96px; margin: -48px 0 0 -48px;
-      border-color: rgba(255,255,255,.85);
+      border-color: rgba(255,255,255,.3);
     }
+
+    /* 長按進度直接畫在游標外框上，不必在版面中央擺一個環 */
+    .cursor-arc {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      opacity: 0;
+      transition: opacity .3s ease;
+    }
+
+    .cursor-arc circle {
+      fill: none;
+      stroke: #fff;
+      stroke-width: 3;
+      stroke-dasharray: 289;
+      stroke-dashoffset: 289;
+      transition: stroke-dashoffset .1s linear;
+    }
+
+    .cursor-ring.is-hold .cursor-arc { opacity: 1; }
   }
 
-  /* ── 長按進度環 ─────────────────────── */
-  .hold-ring circle { transition: stroke-dashoffset .12s linear; }
+  /* ── 長按進度 ───────────────────────── */
+  /* 靜止時寬度是零，畫面上不留任何裝飾；長按時才從左往右長出來 */
+  .hold-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -.85em;
+    height: 1px;
+    background: #fff;
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform .12s linear;
+  }
 
   /* ── 導覽字：細體、橫排，滑過才亮起 ─── */
   .menu-item {
@@ -330,7 +363,9 @@
 </div>
 
 <div class="cursor cursor-dot" id="cursorDot" aria-hidden="true"></div>
-<div class="cursor cursor-ring" id="cursorRing" aria-hidden="true"></div>
+<div class="cursor cursor-ring" id="cursorRing" aria-hidden="true">
+  <svg class="cursor-arc" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" id="cursorArc" /></svg>
+</div>
 <div class="wipe" id="wipe" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
 
@@ -358,19 +393,13 @@
       View All Projects
     </p>
 
-    <!-- 水晶的互動熱區：本身透明，視覺全部交給後面的 canvas -->
-    <button class="hover-target relative grid place-items-center rounded-full"
+    <!-- 感應區：完全看不見，疊在影片中央的水晶上，讓人直接按畫面裡的東西 -->
+    <button class="hover-target rounded-full"
             style="width:min(62vmin,520px);aspect-ratio:1;background:transparent;border:0"
-            id="holdZone" type="button" aria-label="長按展開導覽">
-      <svg class="hold-ring absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 200 200" aria-hidden="true">
-        <circle cx="100" cy="100" r="96" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1" />
-        <circle cx="100" cy="100" r="96" fill="none" stroke="#fff" stroke-width="1.5"
-                stroke-dasharray="603" stroke-dashoffset="603" id="holdProgress" />
-      </svg>
-    </button>
+            id="holdZone" type="button" aria-label="長按展開導覽"></button>
 
     <p class="absolute bottom-[14svh] left-1/2 -translate-x-1/2 text-[.6rem] md:text-[.7rem] tracking-[.35em] uppercase text-white breathe whitespace-nowrap">
-      Click &amp; Hold
+      <span class="relative inline-block">Click &amp; Hold<i class="hold-line" id="holdLine"></i></span>
     </p>
   </div>
 </section>
@@ -556,6 +585,7 @@
         to.removeAttribute('aria-hidden');
         current = name;
 
+        if (name === 'hero') { setProgress(0); }
         root.classList.toggle('is-inner', name !== 'hero' && name !== 'menu');
         root.classList.toggle('is-menu', name === 'menu');
         sceneLabel.textContent = LABELS[name] || '';
@@ -572,14 +602,18 @@
 
     /* ══ 長按展開 ══════════════════════════════════════════════ */
     const holdZone = document.getElementById('holdZone');
-    const holdProgress = document.getElementById('holdProgress');
+    const holdLine = document.getElementById('holdLine');
+    const cursorArc = document.getElementById('cursorArc');
     const ring = document.getElementById('cursorRing');
-    const RING = 603;
+    const ARC = 289;                       // 2πr，r = 46
     const HOLD_MS = 850;
     let holdStart = 0;
     let holding = false;
 
-    const setProgress = (p) => { holdProgress.style.strokeDashoffset = String(RING * (1 - p)); };
+    const setProgress = (p) => {
+      holdLine.style.transform = `scaleX(${p})`;
+      cursorArc.style.strokeDashoffset = String(ARC * (1 - p));
+    };
 
     function startHold() {
       if (current !== 'hero' || busy) { return; }

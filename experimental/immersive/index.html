@@ -394,6 +394,82 @@
 
   .pill:hover, .pill:focus-visible { background: #fff; color: #0b0b0c; }
 
+  /* ── 服務區塊：左側編號、右側內容 ───── */
+  .svc-block {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+    padding: 1.75rem 0;
+    border-top: 1px solid rgba(255, 255, 255, .1);
+  }
+
+  .svc-block:last-child { border-bottom: 1px solid rgba(255, 255, 255, .1); }
+
+  .svc-num {
+    flex: none;
+    width: 2.5rem;
+    padding-top: .3rem;
+    font-size: .65rem;
+    letter-spacing: .2em;
+    color: rgba(255, 255, 255, .35);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .svc-title {
+    font-size: 1.05rem;
+    font-weight: 400;
+    letter-spacing: .04em;
+    margin-bottom: .75rem;
+  }
+
+  .svc-lead {
+    margin: 0 0 .6rem;
+    font-size: .85rem;
+    line-height: 1.9;
+    color: rgba(255, 255, 255, .72);
+  }
+
+  .svc-detail {
+    margin: 0;
+    max-width: 44rem;
+    font-size: .78rem;
+    line-height: 2;
+    color: rgba(255, 255, 255, .45);
+  }
+
+  @media (max-width: 640px) {
+    .svc-block { gap: 1rem; }
+    .svc-num { width: 1.75rem; }
+  }
+
+  /* ── 合作流程 ───────────────────────── */
+  .flow { margin: 0; padding: 0; }
+
+  .flow li {
+    display: flex;
+    gap: 1.25rem;
+    list-style: none;
+    padding: .85rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+  }
+
+  .flow b {
+    flex: none;
+    width: 2.5rem;
+    font-weight: 400;
+    font-size: .65rem;
+    letter-spacing: .2em;
+    color: rgba(255, 255, 255, .35);
+    padding-top: .2rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .flow span {
+    font-size: .85rem;
+    line-height: 1.9;
+    color: rgba(255, 255, 255, .7);
+  }
+
   /* ── 常見問題：用原生 details，不必為了展開再寫一套 JS ── */
   .faq { border-bottom: 1px solid rgba(255, 255, 255, .1); }
 
@@ -667,14 +743,60 @@
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-4xl text-left">
       <span class="eyebrow" data-i18n="services.eyebrow">02 — Services</span>
-      <h2 class="scene-title" data-i18n-html="services.title">From concept to the day itself,<br />handled by one team.</h2>
-      <ol class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-7 mt-12">
-        <li class="svc"><b data-i18n="services.s1">Curation &amp; Production</b><span data-i18n="services.b1">Theme, schedule, on-site flow, load-in and load-out.</span></li>
-        <li class="svc"><b data-i18n="services.s2">Brand Selection</b><span data-i18n="services.b2">Reviewed on style and fit with the theme, keeping the settlement coherent.</span></li>
-        <li class="svc"><b data-i18n="services.s3">Site &amp; Equipment</b><span data-i18n="services.b3">Tents, tables, chairs, ambient lighting and stall layout. Brands bring nothing.</span></li>
-        <li class="svc"><b data-i18n="services.s4">Brand Signage</b><span data-i18n="services.b4">Custom signs on one visual standard, so the whole market reads as a single piece.</span></li>
-        <li class="svc"><b data-i18n="services.s5">Silent Interaction Design</b><span data-i18n="services.b5">Hand-held signs and a 15-second lot-drawing intro turn quiet into play.</span></li>
-        <li class="svc"><b data-i18n="services.s6">Social &amp; Media</b><span data-i18n="services.b6">Official site and IG / FB / LINE, building visibility across sessions.</span></li>
+      <h2 class="scene-title" data-i18n="services.title">From planning to the day itself — one team, end to end.</h2>
+      <p class="scene-body" data-i18n="services.lead">Modular, transparent pricing: every line of the budget is clear and auditable.</p>
+
+      <ol class="mt-14">
+        <li class="svc-block">
+          <span class="svc-num">01</span>
+          <div>
+            <h3 class="svc-title" data-i18n="services.s1">Corporate Events &amp; Large-Scale Ceremonies</h3>
+            <p class="svc-lead" data-i18n="services.l1">Year-end parties, family days, anniversaries, product launches and charity fairs — planned and run as one project.</p>
+            <p class="svc-detail" data-i18n="services.b1">Key visuals and 3D spatial simulation, programme flow, on-site command, safety and risk control. The founder leads on site. Low-carbon and immersive modules can be added as needed.</p>
+          </div>
+        </li>
+        <li class="svc-block">
+          <span class="svc-num">02</span>
+          <div>
+            <h3 class="svc-title" data-i18n="services.s2">Markets &amp; Brand IP Curation</h3>
+            <p class="svc-lead" data-i18n="services.l2">Our own and commissioned themed markets, and physical activations for brand IP.</p>
+            <p class="svc-detail" data-i18n="services.b2">Spatial flow design, 3D visual simulation, stallholder regulations, tiered brand review, liaison with public authorities for venue and road-use permits, and on-site operations — end to end.</p>
+          </div>
+        </li>
+        <li class="svc-block">
+          <span class="svc-num">03</span>
+          <div>
+            <h3 class="svc-title" data-i18n="services.s3">Production &amp; Performing Talent</h3>
+            <p class="svc-lead" data-i18n="services.l3">Stage, truss and reusable exhibit build; lighting, sound and video; site power, security and insurance.</p>
+            <p class="svc-detail" data-i18n="services.b3">Hosts, performing groups and artisan resources scheduled, crewed and briefed. One point of contact, with responsibilities clearly assigned.</p>
+          </div>
+        </li>
+        <li class="svc-block">
+          <span class="svc-num">04</span>
+          <div>
+            <h3 class="svc-title" data-i18n="services.s4">ESG-Minded Events</h3>
+            <p class="svc-lead" data-i18n="services.l4">Low-carbon programme design, paperless staging, sustainable and locally sourced materials, and impact assessment.</p>
+            <p class="svc-detail" data-i18n="services.b4">After the event we hand over sustainability data and an audiovisual record, ready for your sustainability office and HR to cite — so the event is not only a cost, but a result you can communicate.</p>
+            <p class="note mt-4" data-i18n="services.note">Some engagement models can support applications for relevant tax incentives and official certificates. Actual eligibility must be confirmed by your own accountant — we are happy to provide an estimate on request.</p>
+          </div>
+        </li>
+      </ol>
+
+      <span class="eyebrow mt-16" data-i18n="services.why">Why Chengyun</span>
+      <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+        <div><dt class="term" data-i18n="services.w1">On-Site Command</dt><dd class="desc" data-i18n="services.wd1">The founder brings three years of large-scale site command, managing build teams of fifty and above. Design intent and physical build are delivered safely and faithfully.</dd></div>
+        <div><dt class="term" data-i18n="services.w2">International Brand Experience</dt><dd class="desc" data-i18n="services.wd2">Projects for Sisley and Trend Micro among others — familiar with the process rigour and safety standards listed companies expect.</dd></div>
+        <div><dt class="term" data-i18n="services.w3">Fully Transparent Modular Pricing</dt><dd class="desc" data-i18n="services.wd3">Line items, labour hours and hardware are broken out separately. No hidden fees, so budgeting and internal audit stay straightforward.</dd></div>
+        <div><dt class="term" data-i18n="services.w4">Risk Stated Up Front</dt><dd class="desc" data-i18n="services.wd4">Critical build items carry stated warnings and liability clauses in the quotation. Setting out the worst case first is basic courtesy.</dd></div>
+      </dl>
+
+      <span class="eyebrow mt-16" data-i18n="services.flow">How We Work</span>
+      <ol class="flow">
+        <li><b>01</b><span data-i18n="services.f1">Enquiry — headcount, budget range and schedule.</span></li>
+        <li><b>02</b><span data-i18n="services.f2">Proposal and quotation — 3D simulation, run sheet, transparent quote.</span></li>
+        <li><b>03</b><span data-i18n="services.f3">Confirmation — adjusted for your internal review, then contract and scheduling.</span></li>
+        <li><b>04</b><span data-i18n="services.f4">On site — the founder leads the team.</span></li>
+        <li><b>05</b><span data-i18n="services.f5">Handover — outcome report, sustainability data and a media pack.</span></li>
       </ol>
     </div>
   </div>
@@ -844,7 +966,7 @@
         'hero.top': '瀏覽所有章節', 'hero.hold': '長按進入',
         'ui.back': '← 首頁', 'ui.close': '關閉',
         'label.hero': '首頁', 'label.menu': '選單', 'label.about': '01 — 關於我們',
-        'label.services': '02 — 服務項目', 'label.teams': '03 — 我們的團隊',
+        'label.services': '02 — 服務內容', 'label.teams': '03 — 我們的團隊',
         'label.portfolio': '04 — 活動成果', 'label.faq': '05 — 常見問題', 'label.contact': '06 — 聯繫我們',
         'hint.hero': '澄耘活動工作室 — 默者文畫 無聲風格聚落', 'hint.menu': '選擇章節',
         'hint.portfolio': '點擊活動可展開細節', 'hint.faq': '點擊問題可展開回答',
@@ -862,19 +984,43 @@
         'about.v3': '永續共好', 'about.c3': '導入 ESG 永續會展思維，將商業活動轉化為扶植在地職人、帶動地域發展的良善生態圈。',
         'about.v4': '人本尊嚴', 'about.c4': '為創作者提供展演舞台，給予一線勞動夥伴合理報酬與安全尊嚴，走出一條有溫度的商業之路。',
         'menu.about': '關於我們',
-        'menu.services': '服務項目',
+        'menu.services': '服務內容',
         'menu.teams': '我們的團隊',
         'menu.portfolio': '活動成果',
         'menu.faq': '常見問題',
         'menu.contact': '聯繫我們',
         'about.eyebrow': '01 — 關於我們',
-        'services.eyebrow': '02 — 服務項目', 'services.title': '從主題設定到現場執行，<br />一個團隊完成。',
-        'services.s1': '市集策劃與執行', 'services.b1': '主題設定、檔期規劃、現場動線與進撤場管理。',
-        'services.s2': '品牌招商與審核', 'services.b2': '以品牌風格與主題契合度評估，維持聚落整體調性。',
-        'services.s3': '場域與硬體規劃', 'services.b3': '帳篷、桌椅、氣氛燈串與攤位配置，品牌不需自備硬體。',
-        'services.s4': '品牌視覺與招牌', 'services.b4': '客製品牌招牌與統一視覺規格，讓整場看起來是一件作品。',
-        'services.s5': '無聲互動道具設計', 'services.b5': '手舉牌、籤筒 15 秒介紹等機制，把安靜變成可玩的體驗。',
-        'services.s6': '社群與媒體曝光', 'services.b6': '官方網站與 IG／FB／LINE 宣傳，累積跨場次的品牌能見度。',
+        'services.eyebrow': '02 — 服務內容',
+        'services.title': '從企劃設計到現場執行，一站到位。',
+        'services.lead': '模組化透明報價，讓每一筆預算都清楚可稽核。',
+        'services.s1': '企業活動與大型慶典總籌',
+        'services.l1': '尾牙春酒、企業家庭日、週年慶、新品發表會、公益園遊會全案規劃。',
+        'services.b1': '從主視覺與 3D 空間模擬、節目流程設計，到現場總控與工安風控，創辦人親自帶隊督導。可依需求加選 ESG 低碳模組與沉浸式體驗模組。',
+        'services.s2': '活動市集與品牌 IP 策展',
+        'services.l2': '自籌與代理主題市集、品牌 IP 實體落地。',
+        'services.b2': '空間動線設計、3D 視覺模擬、職人招商規章制定、攤商審核分級、公部門場地路權協辦與現場營運，一站到位。',
+        'services.s3': '軟硬體工程與演藝人力',
+        'services.l3': '舞台／TRUSS／循環展材施工、燈光音響視訊、現場電力維安與工安保險。',
+        'services.b3': '專業主持、演出團體與職人資源調度，人力編組與訓練。單一窗口，權責清楚。',
+        'services.s4': 'ESG 永續會展規劃',
+        'services.l4': '低碳活動流程、無紙化展演、永續與在地資材採購、ESG 效益評估。',
+        'services.b4': '活動結束後交付永續數據對照資料與影音紀錄，讓永續室與人資能直接引用，活動不只是花費，而是可對外溝通的實績。',
+        'services.note': '部分合作模式可依法協助企業爭取相關租稅優惠與官方憑證，實際適用須由貴公司會計師確認，歡迎洽談時索取試算。',
+        'services.why': '為什麼選擇澄耘',
+        'services.w1': '現場指揮底蘊',
+        'services.wd1': '創辦人具 3 年大型工程現場指揮經驗，管理 50 人以上施工團隊。美學設計與硬體搭建皆能安全且高質感還原。',
+        'services.w2': '國際品牌專案經驗',
+        'services.wd2': '操盤 Sisley、趨勢科技等專案，深諳上市櫃企業對流程嚴謹度與安全規範的要求。',
+        'services.w3': '模組化全透明報價',
+        'services.wd3': '項目明細、工時與硬體分項透明，無隱藏費用，方便委託方預算編列與內部審計。',
+        'services.w4': '風險預警機制',
+        'services.wd4': '關鍵工程於報價單明列預警與風險歸屬條款，權責清晰。先把最壞情況講清楚，是我們的基本禮貌。',
+        'services.flow': '合作流程',
+        'services.f1': '需求諮詢 — 釐清人數、預算範圍與時程。',
+        'services.f2': '提案與報價 — 3D 視覺模擬、流程腳本與透明報價單。',
+        'services.f3': '確認執行 — 依內部審查調整，簽約排程。',
+        'services.f4': '現場落地 — 創辦人親自帶隊督導。',
+        'services.f5': '結案交付 — 成果報告、永續數據與影音素材包。',
         'teams.eyebrow': '03 — 我們的團隊', 'teams.title': '一個小團隊，<br />各自守住一段流程。',
         'teams.s1': '策展統籌', 'teams.b1': '主題發想、檔期與整體節奏，對外代表大會發言。',
         'teams.s2': '招商審核', 'teams.b2': '品牌溝通、資格審核與名額調度，維持聚落調性。',
@@ -920,7 +1066,7 @@
         'hero.top': 'すべての章を見る', 'hero.hold': '長押しで開く',
         'ui.back': '← トップ', 'ui.close': '閉じる',
         'label.hero': 'トップ', 'label.menu': 'メニュー', 'label.about': '01 — 私たちについて',
-        'label.services': '02 — サービス', 'label.teams': '03 — チーム',
+        'label.services': '02 — サービス内容', 'label.teams': '03 — チーム',
         'label.portfolio': '04 — 実績', 'label.faq': '05 — よくある質問', 'label.contact': '06 — お問い合わせ',
         'hint.hero': '澄耘イベントスタジオ — サイレントマーケット', 'hint.menu': '章を選んでください',
         'hint.portfolio': 'イベントをクリックで詳細', 'hint.faq': '質問をクリックで回答',
@@ -938,19 +1084,43 @@
         'about.v3': '持続可能な共栄', 'about.c3': 'ESGの視点をMICEに導入し、商業活動を地域の職人を支え、地域の発展を促す良い生態系へと変えていきます。',
         'about.v4': '人としての尊厳', 'about.c4': 'つくり手には発表の舞台を、最前線で働く仲間には正当な報酬と安全・尊厳を。温度のある商いの道を歩みます。',
         'menu.about': '私たちについて',
-        'menu.services': 'サービス',
+        'menu.services': 'サービス内容',
         'menu.teams': 'チーム',
         'menu.portfolio': '実績',
         'menu.faq': 'よくある質問',
         'menu.contact': 'お問い合わせ',
         'about.eyebrow': '01 — 私たちについて',
-        'services.eyebrow': '02 — サービス', 'services.title': '企画から当日の運営まで、<br />一つのチームで。',
-        'services.s1': '企画・運営', 'services.b1': 'テーマ設定、日程、当日の動線、搬入出の管理。',
-        'services.s2': 'ブランド審査', 'services.b2': '世界観との相性で審査し、集落全体のトーンを保ちます。',
-        'services.s3': '会場・設備', 'services.b3': 'テント、机、椅子、ライト、区画配置。出店者の持ち込みは不要です。',
-        'services.s4': 'ブランドサイン', 'services.b4': '統一規格のオリジナル看板で、会場全体が一つの作品になります。',
-        'services.s5': '無音インタラクション設計', 'services.b5': '手持ちサインや「15秒くじ引き紹介」で、静けさを遊びに変えます。',
-        'services.s6': '発信・広報', 'services.b6': '公式サイトと IG／FB／LINE で、回を重ねて認知を積み上げます。',
+        'services.eyebrow': '02 — サービス内容',
+        'services.title': '企画・デザインから当日の運営まで、ワンストップで。',
+        'services.lead': 'モジュール型の透明な見積で、予算の一つひとつが明確に検証できます。',
+        'services.s1': '企業イベント・大型式典の総合プロデュース',
+        'services.l1': '忘年会・新年会、ファミリーデー、周年祭、新製品発表会、チャリティイベントの全体企画。',
+        'services.b1': 'メインビジュアルと3D空間シミュレーション、進行台本の設計から、当日の総合指揮と安全・リスク管理まで。創業者が自ら現場を統括します。ESG低炭素モジュールや没入型体験モジュールも選択可能です。',
+        'services.s2': 'マーケット運営とブランドIPのキュレーション',
+        'services.l2': '自主開催・受託によるテーマ型マーケット、ブランドIPのリアル展開。',
+        'services.b2': '空間と動線の設計、3Dビジュアルシミュレーション、出店規約の策定、出店者の審査と格付け、行政との会場・道路使用の調整、当日運営までワンストップで。',
+        'services.s3': '設営・技術と出演者の手配',
+        'services.l3': 'ステージ／トラス／リユース什器の施工、照明・音響・映像、現場電源と警備、労災保険。',
+        'services.b3': '司会、出演団体、職人リソースの手配と人員編成・研修。窓口は一つ、責任範囲は明確に。',
+        'services.s4': 'ESGに基づくMICE設計',
+        'services.l4': '低炭素な進行設計、ペーパーレス展示、サステナブルかつ地域の資材調達、ESG効果の評価。',
+        'services.b4': '開催後はサステナビリティのデータ対照資料と映像記録をお渡しします。サステナビリティ部門や人事がそのまま引用でき、イベントは費用ではなく、対外的に語れる実績になります。',
+        'services.note': '一部の契約形態では、関連する税制優遇や公式証明の申請を法令に沿ってご支援できます。実際の適用可否は貴社の会計士にご確認ください。ご相談時に試算をお出しします。',
+        'services.why': '澄耘が選ばれる理由',
+        'services.w1': '現場指揮の蓄積',
+        'services.wd1': '創業者は大型工事の現場指揮を3年、50人以上の施工チームを管理してきました。デザインの意図も設営も、安全に、そして質を落とさず再現します。',
+        'services.w2': '国際ブランドでの実績',
+        'services.wd2': 'Sisley、トレンドマイクロなどの案件を統括。上場企業が求めるプロセスの厳密さと安全基準を理解しています。',
+        'services.w3': 'モジュール型の完全透明見積',
+        'services.wd3': '項目明細、工数、機材を分けて明示。隠れた費用はなく、予算編成と内部監査がそのまま進みます。',
+        'services.w4': 'リスクを先に示す',
+        'services.wd4': '重要な工程については、見積書に警告とリスクの帰属条項を明記します。最悪の場合を先にお伝えするのが、私たちの基本的な礼儀です。',
+        'services.flow': '進め方',
+        'services.f1': 'ご相談 — 人数、予算の範囲、スケジュールの整理。',
+        'services.f2': '提案と見積 — 3Dシミュレーション、進行台本、透明な見積書。',
+        'services.f3': '確定 — 社内審査に合わせて調整し、契約と日程確定。',
+        'services.f4': '当日運営 — 創業者が自ら現場を率います。',
+        'services.f5': '納品 — 成果報告、サステナビリティデータ、映像素材一式。',
         'teams.eyebrow': '03 — チーム', 'teams.title': '小さなチームが、<br />それぞれの工程を受け持ちます。',
         'teams.s1': '企画統括', 'teams.b1': 'テーマ、日程、全体のテンポ。主催として対外的に発言します。',
         'teams.s2': 'ブランド審査', 'teams.b2': 'ブランドとのやり取り、審査、枠の調整。集落のトーンを守ります。',

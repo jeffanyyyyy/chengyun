@@ -2557,7 +2557,7 @@
 
       /* rig 負責整條膠卷的傾角 */
       const rig = new THREE.Group();
-      rig.rotation.z = -0.12;                          /* 往右上揚，對齊參考畫面 */
+      rig.rotation.z = -0.05;                          /* 往右上揚，對齊參考畫面 */
       rig.rotation.x = 0.13;
       scene.add(rig);
 
@@ -2565,24 +2565,33 @@
       const IMG_H = .58;                               /* 畫面高 */
       const PERF_H = .075;                             /* 單邊齒孔帶高 */
       const PANEL_H = IMG_H + PERF_H * 2;
-      const BEND = .22;                                /* 彎曲強度：z = -BEND · x²  */
+      const BEND = .22;                                /* 往後彎的強度：z = -BEND · x²  */
+      /* S 形起伏的振幅與疏密由取景寬度決定（見 resize），
+         這樣不管螢幕多寬，畫面上看到的都是完整的一個 S */
+      let wave = .1;
+      let freq = 1.7;
 
       /* 曲面不是圓柱，是一條拋物線帶：
          圓柱的側影寬度被半徑鎖死，想橫跨滿版就得把半徑放大，
          半徑一大兩端就退不回去 —— 那正是先前看起來「很平」的原因。
          改成沿著 x 軸等距排列、z 隨 x² 往後掉，
          橫向要多寬有多寬，兩端照樣急速退後，而且片格天生等距、不會有縫。
+         再沿著長度方向加一段正弦起伏，整條就從 U 形變成 S 形的帶子；
+         起伏是 x（世界座標）的函數而不是格號的函數，
+         所以形狀固定在畫面上、底片從裡面穿過去，不是整條跟著扭。
          位移放在頂點著色器裡算，CPU 每幀只要換一個 uniform。 */
       const VERT = [
         'uniform float uOff;',                         /* 這一格的中心位置（單位：片格寬）*/
         'uniform float uW;',
         'uniform float uBend;',
+        'uniform vec3 uWave;',                         /* 振幅、疏密、相位 */
         'varying vec2 vUv;',
         'void main() {',
         '  vUv = uv;',
         '  float x = (position.x + uOff) * uW;',
         '  float z = -uBend * x * x;',
-        '  gl_Position = projectionMatrix * modelViewMatrix * vec4(x, position.y, z, 1.0);',
+        '  float y = position.y + uWave.x * sin(x * uWave.y + uWave.z);',
+        '  gl_Position = projectionMatrix * modelViewMatrix * vec4(x, y, z, 1.0);',
         '}'
       ].join('\n');
 
@@ -2679,6 +2688,7 @@
             uOff: { value: i },
             uW: { value: PANEL_W },
             uBend: { value: BEND },
+            uWave: { value: new THREE.Vector3(wave, freq, 0) },
             uBright: { value: 1 },
             uOpacity: { value: 1 }
           },
@@ -2712,14 +2722,21 @@
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
 
-        /* 相機距離由「想同時看到幾個片格寬」回推，換螢幕寬度時取景才一致 */
         /* 窄螢幕看得到的片格數要少，否則膠卷會縮成細細一條、上下留一大片空白 */
         want = w < 520 ? 1.3 : (w < 900 ? 1.7 : 2);
+
+        /* S 形：一個完整週期大約橫跨 1.9 倍的取景寬度，振幅也跟著縮放，
+           不管螢幕多寬，畫面上看到的都是完整的一個 S，不會只剩斜坡或折得太急 */
+        freq = 6.2832 / (want * 1.9);
+        wave = .05 * want;
+        panels.forEach((p) => p.mat.uniforms.uWave.value.set(wave, freq, 0));
+
+        /* 相機距離由「想同時看到幾個片格寬」回推，換螢幕寬度時取景才一致。
+           兩個限制取遠的那個：橫向要放得下 want 個片格，
+           縱向要放得下整條膠卷加上起伏，否則上下會被切掉 */
         const tanY = Math.tan(camera.fov * Math.PI / 360);
         const hfov = 2 * Math.atan(tanY * camera.aspect);
-        /* 兩個限制取遠的那個：橫向要放得下 want 個片格，
-           縱向要放得下整條膠卷再留 35% 餘裕，否則上下會被切掉 */
-        camera.position.z = Math.max((want / 2) / Math.tan(hfov / 2), (PANEL_H * 1.06 / 2) / tanY);
+        camera.position.z = Math.max((want / 2) / Math.tan(hfov / 2), (PANEL_H / 2 + wave * .65) / tanY);
       }
 
       return {

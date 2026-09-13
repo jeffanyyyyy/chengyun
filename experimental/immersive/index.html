@@ -56,12 +56,23 @@
     transition: opacity 1.2s var(--ease), transform 1.2s var(--ease);
   }
 
-  /* 水晶後方極淡的光暈，讓純黑背景不會死板 */
-  .stage::before {
-    content: '';
+  .stage-video {
     position: absolute;
     inset: 0;
-    background: radial-gradient(38% 38% at 50% 50%, rgba(92, 104, 150, .07) 0%, rgba(11, 11, 12, 0) 72%);
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: .5;
+  }
+
+  /* 影片與水晶之間的壓暗層：水晶是深色的，背景太亮碎片的塊面就糊掉了。
+     邊緣再收一圈暗角，視線收在中央。最上面疊一點極淡的冷光當背光 */
+  .stage-veil {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(38% 38% at 50% 50%, rgba(92, 104, 150, .09) 0%, rgba(92, 104, 150, 0) 72%),
+      radial-gradient(120% 85% at 50% 50%, rgba(11, 11, 12, .62) 0%, rgba(11, 11, 12, .93) 100%);
   }
 
   #gl {
@@ -348,6 +359,10 @@
 <body>
 
 <div class="stage" id="stage" aria-hidden="true">
+  <video class="stage-video" id="bgVideo" autoplay muted loop playsinline preload="auto">
+    <source src="../../assets/hero-loop-portrait.mp4" type="video/mp4" />
+  </video>
+  <div class="stage-veil"></div>
   <canvas id="gl"></canvas>
   <div class="crystal-fallback"></div>
 </div>
@@ -819,6 +834,20 @@
 
     const crystal = new Crystal(document.getElementById('gl'));
     if (!crystal.init()) { root.classList.add('no-webgl'); }
+
+    /* ══ 背景影片 ══════════════════════════════════════════════ */
+    const bgVideo = document.getElementById('bgVideo');
+    if (reduce) { bgVideo.pause(); }
+    else { bgVideo.play().catch(() => { /* 擋自動播放就維持靜幀，版面不受影響 */ }); }
+
+    /* 有些嵌入情境（iframe 的 autoplay 權限）會擋掉自動播放，第一次互動時再補播一次 */
+    const resumeVideo = () => {
+      if (!reduce && bgVideo.paused) { bgVideo.play().catch(() => {}); }
+      removeEventListener('pointerdown', resumeVideo);
+      removeEventListener('keydown', resumeVideo);
+    };
+    addEventListener('pointerdown', resumeVideo);
+    addEventListener('keydown', resumeVideo);
 
     /* 版面尺寸變了就重算，不必等 window resize（分鏡切換也會動到尺寸） */
     if ('ResizeObserver' in window) {

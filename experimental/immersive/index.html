@@ -10,7 +10,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Noto+Sans+TC:wght@200;300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -189,75 +189,250 @@
     transition: transform .12s linear;
   }
 
-  /* ── 導覽字：細體、橫排，滑過才亮起 ─── */
-  .menu-item {
-    position: relative;
-    color: rgba(255, 255, 255, .42);
-    transition: color .5s var(--ease), opacity .5s var(--ease);
+  /* ── 導覽：六個章節排成一列清單 ─────── */
+  .menu-row {
+    display: flex;
+    align-items: baseline;
+    gap: 1.25rem;
+    padding: .75rem .25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+    color: rgba(255, 255, 255, .55);
+    transition: color .45s var(--ease), transform .55s var(--ease), border-color .45s var(--ease);
   }
 
-  .menu-item::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    bottom: -.18em;
-    width: 100%;
-    height: 1px;
-    background: currentColor;
-    transform: scaleX(0);
-    transform-origin: 0 50%;
-    transition: transform .6s var(--ease);
+  .menu-row .idx {
+    flex: none;
+    width: 2rem;
+    font-size: .6rem;
+    letter-spacing: .25em;
+    color: rgba(255, 255, 255, .3);
+    transition: color .45s var(--ease);
   }
 
-  .menu-item:hover,
-  .menu-item:focus-visible { color: #fff; }
-  .menu-item:hover::after,
-  .menu-item:focus-visible::after { transform: scaleX(1); }
+  .menu-row .zh {
+    font-size: clamp(1.5rem, 5vw, 2.6rem);
+    font-weight: 300;
+    letter-spacing: .06em;
+    line-height: 1.2;
+  }
+
+  .menu-row .en {
+    margin-left: auto;
+    font-size: .6rem;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .3);
+    white-space: nowrap;
+    transition: color .45s var(--ease);
+  }
+
+  .menu-row:hover,
+  .menu-row:focus-visible {
+    color: #fff;
+    border-color: rgba(255, 255, 255, .4);
+    transform: translateX(.75rem);
+  }
+
+  .menu-row:hover .idx,
+  .menu-row:hover .en { color: rgba(255, 255, 255, .7); }
 
   /* 滑過其中一項時，其他項退到更暗，焦點只有一個 */
-  nav:hover .menu-item:not(:hover) { opacity: .45; }
+  nav:hover .menu-row:not(:hover) { opacity: .4; }
 
-  /* 進場時逐項浮現 */
-  .scene.is-active .stagger > * { animation: rise .9s var(--ease) backwards; }
-  .scene.is-active .stagger > :nth-child(1) { animation-delay: .15s; }
-  .scene.is-active .stagger > :nth-child(2) { animation-delay: .27s; }
-  .scene.is-active .stagger > :nth-child(3) { animation-delay: .39s; }
-  .scene.is-active .stagger > :nth-child(4) { animation-delay: .51s; }
-  .scene.is-active .stagger > :nth-child(5) { animation-delay: .63s; }
-
-  @keyframes rise {
-    from { opacity: 0; transform: translateY(2rem); }
-    to   { opacity: 1; transform: none; }
+  @media (max-width: 480px) {
+    .menu-row .en { display: none; }
   }
 
-  /* ── 作品分鏡 ───────────────────────── */
-  .slide {
+  /* ── 章節內文 ───────────────────────── */
+  .eyebrow {
+    display: block;
+    font-size: .6rem;
+    letter-spacing: .35em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .45);
+    margin-bottom: 1.75rem;
+  }
+
+  .scene-title {
+    font-size: clamp(1.4rem, 4.2vw, 2.6rem);
+    font-weight: 300;
+    line-height: 1.45;
+    letter-spacing: .02em;
+    margin-bottom: 1.75rem;
+  }
+
+  .scene-body {
+    max-width: 40rem;
+    margin: 0 0 1.25rem;
+    font-size: .9rem;
+    line-height: 2;
+    color: rgba(255, 255, 255, .6);
+  }
+
+  .term {
+    display: block;
+    font-size: .7rem;
+    letter-spacing: .22em;
+    color: rgba(255, 255, 255, .85);
+    margin-bottom: .6rem;
+  }
+
+  .desc {
+    display: block;
+    margin: 0;
+    font-size: .78rem;
+    line-height: 1.9;
+    color: rgba(255, 255, 255, .45);
+  }
+
+  .fig {
+    font-size: clamp(1.75rem, 5vw, 2.75rem);
+    font-weight: 200;
+    line-height: 1;
+    margin-bottom: .6rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .svc {
+    list-style: none;
+    padding-left: 1.25rem;
+    border-left: 1px solid rgba(255, 255, 255, .14);
+  }
+
+  .svc b {
+    display: block;
+    font-weight: 400;
+    font-size: .95rem;
+    letter-spacing: .04em;
+    margin-bottom: .5rem;
+  }
+
+  .svc span {
+    display: block;
+    font-size: .78rem;
+    line-height: 1.9;
+    color: rgba(255, 255, 255, .45);
+  }
+
+  .note {
+    font-size: .68rem;
+    letter-spacing: .16em;
+    color: rgba(255, 255, 255, .35);
+  }
+
+  .link {
+    display: block;
+    font-size: 1rem;
+    letter-spacing: .02em;
+    margin-bottom: .5rem;
+    color: #fff;
+    transition: opacity .4s var(--ease);
+  }
+
+  a.link:hover, a.link:focus-visible { opacity: .6; }
+
+  .pill {
+    display: inline-block;
+    font-size: .6rem;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255, 255, 255, .25);
+    border-radius: 999px;
+    padding: .8rem 1.6rem;
+    transition: background-color .45s var(--ease), color .45s var(--ease);
+  }
+
+  .pill:hover, .pill:focus-visible { background: #fff; color: #0b0b0c; }
+
+  /* ── 常見問題：用原生 details，不必為了展開再寫一套 JS ── */
+  .faq { border-bottom: 1px solid rgba(255, 255, 255, .1); }
+
+  .faq summary {
+    list-style: none;
+    cursor: none;
+    padding: 1.1rem 2rem 1.1rem 0;
+    position: relative;
+    font-size: .92rem;
+    letter-spacing: .03em;
+    color: rgba(255, 255, 255, .75);
+    transition: color .4s var(--ease);
+  }
+
+  .faq summary::-webkit-details-marker { display: none; }
+
+  .faq summary::after {
+    content: '+';
     position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    opacity: 0;
-    transform: scale(1.06);
-    visibility: hidden;
-    transition: opacity .8s var(--ease), transform .9s var(--ease), visibility 0s linear .8s;
+    right: 0;
+    top: 1rem;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, .45);
+    transition: transform .4s var(--ease);
   }
 
-  .slide.is-on {
-    opacity: 1;
-    transform: none;
-    visibility: visible;
-    transition-delay: 0s;
+  .faq[open] summary { color: #fff; }
+  .faq[open] summary::after { transform: rotate(45deg); }
+
+  .faq p {
+    margin: 0 0 1.4rem;
+    padding-right: 2rem;
+    font-size: .8rem;
+    line-height: 2;
+    color: rgba(255, 255, 255, .5);
   }
 
-  .slide-bg {
-    position: absolute;
-    inset: 0;
-    opacity: .45;
-    filter: grayscale(1) brightness(.55);
-    transition: filter 1s var(--ease), transform 1.4s var(--ease);
+  /* ── 活動成果卡 ─────────────────────── */
+  .work-card {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 2rem 0 2.25rem;
+    border-top: 1px solid rgba(255, 255, 255, .16);
+    border-bottom: 1px solid rgba(255, 255, 255, .16);
+    transition: padding-left .6s var(--ease), border-color .5s var(--ease);
   }
 
-  .slide.is-on .slide-bg { filter: grayscale(.15) brightness(.8); transform: scale(1.05); }
+  .work-card:hover,
+  .work-card:focus-visible {
+    padding-left: 1.25rem;
+    border-color: rgba(255, 255, 255, .45);
+  }
+
+  .work-meta {
+    display: block;
+    font-size: .6rem;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .45);
+    margin-bottom: 1.25rem;
+  }
+
+  .work-title {
+    display: block;
+    font-size: clamp(1.6rem, 6vw, 3.25rem);
+    font-weight: 300;
+    line-height: 1.25;
+    letter-spacing: .03em;
+    margin-bottom: 1.25rem;
+  }
+
+  .work-line {
+    display: block;
+    font-size: .78rem;
+    letter-spacing: .1em;
+    color: rgba(255, 255, 255, .5);
+  }
+
+  .work-open {
+    display: inline-block;
+    margin-top: 1.5rem;
+    font-size: .6rem;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .7);
+    border-bottom: 1px solid rgba(255, 255, 255, .3);
+    padding-bottom: .35rem;
+  }
 
   /* 展開後的作品細節 */
   .detail {
@@ -379,108 +554,196 @@
   </div>
 </section>
 
-<!-- ── 2. 導覽：細體橫排，水晶在後方散開 ── -->
+<!-- ── 2. 導覽：六個章節 ─────────────── -->
 <section class="scene" data-scene="menu" aria-hidden="true">
-  <div class="scene-inner grid place-items-center min-h-[100svh] px-6">
-    <nav class="stagger flex flex-col md:flex-row md:items-baseline md:justify-center gap-y-8 md:gap-x-[7vw] font-light tracking-[.01em] text-[clamp(2.25rem,7vw,5rem)] leading-none">
-      <a class="menu-item hover-target" href="#about" data-go="about">About</a>
-      <a class="menu-item hover-target" href="#work" data-go="work">Work</a>
-      <a class="menu-item hover-target" href="#contact" data-go="contact">Contact</a>
+  <div class="scene-inner grid place-items-center min-h-[100svh] px-6 md:px-10 py-24">
+    <nav class="stagger w-full max-w-3xl">
+      <a class="menu-row hover-target" href="#about" data-go="about">
+        <span class="idx">01</span><span class="zh">關於我們</span><span class="en">About Us</span>
+      </a>
+      <a class="menu-row hover-target" href="#services" data-go="services">
+        <span class="idx">02</span><span class="zh">服務項目</span><span class="en">Services</span>
+      </a>
+      <a class="menu-row hover-target" href="#teams" data-go="teams">
+        <span class="idx">03</span><span class="zh">我們的團隊</span><span class="en">Teams</span>
+      </a>
+      <a class="menu-row hover-target" href="#portfolio" data-go="portfolio">
+        <span class="idx">04</span><span class="zh">活動成果</span><span class="en">Portfolio</span>
+      </a>
+      <a class="menu-row hover-target" href="#faq" data-go="faq">
+        <span class="idx">05</span><span class="zh">常見問題</span><span class="en">Q&amp;A</span>
+      </a>
+      <a class="menu-row hover-target" href="#contact" data-go="contact">
+        <span class="idx">06</span><span class="zh">聯繫我們</span><span class="en">Contact Us</span>
+      </a>
     </nav>
   </div>
 </section>
 
-<!-- ── 3. About ──────────────────────── -->
+<!-- ── 01 關於我們 ─────────────────── -->
 <section class="scene" data-scene="about" aria-hidden="true">
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
-    <div class="stagger w-full max-w-4xl text-left">
-      <span class="block text-[.6rem] tracking-[.35em] uppercase text-white/45 mb-8">01 — About</span>
-      <h2 class="font-light leading-[1.12] tracking-[-.01em] text-[clamp(1.75rem,5.5vw,3.75rem)] mb-10">
-        We shape light, matter<br />and motion into interfaces.
-      </h2>
-      <p class="max-w-xl text-white/55 leading-relaxed mb-12 font-light">
-        Real-time rendering, generative systems and obsessive art direction. Every surface is simulated, every transition is authored — nothing is a stock component.
+    <div class="stagger w-full max-w-3xl text-left">
+      <span class="eyebrow">01 — 關於我們 / About Us</span>
+      <h2 class="scene-title">市集不該只有叫賣聲。<br />我們想留一塊安靜的地方，<br />讓作品自己說話。</h2>
+      <p class="scene-body">
+        《默者文畫》從一個觀察開始：逛市集的人常因為擴音器與叫賣聲快步走過，真正想停下來看作品的人反而沒被留住。於是我們把「無聲」訂為規則，而不是氣氛裝飾——現場不使用擴音器、喇叭與麥克風，取而代之的是手拿牌、看板與大會設計的無聲互動道具。
       </p>
-      <ul class="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-3 text-[.65rem] tracking-[.2em] uppercase text-white/40">
-        <li>Real-time WebGL</li>
-        <li>Shader Systems</li>
-        <li>Art Direction</li>
-        <li>Motion Design</li>
-        <li>Sound &amp; Interaction</li>
-        <li>Creative Engineering</li>
+      <p class="scene-body">
+        我們也希望這是一個能長期累積的聚落，而不是一次性的擺攤。統一的視覺規格、客製品牌招牌、跨場次的品牌拼圖福利，都是為了讓固定參與的品牌被記住、被回訪。
+      </p>
+      <dl class="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-6 mt-12">
+        <div><dt class="term">無聲</dt><dd class="desc">現場零擴音、零叫賣，聲音的空間留給對話與作品。</dd></div>
+        <div><dt class="term">互動</dt><dd class="desc">以手舉牌、籤筒等道具設計買賣之間的默契與遊戲。</dd></div>
+        <div><dt class="term">聚落</dt><dd class="desc">統一視覺與跨場次福利，讓品牌在同一個場域被記住。</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- ── 02 服務項目 ─────────────────── -->
+<section class="scene" data-scene="services" aria-hidden="true">
+  <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
+    <div class="stagger w-full max-w-4xl text-left">
+      <span class="eyebrow">02 — 服務項目 / Services</span>
+      <h2 class="scene-title">從主題設定到現場執行，<br />一個團隊完成。</h2>
+      <ol class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-7 mt-12">
+        <li class="svc"><b>市集策劃與執行</b><span>主題設定、檔期規劃、現場動線與進撤場管理。</span></li>
+        <li class="svc"><b>品牌招商與審核</b><span>以品牌風格與主題契合度評估，維持聚落整體調性。</span></li>
+        <li class="svc"><b>場域與硬體規劃</b><span>帳篷、桌椅、氣氛燈串與攤位配置，品牌不需自備硬體。</span></li>
+        <li class="svc"><b>品牌視覺與招牌</b><span>客製品牌招牌與統一視覺規格，讓整場看起來是一件作品。</span></li>
+        <li class="svc"><b>無聲互動道具設計</b><span>手舉牌、籤筒 15 秒介紹等機制，把安靜變成可玩的體驗。</span></li>
+        <li class="svc"><b>社群與媒體曝光</b><span>官方網站與 IG／FB／LINE 宣傳，累積跨場次的品牌能見度。</span></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ── 03 我們的團隊 ───────────────── -->
+<section class="scene" data-scene="teams" aria-hidden="true">
+  <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
+    <div class="stagger w-full max-w-4xl text-left">
+      <span class="eyebrow">03 — 我們的團隊 / Teams</span>
+      <h2 class="scene-title">一個小團隊，<br />各自守住一段流程。</h2>
+      <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-7 mt-12">
+        <li class="svc"><b>策展統籌</b><span>主題發想、檔期與整體節奏，對外代表大會發言。</span></li>
+        <li class="svc"><b>招商審核</b><span>品牌溝通、資格審核與名額調度，維持聚落調性。</span></li>
+        <li class="svc"><b>現場執行</b><span>進撤場、動線、用電與安規，活動當天的所有臨場判斷。</span></li>
+        <li class="svc"><b>視覺設計</b><span>主視覺、品牌招牌與現場道具的設計與製作。</span></li>
+        <li class="svc"><b>社群經營</b><span>官網與社群內容、攤商曝光與活動後的紀錄整理。</span></li>
+        <li class="svc"><b>攤商服務</b><span>行前說明、現場協助與活動後的意見回收。</span></li>
       </ul>
+      <p class="note mt-10">主辦單位：澄耘活動工作室 有限公司</p>
     </div>
   </div>
 </section>
 
-<!-- ── 4. Work：全螢幕分鏡 ───────────── -->
-<section class="scene" data-scene="work" aria-hidden="true">
-  <div class="relative w-full min-h-[100svh]">
+<!-- ── 04 活動成果 ─────────────────── -->
+<section class="scene" data-scene="portfolio" aria-hidden="true">
+  <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
+    <div class="stagger w-full max-w-4xl text-left">
+      <span class="eyebrow">04 — 活動成果 / Portfolio</span>
 
-    <div class="slide is-on" data-slide="0">
-      <div class="slide-bg" style="background:radial-gradient(75% 60% at 30% 35%, #3b2a5e 0%, #07070a 70%)"></div>
-      <button class="hover-target relative z-10 px-8 text-center" type="button" data-detail="0">
-        <span class="block text-[.6rem] tracking-[.35em] uppercase text-white/50 mb-6">WebGL / Interaction</span>
-        <h3 class="font-light leading-[.95] tracking-[-.02em] text-[clamp(2.25rem,9vw,6.5rem)]">Neural Void</h3>
-        <span class="inline-block mt-8 text-[.6rem] tracking-[.35em] uppercase text-white/70 border border-white/25 rounded-full px-5 py-2">Click to expand</span>
+      <button class="work-card hover-target" type="button" data-detail="silent">
+        <span class="work-meta">市集策劃 · 品牌招商 · 現場執行</span>
+        <span class="work-title">《默者文畫》<br />無聲風格聚落</span>
+        <span class="work-line">2026.10.03 – 12.13　|　新北市板橋區雙十廣場</span>
+        <span class="work-open">Click to expand</span>
       </button>
-    </div>
 
-    <div class="slide" data-slide="1">
-      <div class="slide-bg" style="background:radial-gradient(75% 60% at 70% 40%, #0f4c4c 0%, #07070a 70%)"></div>
-      <button class="hover-target relative z-10 px-8 text-center" type="button" data-detail="1">
-        <span class="block text-[.6rem] tracking-[.35em] uppercase text-white/50 mb-6">Branding / 3D Motion</span>
-        <h3 class="font-light leading-[.95] tracking-[-.02em] text-[clamp(2.25rem,9vw,6.5rem)]">Liquid Cyber</h3>
-        <span class="inline-block mt-8 text-[.6rem] tracking-[.35em] uppercase text-white/70 border border-white/25 rounded-full px-5 py-2">Click to expand</span>
-      </button>
-    </div>
+      <dl class="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-6 mt-12">
+        <div><dt class="fig">6</dt><dd class="desc">檔期場次（隔週六日）</dd></div>
+        <div><dt class="fig">12</dt><dd class="desc">活動天數</dd></div>
+        <div><dt class="fig">15:00</dt><dd class="desc">每日開攤，至 20:30</dd></div>
+        <div><dt class="fig">2026</dt><dd class="desc">首屆舉辦年度</dd></div>
+      </dl>
 
-    <div class="slide" data-slide="2">
-      <div class="slide-bg" style="background:radial-gradient(75% 60% at 45% 65%, #5e2a2a 0%, #07070a 70%)"></div>
-      <button class="hover-target relative z-10 px-8 text-center" type="button" data-detail="2">
-        <span class="block text-[.6rem] tracking-[.35em] uppercase text-white/50 mb-6">Art Direction / Shaders</span>
-        <h3 class="font-light leading-[.95] tracking-[-.02em] text-[clamp(2.25rem,9vw,6.5rem)]">Static Bloom</h3>
-        <span class="inline-block mt-8 text-[.6rem] tracking-[.35em] uppercase text-white/70 border border-white/25 rounded-full px-5 py-2">Click to expand</span>
-      </button>
-    </div>
-
-    <div class="slide" data-slide="3">
-      <div class="slide-bg" style="background:radial-gradient(75% 60% at 60% 45%, #4a4416 0%, #07070a 70%)"></div>
-      <button class="hover-target relative z-10 px-8 text-center" type="button" data-detail="3">
-        <span class="block text-[.6rem] tracking-[.35em] uppercase text-white/50 mb-6">Sound / Real-time</span>
-        <h3 class="font-light leading-[.95] tracking-[-.02em] text-[clamp(2.25rem,9vw,6.5rem)]">Echo Chamber</h3>
-        <span class="inline-block mt-8 text-[.6rem] tracking-[.35em] uppercase text-white/70 border border-white/25 rounded-full px-5 py-2">Click to expand</span>
-      </button>
-    </div>
-
-    <div class="absolute bottom-[12svh] left-1/2 -translate-x-1/2 z-20 flex items-center gap-6">
-      <button class="hover-target w-11 h-11 grid place-items-center rounded-full border border-white/20 text-lg leading-none" id="prevSlide" type="button" aria-label="上一件作品">←</button>
-      <span class="text-[.65rem] tracking-[.3em] tabular-nums text-white/55"><b id="slideIndex" class="font-normal text-white">01</b> / 04</span>
-      <button class="hover-target w-11 h-11 grid place-items-center rounded-full border border-white/20 text-lg leading-none" id="nextSlide" type="button" aria-label="下一件作品">→</button>
+      <p class="note mt-10">更多活動成果陸續更新。</p>
     </div>
   </div>
 </section>
 
-<!-- ── 5. Contact ────────────────────── -->
+<!-- ── 05 常見問題 ─────────────────── -->
+<section class="scene" data-scene="faq" aria-hidden="true">
+  <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
+    <div class="stagger w-full max-w-3xl text-left">
+      <span class="eyebrow">05 — 常見問題 / Q&amp;A</span>
+      <h2 class="scene-title">擺攤前最常被問的事。</h2>
+
+      <div class="mt-10">
+        <details class="faq">
+          <summary class="hover-target">現場真的完全不能說話嗎？</summary>
+          <p>原則上以「無聲互動」為主，請優先使用大會提供的手拿牌、字卡與手勢引導。嚴格禁止擴音喇叭、麥克風與大聲叫賣；人潮湧入時以服務客人為第一優先，允許輕聲低語交流。</p>
+        </details>
+        <details class="faq">
+          <summary class="hover-target">帳篷、桌椅需要自備嗎？</summary>
+          <p>不需要。大會提供阿里山帳（兩攤共用一帳，3x1.5m）、1 桌（約 120x60cm）、1 靠背椅、客製品牌招牌與氣氛燈串。</p>
+        </details>
+        <details class="faq">
+          <summary class="hover-target">每攤可以用多少電？</summary>
+          <p>大會免費提供基本照明與 3C 設備用電，每攤位限額 200W 以內。未報備之高功率加熱、烹煮與高亮度照明電器一律禁止。</p>
+        </details>
+        <details class="faq">
+          <summary class="hover-target">當天幾點進場、幾點撤場？</summary>
+          <p>報到進場 14:00–15:00，請於 14:50 前完成佈展；擺攤 15:00–20:30；撤場 20:30–21:30，並於 21:30 前清理完畢還原場地。</p>
+        </details>
+        <details class="faq">
+          <summary class="hover-target">早鳥優惠怎麼計算？</summary>
+          <p>於 2026 年 9 月 10 日前完成報名與全額匯款，總費用享 95 折。參展滿 3 場（週）以上另贈客製品牌拼圖，可折抵未來檔期攤租。</p>
+        </details>
+        <details class="faq">
+          <summary class="hover-target">臨時無法參加可以退費嗎？</summary>
+          <p>活動日 14 天以前（含）取消，扣除手續與轉帳費 NT$ 200 後退還剩餘全額；7 至 13 天內取消退還 50%；6 天內（含當日）取消恕不退費或順延。</p>
+        </details>
+      </div>
+
+      <p class="note mt-8">其他問題歡迎透過官方 IG／FB／LINE 來訊詢問。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 06 聯繫我們 ─────────────────── -->
 <section class="scene" data-scene="contact" aria-hidden="true">
-  <div class="scene-inner grid place-items-center min-h-[100svh] px-8 text-center">
-    <div class="stagger">
-      <span class="block text-[.6rem] tracking-[.35em] uppercase text-white/45 mb-8">03 — Contact</span>
-      <a class="hover-target block font-light leading-[1.05] tracking-[-.01em] text-[clamp(1.5rem,6vw,4.25rem)] hover:opacity-60 transition-opacity duration-500 break-all"
-         href="mailto:hello@chengyun.studio">hello@chengyun.studio</a>
-      <p class="mt-10 text-[.6rem] tracking-[.3em] uppercase text-white/40">Taipei — Available for 2026</p>
+  <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
+    <div class="stagger w-full max-w-3xl text-left">
+      <span class="eyebrow">06 — 聯繫我們 / Contact Us</span>
+      <h2 class="scene-title">準備好一起<br />安靜地擺攤了嗎？</h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8 mt-12">
+        <div>
+          <span class="term">官方 LINE</span>
+          <a class="link hover-target" href="https://lin.ee/niY5HtU" target="_blank" rel="noopener">lin.ee/niY5HtU</a>
+          <span class="desc">報名、審核與行前問題請由官方帳號來訊。</span>
+        </div>
+        <div>
+          <span class="term">Email</span>
+          <a class="link hover-target" href="mailto:chengyuneventstudio@gmail.com">chengyuneventstudio@gmail.com</a>
+          <span class="desc">合作提案與媒體聯繫。</span>
+        </div>
+        <div>
+          <span class="term">聯絡電話</span>
+          <a class="link hover-target" href="tel:0922531118">0922-531-118</a>
+        </div>
+        <div>
+          <span class="term">活動地點</span>
+          <span class="link">新北市板橋區雙十廣場</span>
+          <span class="desc">捷運江子翠站旁　擺攤 15:00 – 20:30</span>
+        </div>
+      </div>
+
+      <p class="note mt-12">澄耘活動工作室 有限公司　|　統一編號 62164766</p>
     </div>
   </div>
 </section>
 
-<!-- ── 作品細節 ──────────────────────── -->
+<!-- ── 活動細節：上下對開的遮罩 ─────── -->
 <div class="detail" id="detail" aria-hidden="true">
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="w-full max-w-3xl text-left">
-      <span class="block text-[.6rem] tracking-[.35em] uppercase text-white/45 mb-6" id="detailMeta"></span>
-      <h3 class="font-light leading-[1.05] tracking-[-.01em] text-[clamp(1.75rem,6vw,4rem)] mb-8" id="detailTitle"></h3>
-      <p class="text-white/55 leading-relaxed mb-10 font-light" id="detailBody"></p>
-      <button class="hover-target text-[.6rem] tracking-[.35em] uppercase border border-white/25 rounded-full px-6 py-3" id="detailClose" type="button">Close</button>
+      <span class="eyebrow" id="detailMeta"></span>
+      <h3 class="scene-title" id="detailTitle"></h3>
+      <div id="detailBody"></div>
+      <button class="pill hover-target mt-10" id="detailClose" type="button">關閉 Close</button>
     </div>
   </div>
 </div>
@@ -524,14 +787,19 @@
     }, true);
     addEventListener('pointerdown', () => { keyboardNav = false; }, true);
 
-    const LABELS = { hero: 'Index', menu: 'Discover', about: '01 — About', work: '02 — Work', contact: '03 — Contact' };
-    const HINTS = {
-      hero: 'Obsidian — Interactive Study',
-      menu: 'Choose a chapter',
-      about: 'Esc to go back',
-      work: '← → to browse',
-      contact: 'Esc to go back'
+    const LABELS = {
+      hero: 'Index', menu: 'Menu',
+      about: '01 — 關於我們', services: '02 — 服務項目', teams: '03 — 我們的團隊',
+      portfolio: '04 — 活動成果', faq: '05 — 常見問題', contact: '06 — 聯繫我們'
     };
+    const HINTS = {
+      hero: '澄耘活動工作室 — 默者文畫 無聲風格聚落',
+      menu: '選擇章節',
+      portfolio: '點擊活動可展開細節',
+      faq: '點擊問題可展開回答'
+    };
+    const DEFAULT_HINT = 'Esc 返回選單';
+
     function goTo(name) {
       if (busy || name === current || !scenes.has(name)) { return; }
       busy = true;
@@ -555,7 +823,7 @@
         root.classList.toggle('is-inner', name !== 'hero' && name !== 'menu');
         root.classList.toggle('is-menu', name === 'menu');
         sceneLabel.textContent = LABELS[name] || '';
-        footHint.textContent = HINTS[name] || '';
+        footHint.textContent = HINTS[name] || DEFAULT_HINT;
         backBtn.hidden = name === 'hero';
 
         /* 焦點移到新分鏡，鍵盤使用者不會被留在看不見的地方 */
@@ -614,45 +882,34 @@
       else if (current !== 'hero') { goTo(current === 'menu' ? 'hero' : 'menu'); }
     });
 
-    /* ══ Work 分鏡 ═════════════════════════════════════════════ */
-    const slides = [...document.querySelectorAll('.slide')];
-    const slideIndex = document.getElementById('slideIndex');
-    let slide = 0;
-
-    const PROJECTS = [
-      { meta: 'WebGL / Interaction', title: 'Neural Void', body: 'A real-time particle field driven by a feedback loop. Ten thousand agents negotiate a shared attractor, and the visitor’s pointer is the only force that can break the consensus.' },
-      { meta: 'Branding / 3D Motion', title: 'Liquid Cyber', body: 'An identity built on a single material study: chrome that never fully resolves. Every asset in the system is rendered from the same shader, so print, screen and motion share one physical logic.' },
-      { meta: 'Art Direction / Shaders', title: 'Static Bloom', body: 'Signal noise treated as a growth medium. A procedural bloom expands along the luminance gradients of the source footage, so the image appears to corrode and flower at the same time.' },
-      { meta: 'Sound / Real-time', title: 'Echo Chamber', body: 'A room that listens. Incoming audio is analysed per band and re-emitted as geometry, giving the space a visible memory of everything said inside it over the last sixty seconds.' }
-    ];
-
-    function showSlide(next) {
-      slide = (next + slides.length) % slides.length;
-      slides.forEach((el, i) => el.classList.toggle('is-on', i === slide));
-      slideIndex.textContent = String(slide + 1).padStart(2, '0');
-    }
-
-    document.getElementById('prevSlide').addEventListener('click', () => showSlide(slide - 1));
-    document.getElementById('nextSlide').addEventListener('click', () => showSlide(slide + 1));
-
-    addEventListener('keydown', (e) => {
-      if (current !== 'work' || detail.classList.contains('is-on')) { return; }
-      if (e.key === 'ArrowRight') { showSlide(slide + 1); }
-      if (e.key === 'ArrowLeft') { showSlide(slide - 1); }
-    });
-
-    /* ══ 作品細節：上下對開的遮罩 ══════════════════════════════ */
+    /* ══ 活動細節：上下對開的遮罩 ══════════════════════════════ */
     const detail = document.getElementById('detail');
     const detailMeta = document.getElementById('detailMeta');
     const detailTitle = document.getElementById('detailTitle');
     const detailBody = document.getElementById('detailBody');
+    const workCard = document.querySelector('[data-detail]');
 
-    function openDetail(i) {
-      const p = PROJECTS[i];
-      if (!p) { return; }
-      detailMeta.textContent = p.meta;
-      detailTitle.textContent = p.title;
-      detailBody.textContent = p.body;
+    const EVENTS = {
+      silent: {
+        meta: '市集策劃 · 品牌招商 · 現場執行',
+        title: '《默者文畫》無聲風格聚落',
+        body: `
+          <p class="scene-body">以「沉浸式無聲風格聚落」為核心的策展型市集。現場不使用擴音器、喇叭與麥克風，改以手拿牌、看板與大會設計的互動道具溝通，把注意力留給桌上的作品與創作者本人。</p>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-7 mt-10">
+            <div><dt class="term">檔期</dt><dd class="desc">全期 6 場（隔週六日）：10/03–10/04、10/17–10/18、10/31–11/01、11/14–11/15、11/28–11/29、12/12–12/13</dd></div>
+            <div><dt class="term">地點與時間</dt><dd class="desc">新北市板橋區雙十廣場（捷運江子翠站旁）<br />擺攤 15:00 – 20:30，報到 14:00 – 15:00</dd></div>
+            <div><dt class="term">場域配置</dt><dd class="desc">阿里山帳（兩攤共用一帳，3x1.5m）、桌 120x60cm、靠背椅、客製品牌招牌與氣氛燈串，品牌不需自備硬體。</dd></div>
+            <div><dt class="term">互動機制</dt><dd class="desc">「老闆我要殺價」手舉牌、「籤筒 15 秒介紹」等無聲道具；參展滿 3 場贈客製品牌拼圖，可折抵未來檔期攤租。</dd></div>
+          </dl>`
+      }
+    };
+
+    function openDetail(key) {
+      const e = EVENTS[key];
+      if (!e) { return; }
+      detailMeta.textContent = e.meta;
+      detailTitle.textContent = e.title;
+      detailBody.innerHTML = e.body;
       detail.classList.add('is-on');
       detail.removeAttribute('aria-hidden');
       document.getElementById('detailClose').focus({ preventScroll: true });
@@ -661,12 +918,12 @@
     function closeDetail() {
       detail.classList.remove('is-on');
       detail.setAttribute('aria-hidden', 'true');
-      slides[slide].querySelector('[data-detail]').focus({ preventScroll: true });
+      if (workCard) { workCard.focus({ preventScroll: true }); }
     }
 
     document.addEventListener('click', (e) => {
       const open = e.target.closest('[data-detail]');
-      if (open) { openDetail(Number(open.dataset.detail)); }
+      if (open) { openDetail(open.dataset.detail); }
     });
     document.getElementById('detailClose').addEventListener('click', closeDetail);
 

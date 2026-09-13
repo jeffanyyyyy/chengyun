@@ -90,22 +90,22 @@
     text-align: center;
     opacity: 0;
     visibility: hidden;
-    transform: scale(1.035);
-    transition: opacity var(--scene-in) var(--ease),
-                transform var(--scene-in) var(--ease),
-                visibility 0s linear var(--scene-in);
     will-change: opacity, transform;
   }
 
-  .scene.is-active {
+  .scene.is-active { visibility: visible; }
+
+  /* 沒有 GSAP 時用 CSS 補間；有 GSAP 就交給它，免得兩邊搶同一個屬性 */
+  :root:not(.has-gsap) .scene {
+    transform: scale(1.03);
+    transition: opacity .8s var(--ease), transform .8s var(--ease), visibility 0s linear .8s;
+  }
+
+  :root:not(.has-gsap) .scene.is-active {
     opacity: 1;
-    visibility: visible;
     transform: none;
     transition-delay: 0s;
   }
-
-  /* 離場時往內縮，和進場的往外放形成推進感 */
-  .scene.is-leaving { transform: scale(.97); }
 
   /* opacity:0 擋不住滑鼠，而子代（例如 .slide）還會把 visibility 改回 visible，
      所以非作用中的分鏡一律關掉指標事件，免得隱形的那層攔走點擊 */
@@ -119,27 +119,6 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-  }
-
-  /* ── 轉場遮罩：從中心擴散的圓 ───────── */
-  .wipe {
-    position: fixed;
-    inset: 0;
-    z-index: 90;
-    /* 實心白幕太硬，改成中心亮、邊緣透明的光圈 */
-    background: radial-gradient(circle at 50% 50%,
-      rgba(255, 255, 255, .92) 0%, rgba(255, 255, 255, .45) 42%, rgba(255, 255, 255, 0) 70%);
-    pointer-events: none;
-    clip-path: circle(0% at 50% 50%);
-    opacity: 0;
-  }
-
-  .wipe.is-on { animation: wipe .95s var(--ease) forwards; }
-
-  @keyframes wipe {
-    0%   { clip-path: circle(0% at 50% 50%); opacity: 0; }
-    22%  { opacity: .85; }
-    100% { clip-path: circle(170% at 50% 50%); opacity: 0; }
   }
 
   /* ── 自訂游標 ───────────────────────── */
@@ -784,7 +763,6 @@
     .scene, .detail { transition-duration: .2s; }
     .stage, .bloom, .hero-top, .hero-lede, .hero-hint { transition: none; filter: none; }
     .scene.is-active .stagger > * { animation: none; }
-    .wipe.is-on { animation-duration: .3s; }
   }
 </style>
 </head>
@@ -799,7 +777,6 @@
 
 <div class="cursor cursor-dot" id="cursorDot" aria-hidden="true"></div>
 <div class="cursor cursor-ring" id="cursorRing" aria-hidden="true"></div>
-<div class="wipe" id="wipe" aria-hidden="true"></div>
 <div class="scroll-cue" id="scrollCue" aria-hidden="true">↓</div>
 <div class="grain" aria-hidden="true"></div>
 
@@ -1146,6 +1123,8 @@
     const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
     const lerp = (a, b, t) => a + (b - a) * t;
     const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+    const hasGsap = typeof window.gsap !== 'undefined';
+    if (hasGsap) { root.classList.add('has-gsap'); }
 
     /* ══ 三語對照 ══════════════════════════════════════════════
        英文直接寫在 HTML 裡（沒有 JS 也讀得到），這裡只在切換時改寫。
@@ -1459,12 +1438,15 @@
     /* ══ 分鏡切換 ══════════════════════════════════════════════ */
     const scenes = new Map();
     document.querySelectorAll('[data-scene]').forEach((el) => scenes.set(el.dataset.scene, el));
-    const wipe = document.getElementById('wipe');
     const sceneLabel = document.getElementById('sceneLabel');
     const backBtn = document.getElementById('backBtn');
     const footHint = document.getElementById('footHint');
     let current = 'hero';
     let busy = false;
+
+    /* 交給 GSAP 之後，.is-active 不再負責 opacity，
+       起始的首屏必須自己設一次，否則一載入就是空白畫面 */
+    if (hasGsap) { gsap.set(scenes.get(current), { opacity: 1, scale: 1 }); }
 
     /* 只有鍵盤操作時才主動移動焦點；滑鼠點選時移焦點會留下一個突兀的焦點外框 */
     let keyboardNav = false;
@@ -1485,33 +1467,41 @@
       if (detail.classList.contains('is-on')) { closeDetail(); }
       busy = true;
 
-      wipe.classList.remove('is-on');
-      void wipe.offsetWidth;                 // 重啟動畫
-      wipe.classList.add('is-on');
-
       const from = scenes.get(current);
-      from.classList.add('is-leaving');
+      const to = scenes.get(name);
 
-      setTimeout(() => {
-        from.classList.remove('is-active', 'is-leaving');
-        from.setAttribute('aria-hidden', 'true');
-        const to = scenes.get(name);
-        to.classList.add('is-active');
-        to.removeAttribute('aria-hidden');
-        current = name;
+      /* 新分鏡先就位，再與舊分鏡交叉溶接、彼此重疊約 0.2 秒。
+         「舊的退完才換新的」會有一個空拍，那正是頓挫感的來源 */
+      to.classList.add('is-active');
+      to.removeAttribute('aria-hidden');
+      from.setAttribute('aria-hidden', 'true');
 
-        if (name === 'hero') { setProgress(0); }
-        root.classList.toggle('is-inner', name !== 'hero');
-        syncChrome();
-        watchScene(to);
-        backBtn.hidden = name === 'hero';
+      current = name;
+      if (name === 'hero') { setProgress(0); }
+      root.classList.toggle('is-inner', name !== 'hero');
+      syncChrome();
+      watchScene(to);
+      backBtn.hidden = name === 'hero' || menuOverlay.classList.contains('is-open');
 
-        /* 焦點移到新分鏡，鍵盤使用者不會被留在看不見的地方 */
-        const focusable = to.querySelector('a, button');
-        if (focusable && keyboardNav && name !== 'hero') { focusable.focus({ preventScroll: true }); }
+      /* 焦點移到新分鏡，鍵盤使用者不會被留在看不見的地方 */
+      const focusable = to.querySelector('a, button');
+      if (focusable && keyboardNav && name !== 'hero') { focusable.focus({ preventScroll: true }); }
 
-        setTimeout(() => { busy = false; }, reduce ? 60 : 420);
-      }, reduce ? 60 : 380);
+      if (hasGsap && !reduce) {
+        gsap.killTweensOf([from, to]);
+        gsap.timeline({ onComplete: () => { from.classList.remove('is-active'); busy = false; } })
+          .to(from, { opacity: 0, scale: .99, duration: .55, ease: 'power2.inOut' }, 0)
+          .fromTo(to, { opacity: 0, scale: 1.025 }, { opacity: 1, scale: 1, duration: .8, ease: 'power2.out' }, .2);
+      } else if (hasGsap) {
+        gsap.set(from, { opacity: 0 });
+        gsap.set(to, { opacity: 1, scale: 1 });
+        from.classList.remove('is-active');
+        busy = false;
+      } else {
+        /* 沒有 GSAP：移除 is-active 就會啟動 CSS 的淡出 */
+        from.classList.remove('is-active');
+        setTimeout(() => { busy = false; }, reduce ? 60 : 820);
+      }
     }
 
     /* ══ 全螢幕選單覆蓋層 ══════════════════════════════════════ */
@@ -1519,11 +1509,9 @@
     const menuBlur = menuOverlay.querySelector('.menu-blur');
     const menuMask = menuOverlay.querySelector('.menu-mask');
     const menuRows = [...menuOverlay.querySelectorAll('.menu-row')];
-    const hasGsap = typeof window.gsap !== 'undefined';
     let menuTl = null;
 
     if (hasGsap) {
-      root.classList.add('has-gsap');
       /* 起始狀態用 gsap.set 而不是寫在 CSS 裡：GSAP 沒載到時內容照樣看得到 */
       gsap.set(menuBlur, { opacity: 0 });
       gsap.set(menuMask, { scale: 0 });
@@ -1628,9 +1616,10 @@
       const go = e.target.closest('[data-go]');
       if (!go) { return; }
       e.preventDefault();
-      const target = go.dataset.go;
-      /* 先收合再換場，兩段動畫不會疊在一起互相打架 */
-      closeMenu(() => goTo(target));
+      /* 收合與換場同時開始：覆蓋層縮回去的同時，新分鏡已經在底下淡入，
+         看起來是一個連續動作；先後接力會多出一個空拍 */
+      goTo(go.dataset.go);
+      closeMenu();
     });
 
     document.getElementById('brand').addEventListener('click', () => goTo('hero'));

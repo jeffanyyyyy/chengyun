@@ -11,510 +11,469 @@
 <meta property="og:description" content="以動態、質感與互動為主軸的實驗性作品頁。" />
 <meta property="og:locale" content="zh_TW" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0a0a'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23f3f3f3' font-family='sans-serif'%3EC%3C/text%3E%3C/svg%3E" />
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  /* Tailwind 設定必須在 CDN 之後、使用前宣告 */
+  if (window.tailwind) {
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            syne: ['Syne', 'Noto Sans TC', 'sans-serif'],
+            inter: ['Inter', 'Noto Sans TC', 'sans-serif']
+          },
+          colors: {
+            ink: '#0a0a0a',
+            paper: '#f3f3f3'
+          }
+        }
+      }
+    };
+  }
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+
 <style>
+  /* 這裡只放兩件事：Tailwind 表達不了的特效，以及 Tailwind 萬一沒載到時的保底外觀，
+     所以就算 CDN 出狀況，畫面仍是一頁可讀的深色網頁，而不是全白的裸 HTML */
   :root {
     --ink: #0a0a0a;
-    --ink-soft: #101010;
     --paper: #f3f3f3;
     --muted: #a3a3a3;
     --faint: #737373;
     --line: #262626;
-    --shell: 1200px;
-    --display: 'Syne', 'Noto Sans TC', sans-serif;
-    --body: 'Inter', 'Noto Sans TC', sans-serif;
+    --ease: cubic-bezier(.22, 1, .36, 1);
   }
 
-  * { box-sizing: border-box; }
-
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: auto; }
 
   body {
     margin: 0;
     background: var(--ink);
     color: var(--paper);
-    font-family: var(--body);
+    font-family: 'Inter', 'Noto Sans TC', sans-serif;
     font-weight: 300;
-    line-height: 1.6;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
   }
 
+  h1, h2, h3 { font-family: 'Syne', 'Noto Sans TC', sans-serif; margin: 0; }
+
   ::selection { background: var(--paper); color: var(--ink); }
 
-  h1, h2, h3 {
-    font-family: var(--display);
-    font-weight: 800;
-    text-transform: uppercase;
-    margin: 0;
-  }
-
-  a { color: inherit; text-decoration: none; }
-
-  .shell {
-    width: 100%;
-    max-width: var(--shell);
-    margin: 0 auto;
-    padding: 0 2rem;
-  }
+  :focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 
   /* ── 自訂游標 ───────────────────────── */
-  /* 只有真正有滑鼠的裝置才藏起系統游標；觸控裝置留原生游標，否則會完全看不到點擊位置 */
   .cursor { display: none; }
 
   @media (hover: hover) and (pointer: fine) {
     body { cursor: none; }
+
     .cursor {
-      display: block;
       position: fixed;
       top: 0;
       left: 0;
-      pointer-events: none;
+      z-index: 300;
+      display: grid;
+      place-items: center;
       border-radius: 50%;
-      z-index: 999;
-      /* 位移交給 JS 的 translate，這裡只補間尺寸與底色 */
-      transition: width .3s ease, height .3s ease, background-color .3s ease;
+      pointer-events: none;
       will-change: transform;
+      /* 尺寸與顏色交給 CSS 補間，位移交給 JS 每格更新 */
+      transition: width .4s var(--ease), height .4s var(--ease),
+                  margin .4s var(--ease), background-color .4s var(--ease),
+                  border-color .4s var(--ease), opacity .3s ease;
+      mix-blend-mode: difference;
     }
+
+    .cursor-dot { width: 6px; height: 6px; margin: -3px 0 0 -3px; background: var(--paper); }
+    .cursor-ring { width: 38px; height: 38px; margin: -19px 0 0 -19px; border: 1px solid rgba(255,255,255,.45); }
     .cursor.is-idle { opacity: 0; }
-    .cursor-dot {
-      width: 8px;
-      height: 8px;
-      margin: -4px 0 0 -4px;
-      background: #fff;
-    }
-    .cursor-ring {
-      width: 40px;
-      height: 40px;
-      margin: -20px 0 0 -20px;
-      border: 1px solid rgba(255, 255, 255, .4);
-      background: transparent;
-    }
+
     .cursor-ring.is-near {
-      width: 70px;
-      height: 70px;
-      margin: -35px 0 0 -35px;
-      background: rgba(255, 255, 255, .1);
+      width: 78px; height: 78px; margin: -39px 0 0 -39px;
+      background: rgba(255,255,255,.14);
+      border-color: transparent;
     }
+
+    .cursor-ring.is-view {
+      width: 108px; height: 108px; margin: -54px 0 0 -54px;
+      background: var(--paper);
+      border-color: transparent;
+    }
+
+    .cursor-ring.is-down { width: 26px; height: 26px; margin: -13px 0 0 -13px; }
+
+    .cursor-label {
+      font-family: 'Syne', sans-serif;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--ink);
+      opacity: 0;
+      transform: scale(.6);
+      transition: opacity .3s ease, transform .4s var(--ease);
+    }
+
+    .cursor-ring.is-view .cursor-label { opacity: 1; transform: none; }
   }
 
-  /* ── 頁首 ───────────────────────────── */
-  .topbar {
-    position: fixed;
-    inset: 0 0 auto 0;
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
-    padding: 1.5rem 2rem;
-    /* 差集混合讓頁首在亮暗影像上都看得見，不必另外加底色 */
-    mix-blend-mode: difference;
-  }
-
-  .wordmark {
-    font-family: var(--display);
-    font-size: 1.25rem;
-    font-weight: 800;
-    letter-spacing: .12em;
-  }
-
-  .topnav {
-    display: flex;
-    gap: 2rem;
-    font-size: .8rem;
-    letter-spacing: .18em;
-    text-transform: uppercase;
-  }
-
-  .topnav a {
-    color: var(--muted);
-    transition: color .3s ease;
-  }
-
-  .topnav a:hover,
-  .topnav a:focus-visible { color: #fff; }
-
-  .pill {
-    font: inherit;
-    font-size: .7rem;
-    letter-spacing: .18em;
-    text-transform: uppercase;
-    color: inherit;
-    padding: .55rem 1.25rem;
-    border: 1px solid rgba(255, 255, 255, .3);
-    border-radius: 999px;
-    background: transparent;
-    transition: background-color .3s ease, color .3s ease;
-  }
-
-  .pill:hover,
-  .pill:focus-visible { background: #fff; color: #000; }
-
-  /* ── 首屏：影片背景 ─────────────────── */
-  .hero {
-    position: relative;
-    min-height: 100svh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  /* ── 逐字遮罩：descender 由內距吃掉，不會被切到 ── */
+  .mask {
+    display: inline-block;
     overflow: hidden;
-    text-align: center;
+    vertical-align: bottom;
+    padding-bottom: .14em;
+    margin-bottom: -.14em;
   }
 
-  .hero video {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: .6;
-  }
+  .mask > i { display: inline-block; font-style: normal; }
 
-  /* 由上而下加深，讓標題壓在影片上仍有足夠對比 */
-  .hero-veil {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(10, 10, 10, .4) 0%, rgba(10, 10, 10, .85) 100%);
-  }
+  /* ── 首屏傾斜視差：父層給透視，標題才有立體感 ── */
+  .tilt-stage { perspective: 900px; }
+  .tilt-layer { transform-style: preserve-3d; will-change: transform; }
 
-  .hero-copy {
-    position: relative;
-    z-index: 1;
-    max-width: 60rem;
-    padding: 8rem 1.5rem 6rem;
-  }
-
-  .eyebrow {
-    display: block;
-    font-size: .7rem;
-    letter-spacing: .3em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 1.25rem;
-  }
-
-  .hero h1 {
-    font-size: clamp(3rem, 12vw, 8.5rem);
-    line-height: .92;
-    letter-spacing: -.03em;
-    margin-bottom: 1.5rem;
-  }
-
-  .hero h1 .fade {
+  .fade-text {
     background: linear-gradient(90deg, #fff 0%, var(--muted) 55%, #404040 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
-  .hero p {
-    max-width: 36rem;
-    margin: 0 auto;
-    color: var(--muted);
-    font-size: clamp(.9rem, 2.2vw, 1rem);
-    letter-spacing: .02em;
+  /* ── 作品卡：放大與濾鏡變色 ─────────── */
+  .card-media {
+    position: absolute;
+    inset: -10% 0;
+    filter: grayscale(1) contrast(1.05) brightness(.9);
+    transform: scale(1);
+    transition: filter .7s var(--ease), transform 1s var(--ease);
+    will-change: transform, filter;
   }
 
-  /* ── 作品 ───────────────────────────── */
-  .works { padding: 8rem 0; }
-
-  .section-head {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1.5rem;
-    padding-bottom: 2rem;
-    margin-bottom: 4rem;
-    border-bottom: 1px solid var(--line);
+  .card:hover .card-media,
+  .card:focus-visible .card-media {
+    filter: grayscale(0) contrast(1.12) brightness(1) saturate(1.35);
+    transform: scale(1.08);
   }
 
-  .section-head h2 {
-    font-size: clamp(2rem, 6vw, 3.75rem);
-    letter-spacing: -.01em;
-  }
-
-  .section-head span {
-    font-size: .7rem;
-    letter-spacing: .2em;
-    color: var(--faint);
-    white-space: nowrap;
-  }
-
-  .work-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 3rem;
-  }
-
-  /* 第二欄整體下沉，做出雜誌式錯落，不是單純的兩欄網格 */
-  .work-grid > :nth-child(even) { margin-top: 6rem; }
-
-  .work-frame {
-    position: relative;
-    aspect-ratio: 4 / 3;
-    margin-bottom: 1.5rem;
-    background: #171717;
-    overflow: hidden;
-  }
-
-  .work-frame span {
+  /* hover 時由左而右刷過的一道亮面 */
+  .card-frame::after {
+    content: '';
     position: absolute;
     inset: 0;
+    background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.18) 50%, transparent 65%);
+    transform: translateX(-100%);
+    transition: transform 1.1s var(--ease);
+    pointer-events: none;
+  }
+
+  .card:hover .card-frame::after { transform: translateX(100%); }
+
+  /* ── 導覽列文字翻牌 ─────────────────── */
+  .swap { position: relative; display: inline-block; overflow: hidden; vertical-align: bottom; color: var(--muted); }
+  .swap i { display: block; font-style: normal; transition: transform .5s var(--ease); }
+  .swap i + i { position: absolute; inset: 0; transform: translateY(100%); color: var(--paper); }
+  .swap:hover i, a:focus-visible .swap i { transform: translateY(-100%); }
+  .swap:hover i + i, a:focus-visible .swap i + i { transform: translateY(0); }
+
+  /* ── 載入動畫 ───────────────────────── */
+  .loader {
+    position: fixed;
+    inset: 0;
+    z-index: 400;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(38, 38, 38, .5);
-    font-family: var(--display);
-    font-size: 1.5rem;
-    color: #525252;
-    transition: transform .7s cubic-bezier(.22, 1, .36, 1);
+    gap: 1.5rem;
+    background: var(--ink);
+    transition: transform 1s var(--ease);
   }
 
-  .work:hover .work-frame span,
-  .work:focus-visible .work-frame span { transform: scale(1.05); }
+  .loader.is-done { transform: translateY(-101%); }
+  .loader-bar { width: min(22rem, 60vw); height: 1px; background: var(--line); overflow: hidden; }
+  .loader-bar i { display: block; height: 100%; background: var(--paper); transform: scaleX(0); transform-origin: 0 50%; }
 
-  .work-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
+  /* ── 捲動進度 ───────────────────────── */
+  .progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 70;
+    height: 2px;
+    width: 100%;
+    background: var(--paper);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    mix-blend-mode: difference;
   }
 
-  .work-meta h3 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    transition: transform .3s ease;
+  /* ── 跑馬燈 ─────────────────────────── */
+  .ticker-track { display: flex; width: max-content; will-change: transform; }
+  .ticker-track span {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding-right: 3rem;
+    color: transparent;
+    -webkit-text-stroke: 1px #3f3f3f;
+  }
+  .ticker-track span:nth-child(even) { color: var(--paper); -webkit-text-stroke: 0; }
+
+  /* ── 顆粒質感 ───────────────────────── */
+  .grain {
+    position: fixed;
+    inset: -150%;
+    z-index: 100;
+    pointer-events: none;
+    opacity: .15;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+    animation: grain 1.2s steps(6) infinite;
   }
 
-  .work:hover .work-meta h3,
-  .work:focus-visible .work-meta h3 { transform: translateX(.5rem); }
-
-  .work-meta em {
-    font-style: normal;
-    font-size: .7rem;
-    letter-spacing: .15em;
-    color: var(--faint);
-    text-align: right;
+  @keyframes grain {
+    0%   { transform: translate(0, 0); }
+    20%  { transform: translate(-8%, 4%); }
+    40%  { transform: translate(5%, -7%); }
+    60%  { transform: translate(-4%, -3%); }
+    80%  { transform: translate(7%, 6%); }
+    100% { transform: translate(0, 0); }
   }
 
-  /* ── 理念 ───────────────────────────── */
-  .manifesto {
-    padding: 8rem 0;
-    background: #050505;
-    border-top: 1px solid #171717;
-    border-bottom: 1px solid #171717;
-    text-align: center;
+  .scroll-hint::after {
+    content: '';
+    display: block;
+    width: 1px;
+    height: 2.5rem;
+    margin: .75rem auto 0;
+    background: linear-gradient(180deg, var(--faint), transparent);
+    animation: drop 2s var(--ease) infinite;
   }
 
-  .manifesto .shell { max-width: 56rem; }
-
-  .manifesto h2 {
-    font-size: clamp(1.6rem, 5vw, 3rem);
-    font-weight: 700;
-    line-height: 1.25;
-    margin-bottom: 2rem;
+  @keyframes drop {
+    0%   { transform: scaleY(0); transform-origin: 50% 0; }
+    45%  { transform: scaleY(1); transform-origin: 50% 0; }
+    55%  { transform: scaleY(1); transform-origin: 50% 100%; }
+    100% { transform: scaleY(0); transform-origin: 50% 100%; }
   }
 
-  .manifesto p {
-    margin: 0;
-    color: var(--muted);
-  }
-
-  /* ── 頁尾 ───────────────────────────── */
-  .contact {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 3rem;
-    padding: 6rem 0;
-  }
-
-  .contact h2 {
-    font-size: clamp(2.5rem, 8vw, 4.5rem);
-    line-height: 1;
-    letter-spacing: -.02em;
-    margin-bottom: 1rem;
-  }
-
-  .contact a[href^="mailto"] {
-    font-size: 1.125rem;
-    color: var(--muted);
-    text-decoration: underline;
-    text-underline-offset: .25em;
-    transition: color .3s ease;
-  }
-
-  .contact a[href^="mailto"]:hover,
-  .contact a[href^="mailto"]:focus-visible { color: #fff; }
-
-  .colophon {
-    text-align: right;
-    font-size: .7rem;
-    letter-spacing: .2em;
-    color: #525252;
-  }
-
-  .colophon p { margin: 0 0 .5rem; }
-
-  /* ── 進場動畫 ───────────────────────── */
-  /* 只有 JS 掛上 reveal-ready 後才先藏起來，沒有 JS 的環境直接看到完整內容 */
-  .reveal-ready [data-reveal] {
-    opacity: 0;
-    transform: translateY(50px);
-    transition: opacity .9s cubic-bezier(.22, 1, .36, 1), transform .9s cubic-bezier(.22, 1, .36, 1);
-  }
-
-  .reveal-ready [data-reveal].is-in {
-    opacity: 1;
-    transform: none;
-  }
-
-  /* ── 響應式：平板以下 ───────────────── */
-  @media (max-width: 900px) {
-    .shell { padding: 0 1.5rem; }
-    .topbar { padding: 1.25rem 1.5rem; }
-    .topnav { display: none; }
-    .works, .manifesto { padding: 5rem 0; }
-    .work-grid {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 3.5rem;
-    }
-    .work-grid > :nth-child(even) { margin-top: 0; }
-    .contact {
-      flex-direction: column;
-      align-items: flex-start;
-      text-align: left;
-      padding: 4.5rem 0;
-    }
-    .colophon { text-align: left; }
-  }
-
-  @media (max-width: 520px) {
-    /* 窄螢幕時字標與按鈕會互相貼上，兩邊都縮一點留出呼吸空間 */
-    .wordmark { font-size: 1rem; }
-    .pill { padding: .5rem 1rem; }
-    .section-head {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: .75rem;
-    }
-    .work-meta {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: .35rem;
-    }
-    .work-meta em { text-align: left; }
-  }
+  /* Tailwind 沒載到時的保底排版，載到了就被 utility 蓋過去 */
+  .shell { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
 
   /* ── 降低動態偏好 ───────────────────── */
-  /* 使用者若要求減少動態，就直接顯示內容，影片也由 JS 暫停 */
   @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    * { animation-duration: .01ms !important; }
-    .reveal-ready [data-reveal] {
-      opacity: 1;
-      transform: none;
-      transition: none;
-    }
-    .work-frame span,
-    .work-meta h3 { transition: none; }
+    .loader { display: none; }
+    .grain, .scroll-hint::after { animation: none; }
+    .card-media, .card-frame::after, .swap i { transition: none; }
   }
 </style>
 </head>
-<body>
+<body class="bg-ink text-paper font-inter font-light antialiased">
 
 <div class="cursor cursor-dot" id="cursorDot" aria-hidden="true"></div>
-<div class="cursor cursor-ring" id="cursorRing" aria-hidden="true"></div>
+<div class="cursor cursor-ring" id="cursorRing" aria-hidden="true"><span class="cursor-label">View</span></div>
 
-<header class="topbar">
-  <a class="wordmark hover-target" href="#top">CHENGYUN.LAB</a>
-  <nav class="topnav">
-    <a class="hover-target" href="#works">Works</a>
-    <a class="hover-target" href="#lab">Lab</a>
-    <a class="hover-target" href="#contact">Contact</a>
+<div class="loader" id="loader">
+  <span class="font-syne font-extrabold tracking-[.1em] text-2xl md:text-4xl">CHENGYUN.LAB</span>
+  <div class="loader-bar"><i id="loaderBar"></i></div>
+  <span class="text-xs tracking-[.3em] text-neutral-500 tabular-nums" id="loaderCount">00</span>
+</div>
+
+<div class="progress" id="progress" aria-hidden="true"></div>
+
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between gap-6 px-6 md:px-10 py-5 mix-blend-difference" id="topbar">
+  <a class="font-syne text-xl font-extrabold tracking-[.12em] hover-target" href="#top">CHENGYUN.LAB</a>
+  <nav class="hidden md:flex gap-8 text-[.8rem] tracking-[.18em] uppercase">
+    <a class="hover-target" href="#works"><span class="swap"><i>Works</i><i>Works</i></span></a>
+    <a class="hover-target" href="#lab"><span class="swap"><i>Lab</i><i>Lab</i></span></a>
+    <a class="hover-target" href="#contact"><span class="swap"><i>Contact</i><i>Contact</i></span></a>
   </nav>
-  <a class="pill hover-target" href="#contact">Let's Talk</a>
+  <a class="hover-target magnetic text-[.7rem] tracking-[.18em] uppercase border border-white/30 rounded-full px-5 py-2 transition-colors duration-500 hover:bg-paper hover:text-ink hover:border-paper" href="#contact">Let's Talk</a>
 </header>
 
 <main id="top">
 
-  <section class="hero">
-    <video id="heroVideo" autoplay muted loop playsinline preload="auto" aria-hidden="true">
+  <!-- ── 首屏 ───────────────────────── -->
+  <section class="relative min-h-[100svh] flex items-center justify-center overflow-hidden text-center tilt-stage" id="hero">
+    <video id="heroVideo" class="absolute inset-0 w-full h-full object-cover opacity-60" autoplay muted loop playsinline preload="auto" aria-hidden="true">
       <source src="../assets/hero-loop-portrait.mp4" type="video/mp4" />
     </video>
-    <div class="hero-veil"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-ink/40 via-ink/60 to-ink/90"></div>
 
-    <div class="hero-copy">
-      <span class="eyebrow">Experimental Digital &amp; Visual Arts</span>
-      <h1>Beyond <br /><span class="fade">Reality</span></h1>
-      <p>We craft immersive digital experiences, pushing the boundaries of WebGL, motion, and avant-garde design aesthetics.</p>
+    <div class="relative z-10 px-6 pt-32 pb-24 max-w-5xl tilt-layer" id="heroTilt">
+      <span class="block text-[.7rem] tracking-[.3em] uppercase text-neutral-400 mb-5" id="heroEyebrow" data-text="Experimental Digital &amp; Visual Arts">Experimental Digital &amp; Visual Arts</span>
+      <h1 class="font-syne font-extrabold uppercase leading-[.92] tracking-[-.03em] text-[clamp(3rem,12vw,8.5rem)] mb-6">
+        <span class="mask"><i id="heroLine1">Beyond</i></span><br />
+        <span class="mask"><i class="fade-text" id="heroLine2">Reality</i></span>
+      </h1>
+      <p class="max-w-xl mx-auto text-neutral-400 text-sm md:text-base tracking-wide" id="heroLede">
+        We craft immersive digital experiences, pushing the boundaries of WebGL, motion, and avant-garde design aesthetics.
+      </p>
     </div>
+
+    <span class="scroll-hint absolute left-1/2 -translate-x-1/2 bottom-8 z-10 text-[.65rem] tracking-[.25em] uppercase text-neutral-500" id="scrollHint">Scroll</span>
   </section>
 
-  <section class="works" id="works">
-    <div class="shell">
-      <div class="section-head">
-        <h2 data-reveal>Selected Works</h2>
-        <span data-reveal>(2026 ARCHIVE)</span>
+  <!-- ── 跑馬燈 ─────────────────────── -->
+  <div class="overflow-hidden py-8 md:py-10 border-y border-neutral-800" aria-hidden="true">
+    <div class="ticker-track text-[clamp(1.75rem,5vw,3.25rem)]" id="tickerTrack"></div>
+  </div>
+
+  <!-- ── 作品 ───────────────────────── -->
+  <section class="py-24 md:py-32" id="works">
+    <div class="shell md:px-10">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 pb-8 mb-16 border-b border-neutral-800">
+        <h2 class="font-syne font-extrabold uppercase tracking-[-.01em] text-[clamp(2rem,6vw,3.75rem)]" data-split>Selected Works</h2>
+        <span class="text-[.7rem] tracking-[.2em] text-neutral-500 whitespace-nowrap" data-anim>(2026 ARCHIVE)</span>
       </div>
 
-      <div class="work-grid">
-        <a class="work hover-target" href="#contact" data-reveal>
-          <div class="work-frame"><span>[ PROJECT 01 ]</span></div>
-          <div class="work-meta">
-            <h3>Neural Void</h3>
-            <em>WEBGL / INTERACTION</em>
+      <!-- 非對稱網格：十二欄基準，四張卡各自佔不同欄寬與起點 -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-x-8 gap-y-16 md:gap-y-24">
+
+        <a class="card hover-target view-target group md:col-span-7" href="#contact" data-anim>
+          <div class="card-frame relative aspect-[4/3] overflow-hidden bg-neutral-900 mb-5">
+            <div class="card-media grid place-items-center font-syne text-2xl text-neutral-500"
+                 style="background:radial-gradient(120% 90% at 30% 20%, #3b2a5e 0%, #141414 62%)" data-parallax="12">[ PROJECT 01 ]</div>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <h3 class="font-syne text-xl font-bold uppercase transition-transform duration-500 group-hover:translate-x-2">Neural Void</h3>
+            <em class="not-italic text-[.7rem] tracking-[.15em] text-neutral-500 text-right">WEBGL / INTERACTION</em>
           </div>
         </a>
 
-        <a class="work hover-target" href="#contact" data-reveal>
-          <div class="work-frame"><span>[ PROJECT 02 ]</span></div>
-          <div class="work-meta">
-            <h3>Liquid Cyber</h3>
-            <em>BRANDING / 3D MOTION</em>
+        <a class="card hover-target view-target group md:col-span-5 md:mt-28" href="#contact" data-anim>
+          <div class="card-frame relative aspect-[3/4] overflow-hidden bg-neutral-900 mb-5">
+            <div class="card-media grid place-items-center font-syne text-2xl text-neutral-500"
+                 style="background:radial-gradient(120% 90% at 70% 30%, #0f4c4c 0%, #141414 62%)" data-parallax="-16">[ PROJECT 02 ]</div>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <h3 class="font-syne text-xl font-bold uppercase transition-transform duration-500 group-hover:translate-x-2">Liquid Cyber</h3>
+            <em class="not-italic text-[.7rem] tracking-[.15em] text-neutral-500 text-right">BRANDING / 3D MOTION</em>
           </div>
         </a>
+
+        <a class="card hover-target view-target group md:col-span-5 md:col-start-2" href="#contact" data-anim>
+          <div class="card-frame relative aspect-square overflow-hidden bg-neutral-900 mb-5">
+            <div class="card-media grid place-items-center font-syne text-2xl text-neutral-500"
+                 style="background:radial-gradient(120% 90% at 40% 70%, #5e2a2a 0%, #141414 62%)" data-parallax="14">[ PROJECT 03 ]</div>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <h3 class="font-syne text-xl font-bold uppercase transition-transform duration-500 group-hover:translate-x-2">Static Bloom</h3>
+            <em class="not-italic text-[.7rem] tracking-[.15em] text-neutral-500 text-right">ART DIRECTION / SHADERS</em>
+          </div>
+        </a>
+
+        <a class="card hover-target view-target group md:col-span-6 md:col-start-7 md:-mt-20" href="#contact" data-anim>
+          <div class="card-frame relative aspect-[16/10] overflow-hidden bg-neutral-900 mb-5">
+            <div class="card-media grid place-items-center font-syne text-2xl text-neutral-500"
+                 style="background:radial-gradient(120% 90% at 60% 40%, #4a4416 0%, #141414 62%)" data-parallax="-12">[ PROJECT 04 ]</div>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <h3 class="font-syne text-xl font-bold uppercase transition-transform duration-500 group-hover:translate-x-2">Echo Chamber</h3>
+            <em class="not-italic text-[.7rem] tracking-[.15em] text-neutral-500 text-right">SOUND / REAL-TIME</em>
+          </div>
+        </a>
+
       </div>
     </div>
   </section>
 
-  <section class="manifesto" id="lab">
-    <div class="shell">
-      <span class="eyebrow" data-reveal>Philosophy</span>
-      <h2 data-reveal>“We don't just build websites. We engineer digital dimensions.”</h2>
-      <p data-reveal>Merging high-end creative direction with cutting-edge engineering. Every pixel, motion curve, and interaction is meticulously crafted to evoke emotion and leave a lasting impression.</p>
+  <!-- ── 理念 ───────────────────────── -->
+  <section class="py-24 md:py-32 bg-[#050505] border-y border-neutral-900 text-center" id="lab">
+    <div class="shell md:px-10 max-w-3xl">
+      <span class="block text-[.7rem] tracking-[.3em] uppercase text-neutral-500 mb-4" data-anim>Philosophy</span>
+      <h2 class="font-syne font-bold uppercase leading-[1.25] text-[clamp(1.6rem,5vw,3rem)] mb-8 text-balance" data-split>
+        “We don't just build websites. We engineer digital dimensions.”
+      </h2>
+      <p class="text-neutral-400 leading-relaxed" data-anim>
+        Merging high-end creative direction with cutting-edge engineering. Every pixel, motion curve, and interaction is meticulously crafted to evoke emotion and leave a lasting impression.
+      </p>
     </div>
   </section>
 
 </main>
 
-<footer class="contact shell" id="contact">
-  <div>
-    <h2 data-reveal>Let's create <br />something weird.</h2>
-    <a class="hover-target" href="mailto:hello@chengyun.studio" data-reveal>hello@chengyun.studio</a>
-  </div>
-  <div class="colophon" data-reveal>
-    <p>© 2026 CHENGYUN LAB. ALL RIGHTS RESERVED.</p>
-    <p>POWERED BY AVANT-GARDE MOTION</p>
+<!-- ── 頁尾：黑白反轉，強對比收尾 ───── -->
+<footer class="bg-paper text-ink" id="contact">
+  <div class="shell md:px-10 py-24 md:py-32">
+    <span class="block text-[.7rem] tracking-[.3em] uppercase text-neutral-500 mb-8" data-anim>Let's Talk</span>
+
+    <h2 class="font-syne font-extrabold uppercase leading-[.95] tracking-[-.02em] text-[clamp(2.5rem,10vw,7rem)] mb-12" data-split>
+      Let's create something weird.
+    </h2>
+
+    <a class="hover-target magnetic inline-flex items-center gap-4 bg-ink text-paper rounded-full pl-8 pr-3 py-3 text-sm tracking-[.15em] uppercase transition-colors duration-500 hover:bg-neutral-800"
+       href="mailto:hello@chengyun.studio" data-anim>
+      hello@chengyun.studio
+      <span class="grid place-items-center w-10 h-10 rounded-full bg-paper text-ink text-lg leading-none" aria-hidden="true">↗</span>
+    </a>
+
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mt-24 pt-8 border-t border-black/15 text-[.7rem] tracking-[.2em] text-neutral-600">
+      <p data-anim>© 2026 CHENGYUN LAB. ALL RIGHTS RESERVED.</p>
+      <p data-anim>POWERED BY AVANT-GARDE MOTION</p>
+    </div>
   </div>
 </footer>
 
+<div class="grain" aria-hidden="true"></div>
+
 <script>
   (function () {
-    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var root = document.documentElement;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-    /* 自訂游標：小圓點貼著滑鼠，外圈用 lerp 慢半拍跟上 */
-    var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+    /* 函式庫是否到位，全部先問過再用；沒到位就走靜態版，頁面不會變成空白 */
+    var hasGsap = typeof window.gsap !== 'undefined';
+    var hasST = hasGsap && typeof window.ScrollTrigger !== 'undefined';
+    if (hasST) { gsap.registerPlugin(ScrollTrigger); }
+
+    var lerp = function (a, b, t) { return a + (b - a) * t; };
+
+    /* ── 1. Lenis 平滑滾動 ───────────── */
+    var lenis = null;
+    if (window.Lenis && !reduce) {
+      lenis = new Lenis({ lerp: 0.09, wheelMultiplier: 1, smoothWheel: true });
+      if (hasST) {
+        lenis.on('scroll', ScrollTrigger.update);
+        gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
+        gsap.ticker.lagSmoothing(0);
+      } else {
+        /* 沒有 GSAP 的計時器就自己推 rAF */
+        (function raf(time) { lenis.raf(time); requestAnimationFrame(raf); })(0);
+      }
+    }
+
+    /* 錨點交給 Lenis，沒有 Lenis 時退回原生捲動 */
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest('a[href^="#"]');
+      if (!link) { return; }
+      var id = link.getAttribute('href').slice(1);
+      var el = id ? document.getElementById(id) : null;
+      if (!el) { return; }
+      e.preventDefault();
+      if (lenis) { lenis.scrollTo(el, { offset: 0, duration: 1.4 }); }
+      else { el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' }); }
+    });
+
+    /* ── 2. 自訂游標 ─────────────────── */
     var dot = document.getElementById('cursorDot');
     var ring = document.getElementById('cursorRing');
+    var mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+    var ringX = mouseX, ringY = mouseY;
+    var magnets = [];
 
-    if (finePointer.matches) {
-      var mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
-      var ringX = mouseX, ringY = mouseY;
-
+    if (fine) {
       dot.classList.add('is-idle');
       ring.classList.add('is-idle');
 
@@ -526,103 +485,261 @@
         ring.classList.remove('is-idle');
       });
 
-      (function render() {
-        ringX += (mouseX - ringX) * 0.15;
-        ringY += (mouseY - ringY) * 0.15;
-        ring.style.transform = 'translate(' + ringX + 'px,' + ringY + 'px)';
-        requestAnimationFrame(render);
-      })();
+      window.addEventListener('mousedown', function () { ring.classList.add('is-down'); });
+      window.addEventListener('mouseup', function () { ring.classList.remove('is-down'); });
 
-      /* 用事件委派，之後新增 .hover-target 不必再綁一次 */
+      /* 事件委派：日後新增 .hover-target 不必再綁一次 */
       document.addEventListener('mouseover', function (e) {
-        if (e.target.closest('.hover-target')) { ring.classList.add('is-near'); }
+        if (e.target.closest('.view-target')) { ring.classList.add('is-view'); }
+        else if (e.target.closest('.hover-target')) { ring.classList.add('is-near'); }
       });
       document.addEventListener('mouseout', function (e) {
-        if (e.target.closest('.hover-target')) { ring.classList.remove('is-near'); }
+        if (e.target.closest('.view-target')) { ring.classList.remove('is-view'); }
+        else if (e.target.closest('.hover-target')) { ring.classList.remove('is-near'); }
+      });
+
+      magnets = Array.prototype.map.call(document.querySelectorAll('.magnetic'), function (el) {
+        return { el: el, x: 0, y: 0 };
       });
     }
 
-    /* 捲動進場：舊瀏覽器或減少動態時直接顯示，不留白畫面 */
-    var targets = document.querySelectorAll('[data-reveal]');
+    /* ── 3. 智慧導覽列 ───────────────── */
+    var topbar = document.getElementById('topbar');
+    var progress = document.getElementById('progress');
+    var lastY = window.scrollY;
+    var hidden = false;
 
-    function revealAll() {
-      targets.forEach(function (el) { el.classList.add('is-in'); });
+    function onScroll(y) {
+      /* 首屏範圍內不收起，免得一開始就閃一下 */
+      var down = y > lastY;
+      if (down && y > window.innerHeight * 0.6 && !hidden) {
+        hidden = true;
+        topbar.style.transform = 'translateY(-110%)';
+      } else if (!down && hidden) {
+        hidden = false;
+        topbar.style.transform = 'translateY(0)';
+      }
+      lastY = y;
+
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      progress.style.transform = 'scaleX(' + (max > 0 ? Math.min(y / max, 1) : 0) + ')';
     }
 
-    if (!('IntersectionObserver' in window) || reduceMotion.matches) {
-      document.documentElement.classList.add('reveal-ready');
-      revealAll();
-    } else {
-      var seen = 0;
-      var io = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (!entry.isIntersecting) { return; }
-          var el = entry.target;
-          /* 同一區塊內依序延遲，做出 stagger */
-          el.style.transitionDelay = (el.dataset.reveal || 0) * 0.15 + 's';
-          el.classList.add('is-in');
-          io.unobserve(el);
-          seen += 1;
-        });
-      }, { rootMargin: '0px 0px -20% 0px' });
+    topbar.style.transition = 'transform .6s cubic-bezier(.22,1,.36,1)';
+    if (lenis) { lenis.on('scroll', function (e) { onScroll(e.scroll); }); }
+    else { window.addEventListener('scroll', function () { onScroll(window.scrollY); }, { passive: true }); }
 
-      /* 依父層分組編號，讓延遲從每一區塊重新計算 */
-      var groups = new Map();
-      targets.forEach(function (el) {
-        var key = el.closest('section, footer') || document.body;
-        var index = groups.get(key) || 0;
-        el.dataset.reveal = index;
-        groups.set(key, index + 1);
-        io.observe(el);
+    /* ── 4. 標題拆字 ─────────────────── */
+    /* 拆到單字就夠：不必量測行寬，換行後每個字仍各自遮好 */
+    document.querySelectorAll('[data-split]').forEach(function (el) {
+      var words = el.textContent.trim().split(/\s+/);
+      el.textContent = '';
+      words.forEach(function (word, i) {
+        var mask = document.createElement('span');
+        mask.className = 'mask';
+        var inner = document.createElement('i');
+        inner.textContent = word;
+        mask.appendChild(inner);
+        el.appendChild(mask);
+        if (i < words.length - 1) { el.appendChild(document.createTextNode(' ')); }
+      });
+      el.setAttribute('data-split-done', '');
+    });
+
+    var splitWords = function (el) { return el.querySelectorAll('.mask > i'); };
+
+    /* ── 5. 跑馬燈內容 ───────────────── */
+    var tickerTrack = document.getElementById('tickerTrack');
+    var tickerWords = ['WebGL', '—', 'Real-time', '—', 'Shaders', '—', 'Interaction', '—', 'Motion', '—'];
+
+    function buildTicker() {
+      var unit = tickerWords.map(function (w) { return '<span>' + w + '</span>'; }).join('');
+      tickerTrack.innerHTML = unit + unit;
+      /* 寬度不足時再補，確保位移 50% 時畫面永遠是滿的 */
+      while (tickerTrack.scrollWidth < window.innerWidth * 2) { tickerTrack.innerHTML += unit + unit; }
+    }
+    buildTicker();
+
+    /* ── 6. 進場動畫（GSAP ScrollTrigger）───────────────── */
+    if (hasST && !reduce) {
+      /* 先用 gsap.set 藏起來，而不是寫在 CSS 裡：GSAP 萬一沒載到，內容就是正常顯示 */
+      gsap.set('[data-anim]', { opacity: 0, y: 48 });
+      gsap.utils.toArray('[data-split-done]').forEach(function (el) {
+        gsap.set(splitWords(el), { yPercent: 115 });
       });
 
-      document.documentElement.classList.add('reveal-ready');
+      /* 6a. 首屏開場：載入動畫結束後才播 */
+      var heroIn = gsap.timeline({ paused: true })
+        .from('#heroEyebrow', { opacity: 0, y: 20, duration: .8, ease: 'power2.out' })
+        .from('#heroLine1', { yPercent: 115, duration: 1.1, ease: 'power3.out' }, '-=.5')
+        .from('#heroLine2', { yPercent: 115, duration: 1.1, ease: 'power3.out' }, '-=.95')
+        .from('#heroLede', { opacity: 0, y: 24, duration: .9, ease: 'power2.out' }, '-=.7')
+        .from('#scrollHint', { opacity: 0, duration: .8, ease: 'power1.out' }, '-=.5');
 
-      function scrollable() {
-        return document.documentElement.scrollHeight > window.innerHeight + 4;
-      }
-
-      /* 捲到底時補完頁尾：頁尾元素落在 rootMargin 的下緣盲區，光靠 IO 永遠不會進場。
-         只在真的捲得動、而且真的捲到底時才動手；載入當下不檢查，否則版面還沒算完就會把特效整個關掉 */
-      function checkBottom() {
-        if (!scrollable()) { return; }
-        if (window.scrollY + window.innerHeight < document.documentElement.scrollHeight - 4) { return; }
-        window.removeEventListener('scroll', checkBottom);
-        io.disconnect();
-        revealAll();
-      }
-      window.addEventListener('scroll', checkBottom, { passive: true });
-
-      /* 版面穩定後再判斷兩種「IO 幫不上忙」的情況，不能在載入當下就判斷：
-         一是整頁捲不動（例如被嵌進會自動撐高的 iframe），下緣盲區的內容永遠不會進場；
-         二是截圖工具、爬蟲等環境根本不送 IO 回呼 */
-      function settle() {
-        if (seen === 0 || !scrollable()) {
-          io.disconnect();
-          revealAll();
+      /* 6b. 每個區塊各自 stagger 進場 */
+      gsap.utils.toArray('section, footer').forEach(function (section) {
+        var items = section.querySelectorAll('[data-anim]');
+        if (items.length) {
+          gsap.to(items, {
+            opacity: 1, y: 0, duration: 1, ease: 'power3.out', stagger: 0.12,
+            scrollTrigger: { trigger: section, start: 'top 78%' }
+          });
         }
-      }
-      window.setTimeout(settle, 1500);
-      window.addEventListener('load', function () { window.setTimeout(settle, 1500); });
+        section.querySelectorAll('[data-split-done]').forEach(function (el) {
+          gsap.to(splitWords(el), {
+            yPercent: 0, duration: 1.1, ease: 'power3.out', stagger: 0.045,
+            scrollTrigger: { trigger: el, start: 'top 85%' }
+          });
+        });
+      });
+
+      /* 6c. 作品縮圖視差：捲動時內層上下位移 */
+      gsap.utils.toArray('[data-parallax]').forEach(function (el) {
+        gsap.fromTo(el,
+          { yPercent: Number(el.dataset.parallax) * -1 },
+          {
+            yPercent: Number(el.dataset.parallax),
+            ease: 'none',
+            scrollTrigger: { trigger: el.closest('.card-frame'), start: 'top bottom', end: 'bottom top', scrub: true }
+          });
+      });
+
+      /* 6d. 首屏推進感：往下捲時整個首屏微縮並淡出，交棒給下一區塊 */
+      gsap.to('#heroTilt', {
+        yPercent: -18, opacity: 0, ease: 'none',
+        scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true }
+      });
+
+      /* 6e. 跑馬燈：底速固定，捲動速度疊加，方向跟著捲動反轉 */
+      var tickerTween = gsap.to(tickerTrack, {
+        xPercent: -50, repeat: -1, duration: 22, ease: 'none'
+      });
+      ScrollTrigger.create({
+        onUpdate: function (self) {
+          var v = self.getVelocity();
+          tickerTween.timeScale(gsap.utils.clamp(-6, 6, 1 + v / 600));
+          gsap.to(tickerTween, { timeScale: 1, duration: 1.2, overwrite: true });
+        }
+      });
+
+      /* 頁尾反轉成白底時不必特別處理：差集混合會自動把白字翻成黑字，仍然讀得到 */
+    } else if (!hasST) {
+      /* 沒有 GSAP：跑馬燈用 CSS 動畫頂著，其餘內容維持靜態可讀 */
+      tickerTrack.style.animation = 'none';
     }
 
-    /* 尊重減少動態偏好：背景影片停在第一幀 */
-    var video = document.getElementById('heroVideo');
-    function syncVideo() {
-      if (reduceMotion.matches) { video.pause(); }
-      else { video.play().catch(function () { /* 瀏覽器擋自動播放就維持靜幀，版面不受影響 */ }); }
+    /* ── 7. 首屏標題隨滑鼠傾斜 ───────── */
+    var tilt = document.getElementById('heroTilt');
+    var tiltX = 0, tiltY = 0, targetX = 0, targetY = 0;
+
+    if (fine && !reduce) {
+      document.getElementById('hero').addEventListener('mousemove', function (e) {
+        var r = e.currentTarget.getBoundingClientRect();
+        targetY = ((e.clientX - r.left) / r.width - 0.5) * 14;
+        targetX = ((e.clientY - r.top) / r.height - 0.5) * -10;
+      });
+      document.getElementById('hero').addEventListener('mouseleave', function () { targetX = 0; targetY = 0; });
     }
-    syncVideo();
-    if (reduceMotion.addEventListener) { reduceMotion.addEventListener('change', syncVideo); }
+
+    /* ── 8. 載入動畫 ─────────────────── */
+    var video = document.getElementById('heroVideo');
+    var loader = document.getElementById('loader');
+    var loaderBar = document.getElementById('loaderBar');
+    var loaderCount = document.getElementById('loaderCount');
+    var pct = 0;
+    var startedAt = performance.now();
+    var loading = !reduce;
+
+    function heroStart() {
+      if (hasST && !reduce) { heroIn.play(); }
+    }
+
+    if (!loading) { loader.remove(); }
+
+    function finishLoading() {
+      loading = false;
+      loader.classList.add('is-done');
+      window.setTimeout(function () { loader.remove(); }, 1100);
+      heroStart();
+      if (hasST) { ScrollTrigger.refresh(); }
+    }
+
+    /* ── 9. 眉標逐字亂碼 ─────────────── */
+    var eyebrow = document.getElementById('heroEyebrow');
+    var glyphs = '/\\|<>[]{}#%$&*+=';
+    var scrambleFrom = 0, scrambling = false;
+
+    function scramble(now) {
+      var text = eyebrow.getAttribute('data-text');
+      var done = Math.floor((now - scrambleFrom) / 26);
+      if (done >= text.length) { eyebrow.textContent = text; return false; }
+      var out = '';
+      for (var i = 0; i < text.length; i += 1) {
+        if (i < done || text[i] === ' ') { out += text[i]; }
+        else { out += glyphs[Math.floor(Math.random() * glyphs.length)]; }
+      }
+      eyebrow.textContent = out;
+      return true;
+    }
+
+    /* ── 10. 影片播放 ────────────────── */
+    function playVideo() {
+      if (reduce) { video.pause(); return; }
+      video.play().catch(function () { /* 擋自動播放就維持靜幀，版面不受影響 */ });
+    }
+    playVideo();
 
     /* 有些嵌入情境（iframe 的 autoplay 權限）會擋掉自動播放，第一次互動時再補播一次 */
     function resumeVideo() {
-      if (!reduceMotion.matches && video.paused) { video.play().catch(function () {}); }
+      if (!reduce && video.paused) { video.play().catch(function () {}); }
       window.removeEventListener('pointerdown', resumeVideo);
       window.removeEventListener('scroll', resumeVideo);
     }
     window.addEventListener('pointerdown', resumeVideo);
     window.addEventListener('scroll', resumeVideo, { passive: true });
+
+    /* ── 11. 單一 rAF：游標、磁吸、傾斜、載入進度 ───────── */
+    function frame(now) {
+      if (loading) {
+        /* 真正等的是影片可播與版面就緒，最多撐 2.4 秒 */
+        var ready = video.readyState >= 2 || now - startedAt > 2400;
+        var target = ready ? 100 : Math.min(92, (now - startedAt) / 18);
+        pct = lerp(pct, target, 0.06);
+        if (target === 100 && pct > 99) { pct = 100; }
+        loaderBar.style.transform = 'scaleX(' + (pct / 100) + ')';
+        loaderCount.textContent = String(Math.round(pct)).padStart(2, '0');
+        if (pct >= 100) {
+          finishLoading();
+          scrambleFrom = now;
+          scrambling = true;
+        }
+      }
+
+      if (scrambling) { scrambling = scramble(now); }
+
+      if (fine) {
+        ringX = lerp(ringX, mouseX, 0.16);
+        ringY = lerp(ringY, mouseY, 0.16);
+        ring.style.transform = 'translate(' + ringX + 'px,' + ringY + 'px)';
+
+        magnets.forEach(function (m) {
+          var r = m.el.getBoundingClientRect();
+          var dx = mouseX - (r.left + r.width / 2);
+          var dy = mouseY - (r.top + r.height / 2);
+          var near = Math.hypot(dx, dy) < Math.max(r.width, r.height) * 1.1;
+          m.x = lerp(m.x, near ? dx * 0.26 : 0, 0.16);
+          m.y = lerp(m.y, near ? dy * 0.26 : 0, 0.16);
+          m.el.style.transform = 'translate(' + m.x.toFixed(2) + 'px,' + m.y.toFixed(2) + 'px)';
+        });
+
+        tiltX = lerp(tiltX, targetX, 0.07);
+        tiltY = lerp(tiltY, targetY, 0.07);
+        tilt.style.transform = 'rotateX(' + tiltX.toFixed(2) + 'deg) rotateY(' + tiltY.toFixed(2) + 'deg)';
+      }
+
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
   })();
 </script>
 

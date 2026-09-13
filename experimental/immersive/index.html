@@ -598,8 +598,7 @@
      兩者共用同一組狀態（位置、目標、慣性）與同一排控制項。 */
   .film-gl-wrap {
     position: relative;
-    height: calc(var(--fh) + var(--perf) * 2 + 2.5rem);
-    min-height: 220px;
+    height: clamp(260px, 48svh, 660px);
   }
 
   .film-gl {
@@ -678,7 +677,7 @@
     position: relative;
     width: 100vw;
     max-width: 100vw;
-    margin-top: -4.5rem;
+    margin-top: -1.25rem;
     z-index: 1;
 
     /* 片格尺寸；圓柱半徑由 JS 依這個寬度回推 */
@@ -686,6 +685,8 @@
     --fh: clamp(160px, 33svh, 340px);
     --perf: clamp(13px, 1.8vh, 24px);
   }
+
+  @media (max-width: 760px) { .film-gl-wrap { height: 38svh; } }
 
   @media (max-width: 760px) { .film-bleed { margin-top: -1rem; --fw: 66vw; --fh: min(34svh, 260px); --perf: 12px; } }
 
@@ -2550,27 +2551,51 @@
       }
 
       renderer.setClearColor(0x000000, 0);
-      renderer.outputEncoding = THREE.sRGBEncoding;
 
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(38, 1, .1, 100);
+      const camera = new THREE.PerspectiveCamera(54, 1, .1, 100);
 
-      /* rig 負責整條膠卷的傾角，reel 只負責繞 Y 軸轉 */
+      /* rig 負責整條膠卷的傾角 */
       const rig = new THREE.Group();
-      rig.rotation.z = -0.1;                           /* 往右上揚，對齊參考畫面 */
-      rig.rotation.x = 0.12;
+      rig.rotation.z = -0.12;                          /* 往右上揚，對齊參考畫面 */
+      rig.rotation.x = 0.13;
       scene.add(rig);
 
-      const reel = new THREE.Group();
-      rig.add(reel);
-
-      const STEP = 0.22;                               /* 每一格佔的圓心角（弧度，約 12.6°）*/
       const PANEL_W = 1;                               /* 片格寬＝1 個世界單位，其餘都以它為準 */
       const IMG_H = .58;                               /* 畫面高 */
       const PERF_H = .075;                             /* 單邊齒孔帶高 */
       const PANEL_H = IMG_H + PERF_H * 2;
-      const R = (PANEL_W / 2) / Math.sin(STEP / 2);    /* 弦長＝片格寬，相鄰片格剛好接上 */
-      reel.position.z = -R;                            /* 把圓柱前緣挪到 z = 0 */
+      const BEND = .22;                                /* 彎曲強度：z = -BEND · x²  */
+
+      /* 曲面不是圓柱，是一條拋物線帶：
+         圓柱的側影寬度被半徑鎖死，想橫跨滿版就得把半徑放大，
+         半徑一大兩端就退不回去 —— 那正是先前看起來「很平」的原因。
+         改成沿著 x 軸等距排列、z 隨 x² 往後掉，
+         橫向要多寬有多寬，兩端照樣急速退後，而且片格天生等距、不會有縫。
+         位移放在頂點著色器裡算，CPU 每幀只要換一個 uniform。 */
+      const VERT = [
+        'uniform float uOff;',                         /* 這一格的中心位置（單位：片格寬）*/
+        'uniform float uW;',
+        'uniform float uBend;',
+        'varying vec2 vUv;',
+        'void main() {',
+        '  vUv = uv;',
+        '  float x = (position.x + uOff) * uW;',
+        '  float z = -uBend * x * x;',
+        '  gl_Position = projectionMatrix * modelViewMatrix * vec4(x, position.y, z, 1.0);',
+        '}'
+      ].join('\n');
+
+      const FRAG = [
+        'uniform sampler2D uMap;',
+        'uniform float uBright;',
+        'uniform float uOpacity;',
+        'varying vec2 vUv;',
+        'void main() {',
+        '  vec4 c = texture2D(uMap, vUv);',
+        '  gl_FragColor = vec4(c.rgb * uBright, c.a * uOpacity);',
+        '}'
+      ].join('\n');
 
       /* ── 貼圖：片基 + 上下齒孔 + 中間畫面 ── */
       const TW = 512;
@@ -2637,21 +2662,8 @@
         }
       }
 
-      /* ── 彎到圓柱面上的片格 ── */
-      function curved(arc, h, seg) {
-        const g = new THREE.PlaneGeometry(1, h, seg, 1);
-        const pos = g.attributes.position;
-        for (let i = 0; i < pos.count; i += 1) {
-          const a = pos.getX(i) * arc;                 /* -0.5..0.5 → -arc/2..arc/2 */
-          pos.setX(i, Math.sin(a) * R);
-          pos.setZ(i, Math.cos(a) * R);
-        }
-        pos.needsUpdate = true;
-        g.computeVertexNormals();
-        return g;
-      }
-
-      const geo = curved(STEP, PANEL_H, 28);
+      /* 平面片格；彎曲在著色器裡做，所以只要夠多的橫向細分 */
+      const geo = new THREE.PlaneGeometry(1, PANEL_H, 48, 1);
       const panels = FILM_ART.slice(0, filmFrames.length).map((art, i) => {
         const c = document.createElement('canvas');
         c.width = TW;
@@ -2660,12 +2672,25 @@
 
         const tex = new THREE.CanvasTexture(c);
         tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-        tex.encoding = THREE.sRGBEncoding;
 
-        const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide });
+        const mat = new THREE.ShaderMaterial({
+          uniforms: {
+            uMap: { value: tex },
+            uOff: { value: i },
+            uW: { value: PANEL_W },
+            uBend: { value: BEND },
+            uBright: { value: 1 },
+            uOpacity: { value: 1 }
+          },
+          vertexShader: VERT,
+          fragmentShader: FRAG,
+          transparent: true,
+          depthWrite: false,
+          side: THREE.DoubleSide
+        });
         const mesh = new THREE.Mesh(geo, mat);
-        mesh.rotation.y = i * STEP;
-        reel.add(mesh);
+        mesh.renderOrder = 0;
+        rig.add(mesh);
 
         if (art.src) {
           const img = new Image();
@@ -2689,12 +2714,12 @@
 
         /* 相機距離由「想同時看到幾個片格寬」回推，換螢幕寬度時取景才一致 */
         /* 窄螢幕看得到的片格數要少，否則膠卷會縮成細細一條、上下留一大片空白 */
-        want = w < 520 ? 1.15 : (w < 900 ? 2 : 3.2);
+        want = w < 520 ? 1.3 : (w < 900 ? 1.7 : 2);
         const tanY = Math.tan(camera.fov * Math.PI / 360);
         const hfov = 2 * Math.atan(tanY * camera.aspect);
         /* 兩個限制取遠的那個：橫向要放得下 want 個片格，
            縱向要放得下整條膠卷再留 35% 餘裕，否則上下會被切掉 */
-        camera.position.z = Math.max((want / 2) / Math.tan(hfov / 2), (PANEL_H * 1.14 / 2) / tanY);
+        camera.position.z = Math.max((want / 2) / Math.tan(hfov / 2), (PANEL_H * 1.06 / 2) / tanY);
       }
 
       return {
@@ -2703,14 +2728,16 @@
         /* 一格在畫面上的寬度，拖曳要用它換算才會跟手 */
         pitch: function () { return (filmGLWrap.clientWidth || 1) / want; },
         render: function (now) {
-          reel.rotation.y = -filmPos * STEP;
           panels.forEach((p, i) => {
             const o = i - filmPos;
-            const near = 1 / (1 + (o / 1.1) * (o / 1.1));
-            const b = .46 + .54 * near;
-            p.mat.color.setScalar(b);
-            p.mat.opacity = clamp(1 - Math.abs(o) * .21, 0, 1);
-            p.mesh.visible = p.mat.opacity > .01;
+            const near = 1 / (1 + (o / 1.15) * (o / 1.15));
+            const op = clamp(1 - Math.abs(o) * .17, 0, 1);
+            p.mat.uniforms.uOff.value = o;
+            p.mat.uniforms.uBright.value = .46 + .54 * near;
+            p.mat.uniforms.uOpacity.value = op;
+            p.mesh.visible = op > .01;
+            /* 遠的先畫，近的後畫：半透明疊起來前後才正確 */
+            p.mesh.renderOrder = Math.round(10 - Math.abs(o));
           });
           /* 正中央那格輕輕浮動 */
           rig.position.y = Math.sin(now / 1400) * .012;

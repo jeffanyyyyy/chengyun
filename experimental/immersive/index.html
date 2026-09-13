@@ -591,132 +591,202 @@
     color: rgba(255, 255, 255, .7);
   }
 
-  /* ── 團隊：膠卷輪播 ─────────────────── */
+  /* ── 團隊：弧形膠卷輪播 ─────────────
+     整條膠卷比視窗寬，兩端切出畫面外；
+     外層給 perspective，膠卷本體做輕微的 rotateX / rotateZ，
+     每一格再依離畫面中心的距離加上 rotateY，合起來就是弧面。 */
+  .film-title {
+    position: relative;
+    z-index: 3;
+    text-shadow: 0 6px 40px rgba(0, 0, 0, .85);
+  }
+
+  .film-caption {
+    position: relative;
+    z-index: 3;
+    margin: 1.1rem 0 0;
+    font-size: .78rem;
+    letter-spacing: .08em;
+    color: rgba(255, 255, 255, .58);
+    text-shadow: 0 4px 24px rgba(0, 0, 0, .8);
+    min-height: 1.4em;
+  }
+
+  .film-caption b { font-weight: 400; color: #fff; }
+  .film-caption .sep { margin: 0 .6rem; opacity: .4; }
+
+  /* 出血：跨滿整個視窗寬度，超出的部分由分鏡容器裁掉 */
+  .film-bleed {
+    position: relative;
+    width: 100vw;
+    max-width: 100vw;
+    margin-top: -3.75rem;
+    z-index: 1;
+  }
+
+  .scene[data-scene="teams"] .scene-inner { overflow: hidden; }
+
+  .film-stage {
+    perspective: 1400px;
+    perspective-origin: 50% 50%;
+    padding: 2.75rem 0 3.5rem;
+  }
+
+  @media (max-width: 760px) { .film-stage { padding: 1.75rem 0 2.25rem; } }
+
   .film {
     position: relative;
     min-width: 0;
-    margin-top: 2.5rem;
-    padding: 0;
-    border-radius: 14px;
-    background: linear-gradient(180deg, #0f1522 0%, #0a0e17 55%, #070a11 100%);
-    box-shadow: 0 30px 80px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(255, 255, 255, .06);
-    overflow: hidden;
+    transform: rotateX(7deg) rotateZ(-3.4deg) scale(1.06);
+    transform-style: preserve-3d;
+    background: linear-gradient(180deg, #10161f 0%, #0a0e14 55%, #06080d 100%);
+    box-shadow: 0 40px 120px rgba(0, 0, 0, .6);
   }
+
+  /* 兩端淡出，讓膠卷像是從畫面外延伸進來、再延伸出去 */
+  .film::before,
+  .film::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    width: 16vw;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .film::before { left: 0; background: linear-gradient(90deg, rgba(4, 5, 8, .92), rgba(4, 5, 8, 0)); }
+  .film::after { right: 0; background: linear-gradient(270deg, rgba(4, 5, 8, .92), rgba(4, 5, 8, 0)); }
 
   /* 齒孔：一格 40px、孔寬 16px，和真實底片的比例接近 */
   .film-perf {
     height: 20px;
-    background-color: rgba(0, 0, 0, .5);
+    background-color: rgba(0, 0, 0, .55);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='20'%3E%3Crect x='12' y='5' width='16' height='10' rx='2.5' fill='%23ffffff' fill-opacity='.16'/%3E%3C/svg%3E");
     background-repeat: repeat-x;
   }
 
   .film-window {
     overflow: hidden;
-    padding: 1.5rem;
+    padding: 1.1rem;
     min-width: 0;
   }
 
   .film-track {
     display: flex;
-    gap: 1.25rem;
+    gap: 1rem;
+    transform-style: preserve-3d;
     will-change: transform;
   }
 
+  /* 一次看到的格數：桌機約 4.5 格，弧形才有東西可以彎 */
   .frame {
-    flex: 0 0 calc((100% - 2.5rem) / 3);
+    flex: 0 0 22%;
     min-width: 0;
+    transform-style: preserve-3d;
+    transition: opacity .6s var(--ease);
   }
 
-  @media (max-width: 900px) { .frame { flex-basis: calc((100% - 1.25rem) / 2); } }
-  @media (max-width: 640px) { .frame { flex-basis: 100%; } }
+  @media (max-width: 1100px) { .frame { flex-basis: 30%; } }
+  @media (max-width: 760px) { .frame { flex-basis: 46%; } }
+  @media (max-width: 520px) { .frame { flex-basis: 56%; } }
 
   /* 人像位置：目前是佔位色塊，換成照片時把背景換掉即可 */
   .frame-shot {
     position: relative;
     /* 高度跟著視窗走，整條膠卷連同下方的圓點才進得了一個畫面 */
-    height: min(28svh, 17rem);
-    border-radius: 8px;
-    margin-bottom: 1.1rem;
+    height: min(26svh, 15rem);
+    border-radius: 4px;
     display: grid;
     place-items: center;
+    align-content: center;
+    gap: .5rem;
     background:
       radial-gradient(120% 90% at 30% 15%, var(--a) 0%, var(--b) 65%),
       var(--b);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08);
     overflow: hidden;
-    transition: transform .8s var(--ease), box-shadow .6s var(--ease);
+    transition: box-shadow .6s var(--ease), filter .6s var(--ease);
   }
 
-  .frame-shot span {
+  .frame-shot > span:first-child {
     font-size: .62rem;
     letter-spacing: .3em;
     color: rgba(255, 255, 255, .3);
   }
 
-  .frame:hover .frame-shot {
-    transform: scale(1.02);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2), 0 12px 40px rgba(0, 0, 0, .5);
-  }
-
   .frame-role {
-    font-size: .95rem;
-    font-weight: 400;
-    letter-spacing: .04em;
-    margin-bottom: .5rem;
+    font-size: .8rem;
+    letter-spacing: .05em;
+    color: rgba(255, 255, 255, .62);
+    text-align: center;
+    padding: 0 .75rem;
   }
 
-  .frame-note {
-    margin: 0;
-    font-size: .76rem;
-    line-height: 1.9;
-    color: rgba(255, 255, 255, .45);
-  }
+  /* 非中心的片格壓暗，視線自然落在中間那一格 */
+  .frame:not(.is-current) .frame-shot { filter: brightness(.52) saturate(.8); }
+  .frame.is-current .frame-shot { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .26), 0 18px 60px rgba(0, 0, 0, .55); }
+  .frame.is-current .frame-role { color: #fff; }
 
-  /* 左右箭頭 */
+  /* 左右箭頭：圓角方塊，貼在畫面兩側外緣 */
   .film-arrow {
     position: absolute;
     top: 50%;
-    width: 2.75rem;
-    height: 2.75rem;
-    margin-top: -1.375rem;
+    width: 3rem;
+    height: 3rem;
+    margin-top: -1.5rem;
     display: grid;
     place-items: center;
-    border-radius: 50%;
+    border-radius: 12px;
     color: #fff;
-    background: rgba(10, 12, 18, .72);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .16);
-    backdrop-filter: blur(6px);
+    background: rgba(10, 12, 18, .6);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18);
+    backdrop-filter: blur(8px);
     transition: transform .4s var(--ease), background-color .4s var(--ease), opacity .4s var(--ease);
-    z-index: 2;
+    z-index: 4;
   }
 
-  .film-arrow svg { width: 1.1rem; height: 1.1rem; }
-  .film-prev { left: .75rem; }
-  .film-next { right: .75rem; }
+  .film-arrow svg { width: 1.05rem; height: 1.05rem; }
+  .film-prev { left: clamp(.75rem, 3vw, 3rem); }
+  .film-next { right: clamp(.75rem, 3vw, 3rem); }
 
-  .film-arrow:hover { transform: scale(1.12); background: rgba(255, 255, 255, .16); }
-  .film-arrow[disabled] { opacity: .25; pointer-events: none; }
+  .film-arrow:hover { transform: scale(1.1); background: rgba(255, 255, 255, .16); }
+  .film-arrow[disabled] { opacity: .22; pointer-events: none; }
 
-  /* 分頁圓點 */
+  /* 分頁圓點與署名 */
+  .film-below {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    max-width: 72rem;
+    margin-top: 1.25rem;
+  }
+
   .film-dots {
     display: flex;
     justify-content: center;
-    gap: .6rem;
-    margin-top: 1.75rem;
+    gap: .55rem;
   }
 
   .film-dots button {
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, .28);
+    background: rgba(255, 255, 255, .26);
     transition: background-color .4s var(--ease), transform .4s var(--ease);
   }
 
   .film-dots button[aria-selected="true"] {
     background: #fff;
-    transform: scale(1.35);
+    transform: scale(1.5);
+  }
+
+  .film-below .note { margin-top: 1.5rem; text-align: center; }
+
+  /* 動態偏好關閉時不做 3D，避免暈眩 */
+  @media (prefers-reduced-motion: reduce) {
+    .film { transform: none; }
+    .film-stage { perspective: none; padding: 2rem 0; }
   }
 
   /* ── 聯絡：左資訊、右表單 ───────────── */
@@ -1203,48 +1273,45 @@
   <div class="scene-inner grid place-items-center min-h-[100svh] px-6 md:px-10 py-20">
     <div class="stagger w-full max-w-6xl text-left">
       <span class="eyebrow" data-i18n="teams.eyebrow">03 — Teams</span>
-      <h2 class="scene-title" data-i18n-html="teams.title">A small team,<br />each holding one part of the process.</h2>
+      <h2 class="scene-title film-title" data-i18n-html="teams.title">A small team,<br />each holding one part of the process.</h2>
 
-      <!-- 膠卷：上下齒孔、可橫向捲動的片格 -->
+      <!-- 目前這一格的說明，跟著輪播切換 -->
+      <p class="film-caption"><b id="filmRole"></b><span class="sep">•</span><span id="filmNote"></span></p>
+    </div>
+
+    <!-- 膠卷：滿版出血、帶透視與傾斜，兩端切出畫面外 -->
+    <div class="film-bleed">
+      <div class="film-stage">
       <div class="film" id="film">
         <div class="film-perf" aria-hidden="true"></div>
 
         <div class="film-window">
           <div class="film-track" id="filmTrack">
             <article class="frame">
-              <div class="frame-shot" style="--a:#2b3a66; --b:#0d1220"><span>01</span></div>
-              <h3 class="frame-role" data-i18n="teams.s1">Curation Lead</h3>
-              <p class="frame-note" data-i18n="teams.b1">Theme, schedule and overall pacing; speaks for the organiser.</p>
+              <div class="frame-shot" style="--a:#2b3a66; --b:#0d1220"><span>01</span><span class="frame-role" data-i18n="teams.s1">Curation Lead</span></div>
             </article>
             <article class="frame">
-              <div class="frame-shot" style="--a:#1f4a4a; --b:#0b1516"><span>02</span></div>
-              <h3 class="frame-role" data-i18n="teams.s2">Brand Review</h3>
-              <p class="frame-note" data-i18n="teams.b2">Brand communication, screening and allocation; keeps the tone of the settlement.</p>
+              <div class="frame-shot" style="--a:#1f4a4a; --b:#0b1516"><span>02</span><span class="frame-role" data-i18n="teams.s2">Brand Review</span></div>
             </article>
             <article class="frame">
-              <div class="frame-shot" style="--a:#4a2a2a; --b:#170d0d"><span>03</span></div>
-              <h3 class="frame-role" data-i18n="teams.s3">Site Operations</h3>
-              <p class="frame-note" data-i18n="teams.b3">Load-in, flow, power and safety — every call made on the day.</p>
+              <div class="frame-shot" style="--a:#4a2a2a; --b:#170d0d"><span>03</span><span class="frame-role" data-i18n="teams.s3">Site Operations</span></div>
             </article>
             <article class="frame">
-              <div class="frame-shot" style="--a:#3d3a18; --b:#14130a"><span>04</span></div>
-              <h3 class="frame-role" data-i18n="teams.s4">Design</h3>
-              <p class="frame-note" data-i18n="teams.b4">Key visuals, brand signage and the on-site props.</p>
+              <div class="frame-shot" style="--a:#3d3a18; --b:#14130a"><span>04</span><span class="frame-role" data-i18n="teams.s4">Design</span></div>
             </article>
             <article class="frame">
-              <div class="frame-shot" style="--a:#33265c; --b:#100c1c"><span>05</span></div>
-              <h3 class="frame-role" data-i18n="teams.s5">Social</h3>
-              <p class="frame-note" data-i18n="teams.b5">Site and social content, stall features, and the record kept after each session.</p>
+              <div class="frame-shot" style="--a:#33265c; --b:#100c1c"><span>05</span><span class="frame-role" data-i18n="teams.s5">Social</span></div>
             </article>
             <article class="frame">
-              <div class="frame-shot" style="--a:#20405e; --b:#0a131c"><span>06</span></div>
-              <h3 class="frame-role" data-i18n="teams.s6">Stallholder Support</h3>
-              <p class="frame-note" data-i18n="teams.b6">Briefings, help on the day, and follow-up once the market closes.</p>
+              <div class="frame-shot" style="--a:#20405e; --b:#0a131c"><span>06</span><span class="frame-role" data-i18n="teams.s6">Stallholder Support</span></div>
             </article>
           </div>
         </div>
 
         <div class="film-perf" aria-hidden="true"></div>
+
+      </div>
+      </div>
 
         <button class="film-arrow film-prev hover-target" id="filmPrev" type="button" aria-label="Previous">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1252,11 +1319,11 @@
         <button class="film-arrow film-next hover-target" id="filmNext" type="button" aria-label="Next">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
-      </div>
+    </div>
 
+    <div class="film-below">
       <div class="film-dots" id="filmDots" role="tablist" aria-label="Team"></div>
-
-      <p class="note mt-8" data-i18n="teams.note">Organised by Chengyun Event Studio Co., Ltd.</p>
+      <p class="note" data-i18n="teams.note">Organised by Chengyun Event Studio Co., Ltd.</p>
     </div>
   </div>
 </section>
@@ -1525,6 +1592,12 @@
     const I18N = {
       en: {
         'hero.top': 'View All Projects', 'hero.hold': 'Click & Hold',
+        'teams.b1': 'Theme, schedule and overall pacing; speaks for the organiser.',
+        'teams.b2': 'Brand communication, screening and allocation; keeps the tone of the settlement.',
+        'teams.b3': 'Load-in, flow, power and safety — every call made on the day.',
+        'teams.b4': 'Key visuals, brand signage and the on-site props.',
+        'teams.b5': 'Site and social content, stall features, and the record kept after each session.',
+        'teams.b6': 'Briefings, help on the day, and follow-up once the market closes.',
         'contact.t0': 'Chengyun Event Studio Co., Ltd.',
         'form.required': 'This field is required', 'form.badEmail': 'Please check the email address',
         'form.fixFields': 'Please complete the required fields marked with an asterisk.',
@@ -1833,6 +1906,7 @@
     });
 
     let lang = 'en';
+    let filmSync = () => { /* 膠卷初始化前先當作沒事 */ };
     const t = (key) => (I18N[lang] && I18N[lang][key]) || I18N.en[key] || '';
 
     function applyLang(next) {
@@ -1858,6 +1932,7 @@
       if (fm) { fm.textContent = ''; fm.classList.remove('is-error', 'is-ok'); }
 
       try { localStorage.setItem('cy-lang', next); } catch (err) { /* 無痕視窗寫不進去，忽略即可 */ }
+      filmSync();
       syncChrome();
       if (detail.classList.contains('is-on')) { renderDetail(); }
       requestAnimationFrame(updateCue);
@@ -1925,6 +2000,8 @@
       syncChrome();
       watchScene(to);
       backBtn.hidden = name === 'hero' || menuOverlay.classList.contains('is-open');
+      /* 分鏡在隱藏狀態下量不到寬度，進場時發一則事件，讓需要的元件自己重算 */
+      dispatchEvent(new CustomEvent('cy:scene', { detail: name }));
 
       /* 焦點移到新分鏡，鍵盤使用者不會被留在看不見的地方 */
       const focusable = to.querySelector('a, button');
@@ -2164,55 +2241,101 @@
 
 
 
-    /* ══ 團隊膠卷輪播 ══════════════════════════════════════════ */
+    /* ══ 團隊膠卷輪播（弧形）══════════════════════════════════
+       膠卷本體只做水平位移，弧面是每一格各自的 rotateY / translateZ，
+       依「這一格的中心離視窗中心多遠」算出來，所以捲動時弧度會跟著流動。 */
+    const filmEl = document.getElementById('film');
     const filmTrack = document.getElementById('filmTrack');
     const filmFrames = [...filmTrack.children];
     const filmDots = document.getElementById('filmDots');
     const filmPrev = document.getElementById('filmPrev');
     const filmNext = document.getElementById('filmNext');
+    const filmRole = document.getElementById('filmRole');
+    const filmNote = document.getElementById('filmNote');
+    const filmMax = filmFrames.length - 1;
     let filmIndex = 0;
-    let filmMax = 0;
+    let filmRaf = 0;
 
-    /* 一次看得到幾格是由 CSS 的 flex-basis 決定的，
-       用實際量到的寬度回推，換斷點時不必再改一次 JS */
-    function filmPerView() {
-      const w = filmFrames[0].getBoundingClientRect().width;
-      const inner = filmTrack.parentElement.clientWidth;
-      return Math.max(1, Math.round(inner / (w + 20)));
+    /* 目前這一格的職稱與說明，跟著語言與選取狀態走 */
+    filmSync = function () {
+      filmRole.textContent = t('teams.s' + (filmIndex + 1));
+      filmNote.textContent = t('teams.b' + (filmIndex + 1));
+    };
+
+    /* 依目前實際的位移量重算弧度：讀 track 的 matrix 而不是預期值，
+       GSAP 補間到一半時也拿得到正確位置 */
+    function filmCurve() {
+      const view = filmEl.getBoundingClientRect();
+      const mid = view.left + view.width / 2;
+      /* 基準取「畫面一半」與「片格寬度的 1.8 倍」中較大的那個：
+         寬螢幕照畫面算，窄螢幕才不會把左右兩格轉到近乎側面 */
+      const fw = filmFrames[0].getBoundingClientRect().width || 1;
+      const reach = Math.max(view.width / 2, fw * 1.8, 1);
+
+      filmFrames.forEach((f) => {
+        const r = f.getBoundingClientRect();
+        const d = clamp((r.left + r.width / 2 - mid) / reach, -1.6, 1.6);
+        if (reduce) {
+          f.style.transform = '';
+          return;
+        }
+        f.style.transform =
+          'rotateY(' + (-d * 26).toFixed(2) + 'deg) ' +
+          'translateZ(' + (-Math.abs(d) * 110).toFixed(1) + 'px) ' +
+          'translateY(' + (Math.abs(d) * 10).toFixed(1) + 'px)';
+      });
     }
 
-    function filmLayout() {
-      filmMax = Math.max(0, filmFrames.length - filmPerView());
-      if (filmIndex > filmMax) { filmIndex = filmMax; }
-
-      filmDots.innerHTML = '';
-      for (let i = 0; i <= filmMax; i += 1) {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'hover-target';
-        b.setAttribute('role', 'tab');
-        b.setAttribute('aria-label', String(i + 1));
-        b.addEventListener('click', () => filmGo(i));
-        filmDots.appendChild(b);
-      }
-      filmGo(filmIndex, true);
+    /* 補間期間持續重算弧度；停了就收掉，不留常駐的 rAF */
+    function filmTick(until) {
+      cancelAnimationFrame(filmRaf);
+      const stop = performance.now() + until;
+      const step = () => {
+        filmCurve();
+        if (performance.now() < stop) { filmRaf = requestAnimationFrame(step); }
+      };
+      step();
     }
 
     function filmGo(i, instant) {
       filmIndex = clamp(i, 0, filmMax);
-      const x = -filmFrames[filmIndex].offsetLeft;
+
+      /* 把選到的那一格帶到膠卷正中央 */
+      const f = filmFrames[filmIndex];
+      const x = filmTrack.parentElement.clientWidth / 2 - (f.offsetLeft + f.offsetWidth / 2);
+
       if (hasGsap && !reduce && !instant) {
-        gsap.to(filmTrack, { x: x, duration: .9, ease: 'power3.inOut' });
+        gsap.to(filmTrack, { x: x, duration: 1, ease: 'power3.inOut' });
+        filmTick(1100);
       } else if (hasGsap) {
         gsap.set(filmTrack, { x: x });
+        filmCurve();
       } else {
-        filmTrack.style.transition = instant ? 'none' : 'transform .9s cubic-bezier(.22,1,.36,1)';
+        filmTrack.style.transition = instant ? 'none' : 'transform 1s cubic-bezier(.22,1,.36,1)';
         filmTrack.style.transform = 'translateX(' + x + 'px)';
+        filmTick(instant ? 0 : 1100);
       }
+
+      filmFrames.forEach((el, n) => el.classList.toggle('is-current', n === filmIndex));
       [...filmDots.children].forEach((d, n) => d.setAttribute('aria-selected', String(n === filmIndex)));
       filmPrev.disabled = filmIndex === 0;
       filmNext.disabled = filmIndex === filmMax;
+      filmSync();
     }
+
+    /* 一格一個圓點 */
+    filmFrames.forEach((f, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'hover-target';
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-label', String(i + 1));
+      b.addEventListener('click', () => filmGo(i));
+      filmDots.appendChild(b);
+
+      /* 點旁邊的片格就把它轉到中間 */
+      f.addEventListener('click', () => { if (i !== filmIndex) { filmGo(i); } });
+    });
 
     filmPrev.addEventListener('click', () => filmGo(filmIndex - 1));
     filmNext.addEventListener('click', () => filmGo(filmIndex + 1));
@@ -2234,8 +2357,15 @@
       if (Math.abs(dx) > 45) { filmGo(filmIndex + (dx < 0 ? 1 : -1)); }
     });
 
-    filmLayout();
-    addEventListener('resize', filmLayout);
+    /* 一開場先停在中間那一格，弧形兩側才都有東西 */
+    filmIndex = Math.floor(filmMax / 2);
+    filmGo(filmIndex, true);
+    addEventListener('resize', () => filmGo(filmIndex, true));
+
+    /* 分鏡切進來時版面才算完成，重算一次位置與弧度 */
+    addEventListener('cy:scene', (e) => {
+      if (e.detail === 'teams') { requestAnimationFrame(() => filmGo(filmIndex, true)); }
+    });
 
     /* ══ 聯絡表單 ══════════════════════════════════════════════
        這是純靜態頁面，沒有伺服器可以寫資料庫或寄信。

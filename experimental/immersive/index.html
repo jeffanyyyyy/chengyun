@@ -328,9 +328,10 @@
     position: absolute;
     inset: 0;
     opacity: 0;
-    background: rgba(6, 7, 10, .55);
-    backdrop-filter: blur(20px) saturate(.85);
-    -webkit-backdrop-filter: blur(20px) saturate(.85);
+    /* 兩層暗色相疊很容易把背景整個蓋掉，這裡只負責壓一點點，其餘交給模糊 */
+    background: rgba(8, 9, 12, .34);
+    backdrop-filter: blur(16px) saturate(.9);
+    -webkit-backdrop-filter: blur(16px) saturate(.9);
   }
 
   /* 從右上角漢堡鈕的位置擴散開的圓形遮罩 */
@@ -341,7 +342,7 @@
     width: 260vmax;
     height: 260vmax;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(10, 11, 14, .92) 0%, rgba(10, 11, 14, .78) 60%, rgba(10, 11, 14, .6) 100%);
+    background: radial-gradient(circle, rgba(8, 9, 12, .5) 0%, rgba(8, 9, 12, .4) 60%, rgba(8, 9, 12, .28) 100%);
     transform: translate(50%, -50%) scale(0);
     transform-origin: 50% 50%;
   }
@@ -372,8 +373,10 @@
     align-items: baseline;
     gap: 1.25rem;
     padding: .75rem .25rem;
-    border-bottom: 1px solid rgba(255, 255, 255, .08);
-    color: rgba(255, 255, 255, .55);
+    border-bottom: 1px solid rgba(255, 255, 255, .14);
+    color: rgba(255, 255, 255, .72);
+    /* 背景影片透出來之後，文字需要一點陰影才咬得住 */
+    text-shadow: 0 1px 18px rgba(0, 0, 0, .55);
     transition: color .45s var(--ease), transform .55s var(--ease), border-color .45s var(--ease);
   }
 
@@ -1208,11 +1211,6 @@
             <span class="desc" data-i18n="contact.note">Tax ID 62164766</span>
           </div>
           <div>
-            <span class="term" data-i18n="contact.t4">Address</span>
-            <span class="desc" data-i18n="contact.v4">Shuangshi Plaza, Banqiao, New Taipei</span>
-            <span class="desc" data-i18n="contact.d4">Next to Jiangzicui MRT</span>
-          </div>
-          <div>
             <span class="term" data-i18n="contact.t3">Phone</span>
             <a class="link hover-target" href="tel:0922531118">0922-531-118</a>
           </div>
@@ -1505,8 +1503,6 @@
         'contact.t1': '官方 LINE', 'contact.d1': '報名、審核與行前問題請由官方帳號來訊。',
         'contact.t2': 'Email', 'contact.d2': '合作提案與媒體聯繫。',
         'contact.t3': '聯絡電話',
-        'contact.t4': '活動地點', 'contact.v4': '新北市板橋區雙十廣場',
-        'contact.d4': '捷運江子翠站旁　擺攤 15:00 – 20:30',
         'contact.note': '澄耘活動工作室 有限公司　|　統一編號 62164766',
         'detail.meta': '市集策劃 · 品牌招商 · 現場執行',
         'detail.title': '《默者文畫》無聲風格聚落',
@@ -1642,8 +1638,6 @@
         'contact.t1': '公式 LINE', 'contact.d1': '申し込み・審査・事前のご質問はこちらから。',
         'contact.t2': 'Email', 'contact.d2': '協業のご提案と取材のお問い合わせ。',
         'contact.t3': '電話',
-        'contact.t4': '会場', 'contact.v4': '新北市板橋区 双十広場',
-        'contact.d4': 'MRT江子翠駅すぐ　出店 15:00 – 20:30',
         'contact.note': '澄耘活動工作室 有限公司　|　統一番号 62164766',
         'detail.meta': 'キュレーション · 出店審査 · 現場運営',
         'detail.title': 'サイレントマーケット『默者文畫』',

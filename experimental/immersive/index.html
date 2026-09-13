@@ -48,7 +48,7 @@
   ::selection { background: #fff; color: #000; }
   :focus-visible { outline: 1px solid #fff; outline-offset: 6px; }
 
-  /* ── 水晶與背景光暈 ─────────────────── */
+  /* ── 背景影片 ───────────────────────── */
   .stage {
     position: fixed;
     inset: 0;
@@ -62,57 +62,21 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: .5;
+    opacity: .78;
+    /* 放大一點點，滑鼠視差位移時才不會露出邊緣 */
+    transform: scale(1.08);
+    will-change: transform;
   }
 
-  /* 影片與水晶之間的壓暗層：水晶是深色的，背景太亮碎片的塊面就糊掉了。
-     邊緣再收一圈暗角，視線收在中央。最上面疊一點極淡的冷光當背光 */
+  /* 壓暗層：白字要壓在影片上仍需要一層底，但比先前淡，讓影片看得出來。
+     邊緣收一圈暗角，視線收在中央 */
   .stage-veil {
     position: absolute;
     inset: 0;
-    background:
-      radial-gradient(38% 38% at 50% 50%, rgba(92, 104, 150, .09) 0%, rgba(92, 104, 150, 0) 72%),
-      radial-gradient(120% 85% at 50% 50%, rgba(11, 11, 12, .62) 0%, rgba(11, 11, 12, .93) 100%);
+    background: radial-gradient(115% 85% at 50% 50%, rgba(11, 11, 12, .42) 0%, rgba(11, 11, 12, .9) 100%);
   }
 
-  #gl {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-
-  /* WebGL 不可用或 context 被系統收回時的替身 */
-  .crystal-fallback {
-    position: absolute;
-    inset: 0;
-    display: none;
-    place-items: center;
-  }
-
-  .crystal-fallback::before {
-    content: '';
-    width: min(38vmin, 300px);
-    aspect-ratio: 1;
-    clip-path: polygon(50% 0%, 88% 25%, 100% 62%, 74% 96%, 26% 96%, 0% 62%, 12% 25%);
-    background:
-      conic-gradient(from 210deg at 50% 45%,
-        #2a2d38 0deg, #0d0e12 60deg, #3a3f4f 120deg, #101116 200deg,
-        #454b60 260deg, #0b0b0f 320deg, #2a2d38 360deg);
-    box-shadow: 0 0 90px rgba(90, 104, 160, .25);
-    animation: spin 24s linear infinite;
-  }
-
-  .no-webgl .crystal-fallback { display: grid; }
-  .no-webgl #gl { display: none; }
-
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-  }
-
-  /* 進到內頁時水晶退到背景 */
+  /* 進到內頁時背景退下去 */
   .is-inner .stage { opacity: .45; }
 
   /* ── 分鏡層 ─────────────────────────── */
@@ -349,7 +313,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .grain, .breathe, .crystal-fallback::before { animation: none; }
+    .grain, .breathe { animation: none; }
     .scene, .slide, .detail { transition-duration: .2s; }
     .scene.is-active .stagger > * { animation: none; }
     .wipe.is-on { animation-duration: .3s; }
@@ -363,8 +327,6 @@
     <source src="../../assets/hero-loop-portrait.mp4" type="video/mp4" />
   </video>
   <div class="stage-veil"></div>
-  <canvas id="gl"></canvas>
-  <div class="crystal-fallback"></div>
 </div>
 
 <div class="cursor cursor-dot" id="cursorDot" aria-hidden="true"></div>
@@ -401,7 +363,7 @@
             style="width:min(62vmin,520px);aspect-ratio:1;background:transparent;border:0"
             id="holdZone" type="button" aria-label="長按展開導覽">
       <svg class="hold-ring absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 200 200" aria-hidden="true">
-        <circle cx="100" cy="100" r="96" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1" />
+        <circle cx="100" cy="100" r="96" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1" />
         <circle cx="100" cy="100" r="96" fill="none" stroke="#fff" stroke-width="1.5"
                 stroke-dasharray="603" stroke-dashoffset="603" id="holdProgress" />
       </svg>
@@ -527,314 +489,6 @@
     const lerp = (a, b, t) => a + (b - a) * t;
     const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
 
-    /* ══ 水晶：細分正二十面體，每個面切成獨立碎片 ══════════════════ */
-
-    /* 正二十面體的 20 個面，每面切成一片獨立的碎晶 */
-    function buildShards() {
-      const t = (1 + Math.sqrt(5)) / 2;
-      const norm = (v) => {
-        const l = Math.hypot(v[0], v[1], v[2]);
-        return [v[0] / l, v[1] / l, v[2] / l];
-      };
-      let verts = [
-        [-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0],
-        [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t],
-        [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]
-      ].map(norm);
-
-      let faces = [
-        [0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11],
-        [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
-        [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9],
-        [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]
-      ];
-
-      /* 不細分：20 片大碎晶比 80 片小三角形有力，塊面才看得出銳利的邊 */
-
-      const pos = [], nor = [], cen = [], bary = [], seed = [];
-      const BARY = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
-
-      faces.forEach((f, fi) => {
-        const p = f.map((i) => verts[i]);
-        const c = [0, 1, 2].map((axis) => (p[0][axis] + p[1][axis] + p[2][axis]) / 3);
-        const n = norm(c);                       // 球面上的面，中心方向就是法線
-        const s = (Math.sin(fi * 12.9898) * 43758.5453) % 1;
-        const rnd = s < 0 ? s + 1 : s;
-
-        for (let v = 0; v < 3; v += 1) {
-          pos.push(p[v][0], p[v][1], p[v][2]);
-          nor.push(n[0], n[1], n[2]);
-          cen.push(c[0], c[1], c[2]);
-          bary.push(BARY[v][0], BARY[v][1], BARY[v][2]);
-          seed.push(rnd);
-        }
-      });
-
-      return {
-        count: faces.length * 3,
-        pos: new Float32Array(pos),
-        nor: new Float32Array(nor),
-        cen: new Float32Array(cen),
-        bary: new Float32Array(bary),
-        seed: new Float32Array(seed)
-      };
-    }
-
-    /* 只需要投影與平移，自己算比引入矩陣函式庫划算 */
-    const mat4 = {
-      perspective(fovy, aspect, near, far) {
-        const f = 1 / Math.tan(fovy / 2);
-        return new Float32Array([
-          f / aspect, 0, 0, 0,
-          0, f, 0, 0,
-          0, 0, (far + near) / (near - far), -1,
-          0, 0, (2 * far * near) / (near - far), 0
-        ]);
-      },
-      translated(m, z) {
-        const o = new Float32Array(m);
-        o[12] = m[8] * z + m[12];
-        o[13] = m[9] * z + m[13];
-        o[14] = m[10] * z + m[14];
-        o[15] = m[11] * z + m[15];
-        return o;
-      }
-    };
-
-    class Crystal {
-      constructor(canvas) {
-        this.canvas = canvas;
-        this.geo = buildShards();
-        this.charge = 0; this.targetCharge = 0;
-        this.explode = 0; this.targetExplode = 0;
-        this.mx = 0; this.my = 0; this.smx = 0; this.smy = 0;
-        this.start = performance.now();
-        this.alive = false;
-
-        /* Safari 在分頁切走或記憶體吃緊時會收回 WebGL context；
-           不接這兩個事件，畫布就會永遠留白 —— 水晶「不見了」多半是這個原因 */
-        canvas.addEventListener('webglcontextlost', (e) => {
-          e.preventDefault();
-          this.alive = false;
-          root.classList.add('no-webgl');
-        });
-        canvas.addEventListener('webglcontextrestored', () => {
-          if (this.init()) { root.classList.remove('no-webgl'); }
-        });
-      }
-
-      init() {
-        const gl = this.canvas.getContext('webgl', { alpha: true, antialias: true, premultipliedAlpha: false })
-          || this.canvas.getContext('experimental-webgl', { alpha: true, antialias: true });
-        if (!gl) { return false; }
-        this.gl = gl;
-
-        const vert = `
-          attribute vec3 aPos;
-          attribute vec3 aNormal;
-          attribute vec3 aCenter;
-          attribute vec3 aBary;
-          attribute float aSeed;
-
-          uniform mat4 uMVP;
-          uniform float uTime;
-          uniform float uExplode;
-          uniform float uShift;
-          uniform vec2 uMouse;
-
-          varying vec3 vNormal;
-          varying vec3 vPos;
-          varying vec3 vBary;
-          varying float vSeed;
-
-          mat3 rotX(float a) {
-            float c = cos(a), s = sin(a);
-            return mat3(1.0, 0.0, 0.0, 0.0, c, -s, 0.0, s, c);
-          }
-          mat3 rotY(float a) {
-            float c = cos(a), s = sin(a);
-            return mat3(c, 0.0, s, 0.0, 1.0, 0.0, -s, 0.0, c);
-          }
-
-          void main() {
-            /* 每片碎片各自繞自己的重心翻轉，並沿法線往外炸開 */
-            float spin = uTime * (0.18 + aSeed * 0.45) + aSeed * 6.2831;
-            mat3 own = rotY(spin * 0.7) * rotX(spin * 0.45);
-
-            vec3 local = own * (aPos - aCenter);
-            local *= 0.62 + aSeed * 0.55;                      // 大小不一，彼此之間留縫
-            float push = uExplode * (0.22 + aSeed * 1.25);
-            vec3 p = aCenter * (1.0 + push) + local;
-
-            /* 整體自轉，再疊一點滑鼠視差 */
-            mat3 world = rotY(uTime * 0.16 + uMouse.x * 0.45) * rotX(sin(uTime * 0.11) * 0.22 + uMouse.y * 0.3);
-            p = world * p;
-
-            vNormal = world * own * aNormal;
-            vPos = p;
-            vBary = aBary;
-            vSeed = aSeed;
-
-            vec4 clip = uMVP * vec4(p, 1.0);
-            clip.x += uShift * clip.w;                          // 三個色版各偏一點，做出色散
-            gl_Position = clip;
-          }
-        `;
-
-        const frag = `
-          precision mediump float;
-
-          varying vec3 vNormal;
-          varying vec3 vPos;
-          varying vec3 vBary;
-          varying float vSeed;
-
-          uniform float uCharge;
-
-          void main() {
-            vec3 n = normalize(vNormal);
-            vec3 eye = vec3(0.0, 0.0, 6.4);
-            vec3 v = normalize(eye - vPos);
-            if (dot(n, v) < 0.0) { n = -n; }                    // 碎片是薄片，兩面都要有光
-
-            vec3 key = normalize(vec3(0.55, 0.95, 0.5));
-            vec3 fill = normalize(vec3(-0.8, -0.25, 0.55));
-            vec3 h1 = normalize(key + v);
-            vec3 h2 = normalize(fill + v);
-
-            float fres = pow(1.0 - max(dot(n, v), 0.0), 3.0);
-
-            vec3 col = vec3(0.013);                              // 本體近乎全黑
-            col += vec3(0.085, 0.090, 0.105) * max(dot(n, key), 0.0);
-            col += vec3(1.0) * pow(max(dot(n, h1), 0.0), 85.0) * 1.9;      // 銳利高光
-            col += vec3(0.6, 0.68, 1.0) * pow(max(dot(n, h2), 0.0), 30.0) * 0.28;
-            col += vec3(0.34, 0.38, 0.58) * fres * (0.45 + uCharge * 0.9);  // 邊緣冷光
-
-            /* 用重心座標描出每片碎片的銳利亮邊 */
-            float e = min(min(vBary.x, vBary.y), vBary.z);
-            float edge = 1.0 - smoothstep(0.0, 0.04, e);
-            col += vec3(0.85, 0.89, 1.0) * edge * (0.35 + uCharge * 0.7);
-
-            gl_FragColor = vec4(col, 1.0);
-          }
-        `;
-
-        const compile = (type, src) => {
-          const sh = gl.createShader(type);
-          gl.shaderSource(sh, src);
-          gl.compileShader(sh);
-          return gl.getShaderParameter(sh, gl.COMPILE_STATUS) ? sh : null;
-        };
-
-        const vs = compile(gl.VERTEX_SHADER, vert);
-        const fs = compile(gl.FRAGMENT_SHADER, frag);
-        if (!vs || !fs) { return false; }
-
-        const prog = gl.createProgram();
-        gl.attachShader(prog, vs);
-        gl.attachShader(prog, fs);
-        gl.linkProgram(prog);
-        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { return false; }
-        gl.useProgram(prog);
-        this.prog = prog;
-
-        const attach = (name, data, size) => {
-          const buf = gl.createBuffer();
-          gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-          gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-          const loc = gl.getAttribLocation(prog, name);
-          gl.enableVertexAttribArray(loc);
-          gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0);
-        };
-
-        attach('aPos', this.geo.pos, 3);
-        attach('aNormal', this.geo.nor, 3);
-        attach('aCenter', this.geo.cen, 3);
-        attach('aBary', this.geo.bary, 3);
-        attach('aSeed', this.geo.seed, 1);
-
-        this.u = {
-          mvp: gl.getUniformLocation(prog, 'uMVP'),
-          time: gl.getUniformLocation(prog, 'uTime'),
-          explode: gl.getUniformLocation(prog, 'uExplode'),
-          charge: gl.getUniformLocation(prog, 'uCharge'),
-          shift: gl.getUniformLocation(prog, 'uShift'),
-          mouse: gl.getUniformLocation(prog, 'uMouse')
-        };
-
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LEQUAL);
-        gl.clearColor(0, 0, 0, 0);
-
-        this.alive = true;
-        this.resize();
-        return true;
-      }
-
-      resize() {
-        if (!this.alive) { return; }
-        /* 每格都確認一次尺寸：初始化當下版面可能還沒算完，
-           只綁 resize 事件的話會卡在 300×150 的預設畫布 */
-        const dpr = Math.min(devicePixelRatio || 1, 1.75);
-        const w = Math.round(this.canvas.clientWidth * dpr);
-        const h = Math.round(this.canvas.clientHeight * dpr);
-        if (!w || !h) { return; }
-        if (this.canvas.width !== w || this.canvas.height !== h) {
-          this.canvas.width = w;
-          this.canvas.height = h;
-          this.gl.viewport(0, 0, w, h);
-        }
-        const aspect = w / h;
-        /* 直式畫面時把鏡頭再拉遠，水晶以短邊為準，不會撐出左右 */
-        const dist = 6.4 / Math.min(aspect, 1);
-        this.mvp = mat4.translated(mat4.perspective(0.72, aspect, 0.1, 100), -dist);
-      }
-
-      render(now) {
-        if (!this.alive) { return; }
-        this.resize();
-        if (!this.mvp) { return; }
-
-        const gl = this.gl;
-        const t = reduce ? 0 : (now - this.start) * 0.001;
-
-        this.charge = lerp(this.charge, this.targetCharge, 0.1);
-        this.explode = lerp(this.explode, this.targetExplode, 0.055);
-        this.smx = lerp(this.smx, this.mx, 0.045);
-        this.smy = lerp(this.smy, this.my, 0.045);
-
-        gl.useProgram(this.prog);
-        gl.uniformMatrix4fv(this.u.mvp, false, this.mvp);
-        gl.uniform1f(this.u.time, t);
-        gl.uniform1f(this.u.explode, this.explode);
-        gl.uniform1f(this.u.charge, this.charge);
-        gl.uniform2f(this.u.mouse, this.smx, this.smy);
-
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        /* 三個色版各畫一次、各偏一點，就是螢幕空間的色差；
-           每次只開一個顏色通道，中間清掉深度免得後兩趟被擋掉 */
-        const shift = 0.0045 + this.charge * 0.012;
-        const passes = [
-          [shift, true, false, false],
-          [0, false, true, false],
-          [-shift, false, false, true]
-        ];
-
-        passes.forEach(([s, r, g, b], i) => {
-          if (i > 0) { gl.clear(gl.DEPTH_BUFFER_BIT); }
-          gl.colorMask(r, g, b, true);
-          gl.uniform1f(this.u.shift, s);
-          gl.drawArrays(gl.TRIANGLES, 0, this.geo.count);
-        });
-
-        gl.colorMask(true, true, true, true);
-      }
-    }
-
-    const crystal = new Crystal(document.getElementById('gl'));
-    if (!crystal.init()) { root.classList.add('no-webgl'); }
-
     /* ══ 背景影片 ══════════════════════════════════════════════ */
     const bgVideo = document.getElementById('bgVideo');
     if (reduce) { bgVideo.pause(); }
@@ -849,15 +503,12 @@
     addEventListener('pointerdown', resumeVideo);
     addEventListener('keydown', resumeVideo);
 
-    /* 版面尺寸變了就重算，不必等 window resize（分鏡切換也會動到尺寸） */
-    if ('ResizeObserver' in window) {
-      new ResizeObserver(() => crystal.resize()).observe(document.getElementById('stage'));
-    }
-
+    /* 滑鼠位置推一點背景視差，畫面才不會是一張死的影片 */
+    let mx = 0, my = 0, vx = 0, vy = 0;
     if (fine) {
       addEventListener('mousemove', (e) => {
-        crystal.mx = (e.clientX / innerWidth - 0.5) * 2;
-        crystal.my = -(e.clientY / innerHeight - 0.5) * 2;
+        mx = (e.clientX / innerWidth - 0.5) * 2;
+        my = (e.clientY / innerHeight - 0.5) * 2;
       });
     }
 
@@ -886,9 +537,6 @@
       work: '← → to browse',
       contact: 'Esc to go back'
     };
-    /* 水晶在各分鏡的狀態：首頁聚合、導覽散開、內頁再散得更開並退到背景 */
-    const EXPLODE = { hero: 0, menu: 0.62, about: 1, work: 1, contact: 1 };
-
     function goTo(name) {
       if (busy || name === current || !scenes.has(name)) { return; }
       busy = true;
@@ -910,7 +558,6 @@
 
         root.classList.toggle('is-inner', name !== 'hero' && name !== 'menu');
         root.classList.toggle('is-menu', name === 'menu');
-        crystal.targetExplode = EXPLODE[name] ?? 0;
         sceneLabel.textContent = LABELS[name] || '';
         footHint.textContent = HINTS[name] || '';
         backBtn.hidden = name === 'hero';
@@ -938,15 +585,12 @@
       if (current !== 'hero' || busy) { return; }
       holding = true;
       holdStart = performance.now();
-      crystal.targetCharge = 1;
-      crystal.targetExplode = 0.5;           // 蓄力時碎片先微微撐開
       ring.classList.add('is-hold');
     }
 
     function endHold(completed) {
       holding = false;
-      crystal.targetCharge = 0;
-      if (!completed) { crystal.targetExplode = EXPLODE[current] ?? 0; setProgress(0); }
+      if (!completed) { setProgress(0); }
       ring.classList.remove('is-hold');
     }
 
@@ -1068,7 +712,12 @@
         ring.style.transform = `translate(${ringX}px, ${ringY}px)`;
       }
 
-      crystal.render(now);
+      if (fine) {
+        vx = lerp(vx, mx * -14, 0.045);
+        vy = lerp(vy, my * -14, 0.045);
+        bgVideo.style.transform = `translate(${vx.toFixed(2)}px, ${vy.toFixed(2)}px) scale(1.08)`;
+      }
+
       requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);

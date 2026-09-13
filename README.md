@@ -25,7 +25,7 @@ assets/booth-layout.jpg  招商示意圖
 assets/hero-loop.mp4           橫式背景影片
 assets/hero-loop-portrait.mp4  直式背景影片
 experimental/index.html        實驗性作品頁：捲動式（獨立頁面，不影響主站）
-experimental/immersive/        實驗性作品頁：分鏡式，中央為即時運算的碎裂水晶
+experimental/immersive/        實驗性作品頁：分鏡式，滿版影片背景
 ```
 
 ## 實驗性作品頁

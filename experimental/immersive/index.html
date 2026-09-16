@@ -4055,14 +4055,18 @@
 
     /* 可調參數。?debug 會開一個 lil-gui 面板接到這裡 */
     const PF = {
-      cards: 11,
-      fov: 46,            /* 近平視：帶子扁、看不到圓環內側；透視強度交給半徑/距離比 */
-      radiusFrac: 0.63,   /* 圓環半徑 = 這個倍數 x 圓環深度上的畫面半寬 */
-      ringDist: 20,       /* 圓環中心離鏡頭多遠 */
+      cards: 10,
+      fov: 46,            /* 近平視：帶子扁、看不到軌道內側；透視強度交給半徑/距離比 */
+      radiusFrac: 0.90,   /* 軌道長半徑 = 這個倍數 x 軌道深度上的畫面半寬 */
+      ellipse: 0.78,      /* 軌道短半徑（深度方向）是長半徑的幾倍 */
+      arcFrac: 0.55,      /* 緞帶佔軌道周長的比例：開放的一段，頭尾不相連 */
+      slideTurns: 0.55,   /* 整段沿軌道滑過幾圈周長 */
+      slide0: 0.00,       /* 起始位置（周長的倍數）；0 = 主秀時緞帶中段在最近點 */
+      clipL: 0.12,        /* 左右垂直裁切框：只顯示畫面寬度這兩個比例之間的卡片 */
+      clipR: 0.88,
+      ringDist: 20,       /* 軌道中心離鏡頭多遠 */
       tiltX: 0.08,        /* 軸心傾斜：越小越接近平視，越看不到圓環內側 */
       tiltZ: 0.28,        /* 畫面上的傾斜：正值＝右端抬高，約 16 度 */
-      spinTurns: 0.90,    /* 整段自轉幾圈 */
-      spin0: -0.62,       /* 起始相位 */
       cardScale: 1.0,     /* 卡片尺寸的額外倍率（1 = 剛好繞滿一圈） */
       gapPct: 0.01,       /* 卡片之間留的縫，佔卡片寬度的比例（幾乎不留） */
       bend: 1,            /* 卡片沿圓柱面的彎曲度 */
@@ -4080,8 +4084,8 @@
       shade: 0.10,        /* 卡片外緣柔影的濃度 */
       outTilt: 0.10,      /* 離場時軸心幾乎不再倒：飛出去時仍是一條扁帶 */
       outTiltZ: 0.00,     /* 離場時 Z 軸再轉多少 */
-      trackR1: 1.70,      /* 軌道細線一：半徑是圓環的幾倍 */
-      trackR2: 2.30,      /* 軌道細線二 */
+      trackR1: 1.00,      /* 軌道細線一：就是緞帶跑的那條橢圓 */
+      trackR2: 1.26,      /* 軌道細線二：外面再一條 */
       trackAlpha: 0.55,   /* 細線濃度 */
       titleSpan: 1.42,    /* 兩行大標全程橫越幾個畫面寬 */
       titleMid: 0.465,    /* 走到第幾成時剛好回到原本的版位 */
@@ -4229,6 +4233,7 @@
       uniform float uOpacity;
       uniform float uShade;
       uniform vec2 uCover;      /* 貼圖以 cover 方式裁切，照片比例不被卡片比例拉歪 */
+      uniform vec2 uClip;       /* 左右垂直裁切框，單位是裝置像素；x >= y 代表不裁 */
       varying vec2 vUv;
 
       float roundBox(vec2 p, vec2 b, float r) {
@@ -4237,6 +4242,9 @@
       }
 
       void main() {
+        /* 切口是畫面上的垂直直線，所以直接用片段的螢幕座標判斷 */
+        if (uClip.y > uClip.x && (gl_FragCoord.x < uClip.x || gl_FragCoord.x > uClip.y)) { discard; }
+
         vec2 pos = (vUv - 0.5) * uPlane;
         float d = roundBox(pos, uCard * 0.5, uRad);
         float aa = uCard.x * 0.004;
@@ -4335,14 +4343,52 @@
       const raycaster = new THREE.Raycaster();
       const ndc = new THREE.Vector2();
 
+      /* 橢圓軌道：(sin a * Rx, 0, cos a * Rz)。a = 0 是離鏡頭最近的點。
+         橢圓的參數不等距，所以先建一張「弧長 ↔ 參數」對照表，
+         卡片沿軌道等距排，縫隙才不會忽大忽小。 */
+      const TRACK_N = 720;
+      let trackLUT = new Float32Array(TRACK_N + 1);
+      let trackLen = 1;
+
+      function trackPos(a, out) {
+        return out.set(Math.sin(a) * ringR, 0, Math.cos(a) * ringR * PF.ellipse);
+      }
+
+      function buildTrackLUT() {
+        let acc = 0, px = 0, pz = ringR * PF.ellipse;
+        trackLUT[0] = 0;
+        for (let i = 1; i <= TRACK_N; i++) {
+          const a = (i / TRACK_N) * Math.PI * 2;
+          const x = Math.sin(a) * ringR, z = Math.cos(a) * ringR * PF.ellipse;
+          acc += Math.hypot(x - px, z - pz);
+          trackLUT[i] = acc; px = x; pz = z;
+        }
+        trackLen = acc || 1;
+      }
+
+      /* 弧長 → 參數 a（對照表上二分再線性內插） */
+      function trackAt(sRaw) {
+        let u = sRaw / trackLen;
+        u -= Math.floor(u);
+        const target = u * trackLen;
+        let lo = 0, hi = TRACK_N;
+        while (lo + 1 < hi) {
+          const mid = (lo + hi) >> 1;
+          if (trackLUT[mid] <= target) { lo = mid; } else { hi = mid; }
+        }
+        const seg = trackLUT[hi] - trackLUT[lo] || 1;
+        return ((lo + (target - trackLUT[lo]) / seg) / TRACK_N) * Math.PI * 2;
+      }
+
       function build() {
         cards.forEach((c) => { scene.remove(c.mesh); c.mat.dispose(); });
         if (geo) { geo.dispose(); }
         cards = [];
 
+        buildTrackLUT();
         const N = PF.cards;
-        /* 圓周均分，扣掉 gapPct 的縫；高度鎖死 16:10 */
-        cardW = (2 * Math.PI * ringR / N) / (1 + PF.gapPct) * PF.cardScale;
+        /* 卡片只鋪滿軌道的 arcFrac 那一段：這是一條有頭有尾的開放緞帶 */
+        cardW = (trackLen * PF.arcFrac / N) / (1 + PF.gapPct) * PF.cardScale;
         cardH = cardW / 1.6;
         const planeW = cardW * 1.14;
         const planeH = cardH * 1.16;
@@ -4364,7 +4410,8 @@
               uRad: { value: cardH * .04 },
               uOpacity: { value: 1 },
               uShade: { value: PF.shade },
-              uCover: { value: new THREE.Vector2(1, 1) }
+              uCover: { value: new THREE.Vector2(1, 1) },
+              uClip: { value: new THREE.Vector2(0, -1) }
             }
           });
           const mesh = new THREE.Mesh(geo, mat);
@@ -4374,7 +4421,8 @@
           const spot = PF_SPOTS[i % PF_SPOTS.length];
           cards.push({
             mesh, mat, spot,
-            phi: (i / N) * Math.PI * 2,
+            /* 在緞帶上的位置，單位是弧長，相對於緞帶中心 */
+            ds: (i - (N - 1) / 2) * (trackLen * PF.arcFrac / N),
             tilt: pfTilt(i), yaw: pfYaw(i), speed: pfSpeed(i),
             wFront: 1
           });
@@ -4383,16 +4431,17 @@
         applyCover();
       }
 
-      /* 兩條很細的橢圓弧線，代表圓環的運行軌道。畫在卡片後層。 */
+      /* 兩條很細的橢圓線：緞帶跑的那條軌道，外面再一條。
+         畫在後層畫布，所以永遠在卡片與標題後面，而且不受裁切框影響。 */
       function buildTracks() {
         tracks.forEach((l) => { scene.remove(l); l.geometry.dispose(); l.material.dispose(); });
         tracks = [];
         [PF.trackR1, PF.trackR2].forEach((k, n) => {
-          const r = ringR * k;
+          const rx = ringR * k, rz = ringR * PF.ellipse * k;
           const pts = [];
-          for (let i = 0; i <= 160; i++) {
-            const a = (i / 160) * Math.PI * 2;
-            pts.push(new THREE.Vector3(Math.sin(a) * r, 0, Math.cos(a) * r));
+          for (let i = 0; i <= 200; i++) {
+            const a = (i / 200) * Math.PI * 2;
+            pts.push(new THREE.Vector3(Math.sin(a) * rx, 0, Math.cos(a) * rz));
           }
           const g = new THREE.BufferGeometry().setFromPoints(pts);
           const m = new THREE.LineBasicMaterial({
@@ -4422,13 +4471,14 @@
         /* 半徑大於標題半寬，環才「包」得住文字 */
         ringR = PF.radiusFrac * halfW;
         /* 但近側那一段不能穿過鏡頭，否則卡片會翻到相機後面 */
-        const maxR = (PF.ringDist - 3.2) / Math.max(Math.cos(PF.tiltX), .25);
+        const maxR = (PF.ringDist - 3.2) /
+          Math.max(PF.ellipse * Math.cos(PF.tiltX), .25);
         ringR = Math.min(ringR, maxR);
         gridH = Math.tan(PF.gridFov * Math.PI / 360) * PF.gridDist;
         gridW = gridH * camera.aspect;
         const across = camera.aspect > 1 ? 7 : 3.4;
-        gridBase = (gridW * 2) / (2 * Math.PI * ringR / PF.cards / (1 + PF.gapPct) * PF.cardScale * across);
         build();
+        gridBase = (gridW * 2) / (cardW * across);
       }
 
       function draw() {
@@ -4463,23 +4513,35 @@
         eTilt.set(PF.tiltX + outFast * PF.outTilt, 0, PF.tiltZ - outFast * PF.outTiltZ);
         qTilt.setFromEuler(eTilt);
 
-        /* 自轉由捲動推著走 */
-        const spin = PF.spin0 + PF.spinTurns * Math.PI * 2 *
-          pfSpan(p, PF_T.ringInA, PF_T.ringOutB);
+        /* 緞帶沿軌道往前滑（像火車在軌道上跑），不是整條在原地自轉。
+           span = 0.5 時緞帶中心剛好在離鏡頭最近的那一點 */
+        const sCenter = (pfSpan(p, PF_T.ringInA, PF_T.ringOutB) - .5 + PF.slide0) *
+          PF.slideTurns * trackLen;
+
+        /* 裁切框：主秀期間切成垂直兩刀，離場時放開讓卡片飛出框外 */
+        const relax = pfSmooth(pfSpan(p, PF_T.ringOutA + .06, PF_T.ringOutB));
+        const wpx = pfCanvasFront.width;
+        const clipL = (PF.clipL - relax * .7) * wpx;
+        const clipR = (PF.clipR + relax * .7) * wpx;
+        const clipOff = relax > .995 || morph > .001;
 
         const drift = (1 - pfSpan(p, PF_T.morphA, 1)) * gridH * .55;
         const soft = Math.max(ringR * PF.splitSoft, 1e-4);
 
+        const rzTrack = ringR * PF.ellipse;
+
         for (let i = 0; i < cards.length; i++) {
           const c = cards[i];
-          const a = c.phi + spin;
+          const a = trackAt(sCenter + c.ds);
+          const sa = Math.sin(a), ca = Math.cos(a);
 
-          /* 圓柱面上的位置，先套上軸心傾斜 —— 這就是「相對圓環中心」的座標 */
-          vLocal.set(Math.sin(a) * ringR, 0, Math.cos(a) * ringR).applyQuaternion(qTilt);
+          /* 軌道上的位置，先套上軸心傾斜 —— 這就是「相對軌道中心」的座標 */
+          vLocal.set(sa * ringR, 0, ca * rzTrack).applyQuaternion(qTilt);
           const zRel = vLocal.z;
           vLocal.multiplyScalar(ringScale);
 
-          qSpin.setFromAxisAngle(AXIS_Y, a);
+          /* 卡片正面朝著軌道的外法線，也就是跟著切線走 */
+          qSpin.setFromAxisAngle(AXIS_Y, Math.atan2(rzTrack * sa, ringR * ca));
           qCard.copy(qTilt).multiply(qSpin);
 
           vGrid.set(c.spot[0] * gridW, c.spot[1] * gridH + drift * c.speed, -PF.gridDist);
@@ -4495,7 +4557,10 @@
           const sc = lerp(ringScale, gridBase * PF.gridScale * c.spot[2], morph);
           c.mesh.scale.set(sc, sc, sc);
 
-          c.mat.uniforms.uR.value = ringR;
+          /* 彎曲度跟著該點的曲率半徑走，橢圓的兩端才不會過彎 */
+          const sp = Math.sqrt(ringR * ringR * ca * ca + rzTrack * rzTrack * sa * sa);
+          c.mat.uniforms.uR.value = Math.max(sp * sp * sp / (ringR * rzTrack), cardW * .6);
+          c.mat.uniforms.uClip.value.set(clipOff ? 0 : clipL, clipOff ? -1 : clipR);
           c.mat.uniforms.uBend.value = lerp(PF.bend, 0, morph);
           c.mat.uniforms.uShade.value = PF.shade;
 
@@ -4653,7 +4718,7 @@
         el.className = 'pf-bcard';
         el.style.backgroundImage = 'url(' + PF_SHOTS[i % PF_SHOTS.length] + ')';
         pfCssFront.appendChild(el);
-        cards.push({ el, phi: (i / PF.cards) * Math.PI * 2, side: 1 });
+        cards.push({ el, side: 1 });
       }
 
       let halfW = 700, halfH = 450, R = 420, cw = 190, ch = 120;
@@ -4662,7 +4727,7 @@
         halfW = (pfCssFront.clientWidth || innerWidth) / 2;
         halfH = (pfCssFront.clientHeight || innerHeight) / 2;
         R = PF.radiusFrac * halfW;
-        cw = (2 * Math.PI * R / PF.cards) / (1 + PF.gapPct) * PF.cardScale;
+        cw = (2 * Math.PI * R * PF.arcFrac / PF.cards) / (1 + PF.gapPct) * PF.cardScale;
         ch = cw / 1.6;
         cards.forEach((c) => {
           c.el.style.width = cw + 'px';
@@ -4687,12 +4752,19 @@
         const sc = clamp(lerp(PF.scaleShow, PF.scaleOut, out), .8, 1.2);
         const tx = PF.tiltX + out * PF.outTilt;
         const tz = PF.tiltZ - out * PF.outTiltZ;
-        const spin = PF.spin0 + PF.spinTurns * Math.PI * 2 *
-          pfSpan(p, PF_T.ringInA, PF_T.ringOutB);
+        /* 開放緞帶：卡片只佔圓周的 arcFrac，整條沿著軌道往前滑 */
+        const step = Math.PI * 2 * PF.arcFrac / PF.cards;
+        const slide = (pfSpan(p, PF_T.ringInA, PF_T.ringOutB) - .5 + PF.slide0) *
+          PF.slideTurns * Math.PI * 2;
+        const relax = pfSmooth(pfSpan(p, PF_T.ringOutA + .06, PF_T.ringOutB));
+        const inset = relax > .995 ? 'none'
+          : 'inset(0 ' + ((1 - PF.clipR + relax * .7) * 100).toFixed(1) + '% 0 ' +
+            ((PF.clipL - relax * .7) * 100).toFixed(1) + '%)';
+        [pfCssBack, pfCssFront].forEach((h) => { h.style.clipPath = inset; });
 
         for (let i = 0; i < cards.length; i++) {
           const c = cards[i];
-          const a = c.phi + spin;
+          const a = (i - (cards.length - 1) / 2) * step + slide;
           /* 只算「在圓環座標裡的深度」，決定放前層還是後層 */
           const zRel = Math.cos(a) * Math.cos(tx) * R;
           const side = zRel >= PF.splitZ ? 1 : 0;
@@ -4794,15 +4866,19 @@
         const hard = () => { if (pfBand) { pfBand.rebuild(); } if (pfCss) { pfCss.rebuild(); } pfRender(pfLast); };
         const soft = () => pfRender(pfLast);
 
-        const f1 = gui.addFolder('圓環');
+        const f1 = gui.addFolder('軌道與緞帶');
         f1.add(PF, 'cards', 4, 30, 1).name('卡片數量').onFinishChange(hard);
         f1.add(PF, 'fov', 30, 80, 1).name('相機視角 FOV').onChange(hard);
-        f1.add(PF, 'radiusFrac', .2, 1.6, .01).name('圓環半徑（半寬倍數）').onChange(hard);
-        f1.add(PF, 'ringDist', 6, 60, .5).name('相機距離（圓環深度）').onChange(hard);
+        f1.add(PF, 'radiusFrac', .2, 1.6, .01).name('軌道長半徑（半寬倍數）').onChange(hard);
+        f1.add(PF, 'ringDist', 6, 60, .5).name('相機距離（軌道深度）').onChange(hard);
         f1.add(PF, 'tiltX', -1.4, 1.4, .01).name('軸心傾斜 X').onChange(soft);
         f1.add(PF, 'tiltZ', -1.4, 1.4, .01).name('軸心傾斜 Z').onChange(soft);
-        f1.add(PF, 'spinTurns', -3, 3, .01).name('自轉圈數').onChange(soft);
-        f1.add(PF, 'spin0', -Math.PI, Math.PI, .01).name('起始相位').onChange(soft);
+        f1.add(PF, 'ellipse', .2, 1.6, .01).name('軌道短/長半徑').onChange(hard);
+        f1.add(PF, 'arcFrac', .15, .95, .01).name('緞帶佔周長比例').onChange(hard);
+        f1.add(PF, 'slideTurns', -2, 2, .01).name('滑動圈數').onChange(soft);
+        f1.add(PF, 'slide0', -1, 1, .005).name('起始位置').onChange(soft);
+        f1.add(PF, 'clipL', 0, .45, .005).name('裁切框 左').onChange(soft);
+        f1.add(PF, 'clipR', .55, 1, .005).name('裁切框 右').onChange(soft);
 
         const f2 = gui.addFolder('卡片');
         f2.add(PF, 'cardScale', .3, 2.5, .01).name('卡片尺寸').onChange(hard);
@@ -4812,7 +4888,7 @@
         f2.add(PF, 'splitZ', -20, 20, .1).name('前後分界位置').onChange(soft);
         f2.add(PF, 'splitSoft', .01, .8, .01).name('分界柔邊').onChange(soft);
 
-        const f3 = gui.addFolder('升起與離場');
+        const f3 = gui.addFolder('進場與離場');
         f3.add(PF, 'riseFrac', 0, 3, .01).name('進場前藏多低').onChange(soft);
         f3.add(PF, 'riseX', 0, 3, .01).name('進場前偏左多遠').onChange(soft);
         f3.add(PF, 'riseArc', .2, 2, .01).name('進場弧度').onChange(soft);
@@ -4842,10 +4918,10 @@
 
         const f5 = gui.addFolder('時間軸 progress');
         [['titleSweepA', '大標橫越 起'], ['titleSweepB', '大標橫越 訖'],
-         ['ringInA', '圓環進場 起'], ['ringInB', '圓環進場 訖'],
+         ['ringInA', '緞帶進場 起'], ['ringInB', '緞帶進場 訖'],
          ['punchA', '過渡放大 起'], ['punchB', '過渡放大 訖'],
          ['showA', '環繞主秀 起'], ['showB', '環繞主秀 訖'],
-         ['ringOutA', '圓環離場 起'], ['ringOutB', '圓環離場 訖'],
+         ['ringOutA', '緞帶離場 起'], ['ringOutB', '緞帶離場 訖'],
          ['morphA', '接拼貼牆 起'], ['morphB', '接拼貼牆 訖']
         ].forEach(([k, label]) => f5.add(PF_T, k, 0, 1, .01).name(label).onChange(soft));
 

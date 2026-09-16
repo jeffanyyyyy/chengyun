@@ -4055,17 +4055,16 @@
 
     /* 可調參數。?debug 會開一個 lil-gui 面板接到這裡 */
     const PF = {
-      cards: 14,
-      fov: 58,            /* 視角：越大透視越強，近側的卡片才會被畫面切掉 */
-      radiusFrac: 0.95,   /* 圓環半徑 = 這個倍數 x 圓環深度上的畫面半寬 */
+      cards: 10,
+      fov: 56,            /* 掃參數選出來的：近端 47%、遠端 13%、環寬 94% */
+      radiusFrac: 0.70,   /* 圓環半徑 = 這個倍數 x 圓環深度上的畫面半寬 */
       ringDist: 20,       /* 圓環中心離鏡頭多遠 */
-      tiltX: 0.35,        /* 軸心傾斜：前緣偏下、後緣偏上 */
-      tiltZ: -0.30,
+      tiltX: 0.15,        /* 軸心傾斜：前緣偏下、後緣偏上。小角度＝帶子接近水平 */
+      tiltZ: -0.245,      /* 畫面上的傾斜約 14 度 */
       spinTurns: 0.78,    /* 整段自轉幾圈 */
       spin0: -0.55,       /* 起始相位 */
-      cardHFrac: 0.35,    /* 卡片高 = 這個倍數 x 圓環半徑，帶子才是寬絲帶不是細手環 */
-      cardScale: 1.0,     /* 卡片尺寸的額外倍率 */
-      gap: 0.97,          /* 卡片間距倍率，1 = 剛好邊靠邊繞滿一圈 */
+      cardScale: 1.0,     /* 卡片尺寸的額外倍率（1 = 剛好繞滿一圈） */
+      gapPct: 0.03,       /* 卡片之間留的縫，佔卡片寬度的比例 */
       bend: 1,            /* 卡片沿圓柱面的彎曲度 */
       splitZ: 0,          /* 前後分界：相對圓環中心的 z 位置 */
       splitSoft: 0.14,    /* 分界的柔邊（佔半徑的比例），跨界時交叉淡出不閃 */
@@ -4084,20 +4083,21 @@
 
     /* 各階段的 progress 起訖 */
     const PF_T = {
-      titleInA: 0.00, titleInB: 0.19,
-      ringInA:  0.24, ringInB:  0.44,
+      titleInA: 0.00, titleInB: 0.25,
+      ringInA:  0.20, ringInB:  0.35,
       showA:    0.35, showB:    0.60,
-      ringOutA: 0.55, ringOutB: 0.85,
-      titleOutA:0.66, titleOutB:0.84,
-      morphA:   0.82, morphB:   0.99
+      ringOutA: 0.55, ringOutB: 0.84,
+      titleOutA:0.60, titleOutB:0.80,
+      titleOutLag: 0.04,  /* 第二行晚一點走，兩行才不會同時通過畫面正中 */
+      morphA:   0.85, morphB:   1.00
     };
 
     /* 拼貼的落點：x、y 是視錐半寬半高的倍數，第三個是相對大小 */
+    /* 順序刻意打散：卡片數調少時，前 N 個仍然鋪滿整個畫面 */
     const PF_SPOTS = [
-      [-0.76,  0.58, 1.05], [-0.30,  0.74, 0.62], [ 0.16,  0.54, 1.52], [ 0.66,  0.70, 0.70],
-      [-0.64,  0.14, 1.58], [-0.12,  0.22, 0.66], [ 0.38,  0.10, 1.12], [ 0.82,  0.26, 0.60],
-      [-0.82, -0.34, 0.74], [-0.34, -0.24, 1.46], [ 0.06, -0.38, 0.86], [ 0.58, -0.26, 1.34],
-      [-0.24, -0.76, 1.00], [ 0.48, -0.74, 0.68]
+      [-0.80,  0.58, 0.82], [ 0.78, -0.56, 1.22], [ 0.06,  0.66, 0.68], [-0.46, -0.62, 1.30], [ 0.50,  0.50, 1.26],
+      [-0.84, -0.06, 1.38], [ 0.86,  0.14, 0.74], [-0.30,  0.08, 0.70], [ 0.34, -0.10, 1.10], [-0.08, -0.70, 0.86],
+      [ 0.62,  0.86, 0.66], [-0.62,  0.82, 0.72], [ 0.18, -0.34, 0.78], [-0.88,  0.34, 0.64], [ 0.88, -0.22, 0.90]
     ];
 
     const pfSpan = (v, a, b) => clamp((v - a) / (b - a), 0, 1);
@@ -4160,10 +4160,13 @@
       /* 第一段：兩行大標從畫面左右外側滑進來，停在錯位定位；
          離場時各自沿原方向繼續走出去，兩行交錯穿越 */
       const inn = pfEaseOut(pfSpan(p, PF_T.titleInA, PF_T.titleInB));
-      const gone = pfEaseIn(pfSpan(p, PF_T.titleOutA, PF_T.titleOutB));
+      const goneA = pfEaseIn(pfSpan(p, PF_T.titleOutA, PF_T.titleOutB));
+      const goneB = pfEaseIn(pfSpan(p, PF_T.titleOutA + PF_T.titleOutLag,
+        PF_T.titleOutB + PF_T.titleOutLag));
+      const gone = Math.max(goneA, goneB);
       const W = pfHead.clientWidth || innerWidth;
-      const ax = (inn - 1) * W * 1.05 + gone * W * 1.25;
-      const bx = (1 - inn) * W * 1.05 - gone * W * 1.25;
+      const ax = (inn - 1) * W * 1.05 + goneA * W * 1.25;
+      const bx = (1 - inn) * W * 1.05 - goneB * W * 1.25;
       pfLineA.style.transform = 'translate3d(' + ax.toFixed(1) + 'px,0,0)';
       pfLineB.style.transform = 'translate3d(' + bx.toFixed(1) + 'px,0,0)';
       pfKicker.style.transform = 'translate3d(0,' + (20 * (1 - inn)).toFixed(2) + 'px,0)';
@@ -4310,7 +4313,7 @@
       let ringR = 6, cardW = 2, cardH = 1.2;
       let halfH = 1, halfW = 1;            /* 圓環深度上的視錐半高半寬 */
       let gridH = 1, gridW = 1, gridBase = 3;
-      let raf = 0, live = false, dead = false, p = 0;
+      let raf = 0, live = false, dead = false, p = 0, soloMode = false;
 
       const AXIS_Y = new THREE.Vector3(0, 1, 0);
       const qTilt = new THREE.Quaternion();
@@ -4330,10 +4333,9 @@
         cards = [];
 
         const N = PF.cards;
-        /* 圓周均分：寬度由半徑與張數決定，gap = 1 就剛好繞滿一圈。
-           高度直接掛在半徑上，帶子才是一條寬絲帶而不是細手環 */
-        cardW = (2 * Math.PI * ringR / N) * PF.gap;
-        cardH = ringR * PF.cardHFrac * PF.cardScale;
+        /* 圓周均分，扣掉 gapPct 的縫；高度鎖死 16:10 */
+        cardW = (2 * Math.PI * ringR / N) / (1 + PF.gapPct) * PF.cardScale;
+        cardH = cardW / 1.6;
         const planeW = cardW * 1.14;
         const planeH = cardH * 1.16;
         geo = new THREE.PlaneGeometry(planeW, planeH, 40, 1);
@@ -4393,7 +4395,7 @@
         gridH = tanHalf * PF.gridDist;
         gridW = gridH * camera.aspect;
         const across = camera.aspect > 1 ? 7 : 3.4;
-        gridBase = (gridW * 2) / (ringR * PF.cardHFrac * PF.cardScale * 1.6 * across);
+        gridBase = (gridW * 2) / (2 * Math.PI * ringR / PF.cards / (1 + PF.gapPct) * PF.cardScale * across);
         build();
       }
 
@@ -4467,7 +4469,8 @@
         for (let i = 0; i < cards.length; i++) {
           const c = cards[i];
           /* 卡片本身永遠是 opacity 1，這裡只是把它分給前後兩張畫布 */
-          const w = front ? c.wFront : 1 - c.wFront;
+          let w = front ? c.wFront : 1 - c.wFront;
+          if (soloMode && !c.solo) { w = 0; }
           c.mat.uniforms.uOpacity.value = w;
           c.mesh.visible = w > .004;
         }
@@ -4527,6 +4530,44 @@
       addEventListener('resize', resize);
       root.classList.add('pf-gl-on');
 
+      /* ?probe：給驗收腳本用的量測鉤子，正常瀏覽不會掛上去。
+         卡片是斜的，用四角外接框會高估尺寸，所以量「上下邊中點的距離」
+         與「左右邊中點的距離」，那才是看起來的卡片大小。 */
+      if (/(^|[?&])probe\b/.test(location.search)) {
+        const pv = (c, x, y) => {
+          const v = new THREE.Vector3(x, y, 0)
+            .applyQuaternion(c.mesh.quaternion)
+            .multiplyScalar(c.mesh.scale.x)
+            .add(c.mesh.position);
+          const z = v.z;
+          v.project(camera);
+          return { x: v.x, y: v.y, z };
+        };
+        window.__pfProbe = () => cards.map((c, idx) => {
+          const top = pv(c, 0, cardH / 2), bot = pv(c, 0, -cardH / 2);
+          const lf = pv(c, -cardW / 2, 0), rt = pv(c, cardW / 2, 0);
+          const corners = [pv(c, -cardW / 2, -cardH / 2), pv(c, cardW / 2, -cardH / 2),
+                           pv(c, cardW / 2, cardH / 2), pv(c, -cardW / 2, cardH / 2)];
+          const xs = corners.map((q) => q.x), ys = corners.map((q) => q.y);
+          return {
+            i: idx,
+            /* 在鏡頭前面就算存在，前後兩張畫布都會畫 */
+            front: corners.every((q) => q.z < -0.1),
+            wFront: c.wFront,
+            hPct: Math.abs(top.y - bot.y) / 2 * 100,
+            wPct: Math.abs(rt.x - lf.x) / 2 * 100,
+            x0: Math.min(...xs), x1: Math.max(...xs),
+            y0: Math.min(...ys), y1: Math.max(...ys)
+          };
+        });
+        /* 讓驗收腳本可以掃參數，找出符合螢幕佔比目標的組合 */
+        window.__pfSet = (patch) => { Object.assign(PF, patch); resize(); };
+        window.__pfOnly = (i) => {
+          cards.forEach((c, k) => { c.solo = (i < 0 || k === i); });
+          soloMode = i >= 0;
+        };
+      }
+
       pfBand = {
         set(v) { p = v; },
         resize,
@@ -4562,8 +4603,8 @@
         halfW = (pfCssFront.clientWidth || innerWidth) / 2;
         halfH = (pfCssFront.clientHeight || innerHeight) / 2;
         R = PF.radiusFrac * halfW;
-        cw = (2 * Math.PI * R / PF.cards) * PF.gap;
-        ch = R * PF.cardHFrac * PF.cardScale;
+        cw = (2 * Math.PI * R / PF.cards) / (1 + PF.gapPct) * PF.cardScale;
+        ch = cw / 1.6;
         cards.forEach((c) => {
           c.el.style.width = cw + 'px';
           c.el.style.height = ch + 'px';
@@ -4698,17 +4739,16 @@
         f1.add(PF, 'cards', 4, 30, 1).name('卡片數量').onFinishChange(hard);
         f1.add(PF, 'fov', 30, 80, 1).name('相機視角 FOV').onChange(hard);
         f1.add(PF, 'radiusFrac', .2, 1.6, .01).name('圓環半徑（半寬倍數）').onChange(hard);
-        f1.add(PF, 'ringDist', 6, 60, .5).name('圓環深度').onChange(hard);
+        f1.add(PF, 'ringDist', 6, 60, .5).name('相機距離（圓環深度）').onChange(hard);
         f1.add(PF, 'tiltX', -1.4, 1.4, .01).name('軸心傾斜 X').onChange(soft);
         f1.add(PF, 'tiltZ', -1.4, 1.4, .01).name('軸心傾斜 Z').onChange(soft);
         f1.add(PF, 'spinTurns', -3, 3, .01).name('自轉圈數').onChange(soft);
         f1.add(PF, 'spin0', -Math.PI, Math.PI, .01).name('起始相位').onChange(soft);
 
         const f2 = gui.addFolder('卡片');
-        f2.add(PF, 'cardHFrac', .1, .8, .01).name('卡片高（半徑倍數）').onChange(hard);
-        f2.add(PF, 'cardScale', .3, 3, .01).name('卡片尺寸倍率').onChange(hard);
+        f2.add(PF, 'cardScale', .3, 2.5, .01).name('卡片尺寸').onChange(hard);
         f2.add(PF, 'shade', 0, .6, .01).name('柔影濃度').onChange(soft);
-        f2.add(PF, 'gap', .5, 1.4, .01).name('卡片間距').onChange(hard);
+        f2.add(PF, 'gapPct', 0, .3, .005).name('卡片間距（寬度比例）').onChange(hard);
         f2.add(PF, 'bend', 0, 2, .01).name('沿圓柱彎曲度').onChange(soft);
         f2.add(PF, 'splitZ', -20, 20, .1).name('前後分界位置').onChange(soft);
         f2.add(PF, 'splitSoft', .01, .8, .01).name('分界柔邊').onChange(soft);
@@ -4733,6 +4773,7 @@
          ['showA', '環繞主秀 起'], ['showB', '環繞主秀 訖'],
          ['ringOutA', '圓環離場 起'], ['ringOutB', '圓環離場 訖'],
          ['titleOutA', '標題離場 起'], ['titleOutB', '標題離場 訖'],
+         ['titleOutLag', '第二行延遲'],
          ['morphA', '接拼貼牆 起'], ['morphB', '接拼貼牆 訖']
         ].forEach(([k, label]) => f5.add(PF_T, k, 0, 1, .01).name(label).onChange(soft));
 

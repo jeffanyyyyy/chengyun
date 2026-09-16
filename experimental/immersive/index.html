@@ -1584,6 +1584,26 @@
     transform-origin: 0 50%;
   }
 
+  /* ── 調校面板的「已複製」提示 ── */
+  .pf-toast {
+    position: fixed;
+    z-index: 9999;
+    left: 50%;
+    bottom: 40px;
+    transform: translate(-50%, 12px);
+    padding: 10px 20px;
+    border-radius: 999px;
+    background: rgba(20, 20, 20, .9);
+    color: #fff;
+    font-size: 13px;
+    letter-spacing: .08em;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease, transform .18s ease;
+  }
+
+  .pf-toast.is-on { opacity: 1; transform: translate(-50%, 0); }
+
   .pf-eyebrow {
     position: absolute;
     z-index: 5;
@@ -5017,88 +5037,179 @@
     });
 
     /* ── ?debug：lil-gui 調校面板 ─────────────────────────── */
-    function pfDebugPanel() {
-      if (!/(^|[?&])debug\b/.test(location.search) || window.__pfGui) { return; }
+    /* ── 調校面板 ────────────────────────────────────────────
+       鍵盤 D 開關（輸入框聚焦時不觸發），也支援網址加 ?debug 直接開。
+       面板開著的時候，畫面上同時畫出曲線與控制點。 */
+    let pfGuiState = { open: false, loading: false };
+
+    /* 每組的滑桿都是「一顆鈕動整個階段」：以關鍵影格原本的形狀為底，
+       再套上高度、傾斜、跨距、深度這幾個位移，所以一組只要六顆。 */
+    PF_KEYS.forEach((k) => { k.base = k.pts.map((q) => q.slice()); });
+
+    const PF_STAGE = [
+      { name: '進場', key: 1, also: [[0, 0, -2.0, 0]], at: 0.26 },
+      { name: '主秀', key: 3, also: [], at: 0.50 },
+      { name: '離場', key: 5, also: [[6, 1.6, 1.4, 0]], at: 0.82 }
+    ].map((st) => Object.assign(st, {
+      dial: { y: 0, tilt: 0, span: 1, x: 0, near: 0, far: 0 }
+    }));
+
+    function pfApplyStage(st) {
+      const k = PF_KEYS[st.key];
+      const zs = k.base.map((q) => q[2]);
+      const zMin = Math.min(...zs), zMax = Math.max(...zs);
+      const range = Math.max(zMax - zMin, 1e-4);
+      const n = k.base.length;
+      for (let i = 0; i < n; i++) {
+        const b = k.base[i];
+        const nearW = (b[2] - zMin) / range;          /* 1 = 最靠近鏡頭的那一端 */
+        k.pts[i][0] = b[0] * st.dial.span + st.dial.x;
+        k.pts[i][1] = b[1] + st.dial.y + st.dial.tilt * (i / (n - 1) - .5) * 2;
+        k.pts[i][2] = b[2] + st.dial.near * nearW - st.dial.far * (1 - nearW);
+      }
+      /* 相鄰的「還沒進場 / 已經出框」那兩格跟著走，銜接才不會跳 */
+      st.also.forEach(([ki, dx, dy, dz]) => {
+        for (let i = 0; i < n; i++) {
+          PF_KEYS[ki].pts[i][0] = k.pts[i][0] + dx;
+          PF_KEYS[ki].pts[i][1] = k.pts[i][1] + dy;
+          PF_KEYS[ki].pts[i][2] = k.pts[i][2] + dz;
+        }
+      });
+    }
+    PF_STAGE.forEach(pfApplyStage);
+
+    /* 跳到某個階段的捲動位置 */
+    function pfJumpTo(at) {
+      const max = pfWrap.scrollHeight - pfWrap.clientHeight;
+      pfWrap.scrollTo({ top: max * at, behavior: 'smooth' });
+    }
+
+    let pfToastTimer = 0;
+    function pfToast(msg) {
+      let el = document.getElementById('pfToast');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'pfToast';
+        el.className = 'pf-toast';
+        document.body.appendChild(el);
+      }
+      el.textContent = msg;
+      el.classList.add('is-on');
+      clearTimeout(pfToastTimer);
+      pfToastTimer = setTimeout(() => el.classList.remove('is-on'), 1600);
+    }
+
+    function pfCopyValues() {
+      const payload = JSON.stringify({
+        PF: PF,
+        PF_T: PF_T,
+        PF_KEYS: PF_KEYS.map((k) => ({ p: k.p, pts: k.pts })),
+        STAGE: PF_STAGE.map((st) => ({ name: st.name, dial: st.dial }))
+      }, null, 2);
+      const done = () => pfToast('已複製');
+      const fallback = () => {
+        const ta = document.createElement('textarea');
+        ta.value = payload;
+        ta.style.cssText = 'position:fixed;top:-200px;opacity:0';
+        document.body.appendChild(ta);
+        ta.select();
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+        ta.remove();
+        if (ok) { done(); } else { console.log(payload); pfToast('剪貼簿被擋，已印到 console'); }
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(payload).then(done, fallback);
+      } else {
+        fallback();
+      }
+    }
+
+    function pfBuildGui() {
+      const gui = new lil.GUI({ title: '活動成果 · 緞帶（按 D 開關）' });
+      window.__pfGui = gui;
+      const hard = () => { if (pfBand) { pfBand.rebuild(); } if (pfCss) { pfCss.rebuild(); } pfRender(pfLast); };
+      const soft = () => pfRender(pfLast);
+
+      gui.add({ copy: pfCopyValues }, 'copy').name('複製目前數值');
+
+      const fAll = gui.addFolder('整體');
+      fAll.add(PF, 'ribbonW', .2, 1.6, .01).name('緞帶寬度').onChange(hard);
+      fAll.add(PF, 'twist', -2, 2, .01).name('沿路扭轉量').onChange(soft);
+      fAll.add(PF, 'flowCells', -8, 8, .05).name('照片流動格數').onChange(soft);
+      fAll.add(PF, 'ringDist', 8, 50, .5).name('相機距離').onChange(hard);
+      fAll.add(PF, 'fov', 14, 70, 1).name('相機視角 FOV').onChange(hard);
+      fAll.add({ clip: PF.clipL }, 'clip', 0, .4, .005).name('左右裁切框').onChange((v) => {
+        PF.clipL = v; PF.clipR = 1 - v; soft();
+      });
+
+      PF_STAGE.forEach((st) => {
+        const f = gui.addFolder(st.name);
+        f.add({ go: () => pfJumpTo(st.at) }, 'go').name('跳到此階段');
+        f.add(st.dial, 'y', -3, 3, .01).name('整條高度')
+          .onChange(() => { pfApplyStage(st); soft(); });
+        f.add(st.dial, 'tilt', -2.5, 2.5, .01).name('傾斜（右端抬高）')
+          .onChange(() => { pfApplyStage(st); soft(); });
+        f.add(st.dial, 'span', .3, 2.2, .01).name('橫向跨距')
+          .onChange(() => { pfApplyStage(st); soft(); });
+        f.add(st.dial, 'near', -1.5, 2, .01).name('最近端再靠近')
+          .onChange(() => { pfApplyStage(st); soft(); });
+        f.add(st.dial, 'far', -1.5, 3, .01).name('兩端再後退')
+          .onChange(() => { pfApplyStage(st); soft(); });
+      });
+
+      const fT = gui.addFolder('時間軸 progress');
+      [['ringInA', '進場 起'], ['ringInB', '進場 訖'],
+       ['ringOutA', '離場 起'], ['ringOutB', '離場 訖'],
+       ['morphA', '接拼貼牆 起'], ['titleSweepB', '大標橫越 訖']
+      ].forEach(([k, label]) => fT.add(PF_T, k, 0, 1, .01).name(label).onChange(soft));
+
+      return gui;
+    }
+
+    function pfShowGui(on) {
+      pfGuiState.open = on;
+      if (window.__pfGui) {
+        window.__pfGui.domElement.style.display = on ? '' : 'none';
+      }
+      if (pfBand && pfBand.showCurve) { pfBand.showCurve(on); }
+    }
+
+    function pfToggleGui(force) {
+      const want = force === undefined ? !pfGuiState.open : force;
+      if (window.__pfGui) { pfShowGui(want); return; }
+      if (!want || pfGuiState.loading) { return; }
+      pfGuiState.loading = true;
       const s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/lil-gui@0.19.2/dist/lil-gui.umd.min.js';
-      s.onerror = () => console.warn('[chengyun] lil-gui 載不到，調校面板跳過。');
+      s.onerror = () => {
+        pfGuiState.loading = false;
+        pfToast('lil-gui 載不到');
+        console.warn('[chengyun] lil-gui 載不到，調校面板跳過。');
+      };
       s.onload = () => {
+        pfGuiState.loading = false;
         if (!window.lil || !window.lil.GUI) { return; }
-        const gui = new lil.GUI({ title: '活動成果 · 緞帶' });
-        window.__pfGui = gui;
-        const hard = () => { if (pfBand) { pfBand.rebuild(); } if (pfCss) { pfCss.rebuild(); } pfRender(pfLast); };
-        const soft = () => pfRender(pfLast);
-
-        const f1 = gui.addFolder('緞帶與鏡頭');
-        f1.add(PF, 'fov', 12, 80, 1).name('相機視角 FOV').onChange(hard);
-        f1.add(PF, 'ringDist', 6, 60, .5).name('相機距離').onChange(hard);
-        f1.add(PF, 'ribbonW', .1, 2, .01).name('緞帶寬度（半高倍數）').onChange(hard);
-        f1.add(PF, 'twist', -3, 3, .01).name('沿路扭轉量').onChange(soft);
-        f1.add(PF, 'twist0', -3, 3, .01).name('整條扭轉').onChange(soft);
-        f1.add(PF, 'flowCells', -8, 8, .05).name('照片流動格數').onChange(soft);
-        f1.add(PF, 'flow0', -8, 8, .05).name('照片起始位移').onChange(soft);
-        f1.add(PF, 'shade', 0, .6, .01).name('長邊暗邊').onChange(soft);
-        f1.add(PF, 'splitZ', -20, 20, .1).name('前後分界位置').onChange(soft);
-        f1.add(PF, 'splitSoft', .01, .8, .01).name('分界柔邊').onChange(soft);
-        f1.add(PF, 'clipL', 0, .45, .005).name('裁切框 左').onChange(soft);
-        f1.add(PF, 'clipR', .55, 1, .005).name('裁切框 右').onChange(soft);
-
-        /* 曲線控制點：先選關鍵影格，再逐點調 xyz。改完畫面上會同步。 */
-        const dbg = { key: 'D（主秀）', curve: true };
-        const KEY_LABEL = ['藏在下方', 'B（進場）', 'C（翹起）', 'D（主秀）',
-                           'E（上甩）', 'F（離場）', '出框'];
-        const fc = gui.addFolder('曲線控制點');
-        fc.add(dbg, 'curve').name('畫出曲線與控制點')
-          .onChange((v) => { if (pfBand) { pfBand.showCurve(v); } });
-        fc.add(dbg, 'key', KEY_LABEL).name('關鍵影格').onChange(bindPts);
-        let ptRows = [];
-        function bindPts() {
-          ptRows.forEach((c) => c.destroy());
-          ptRows = [];
-          const k = PF_KEYS[Math.max(0, KEY_LABEL.indexOf(dbg.key))];
-          k.pts.forEach((pt, i) => {
-            ['x', 'y', 'z'].forEach((axis, ai) => {
-              ptRows.push(fc.add(pt, String(ai), -6, 6, .01)
-                .name('P' + i + ' ' + axis).onChange(soft));
-            });
-          });
-        }
-        bindPts();
-        if (pfBand) { pfBand.showCurve(true); }
-
-        const fT = gui.addFolder('軌道細線');
-        fT.add(PF, 'trackOff1', -4, 4, .01).name('細線一偏移（緞帶寬）').onChange(soft);
-        fT.add(PF, 'trackOff2', -4, 4, .01).name('細線二偏移').onChange(soft);
-        fT.add(PF, 'trackAlpha', 0, 1, .01).name('細線濃度').onChange(soft);
-
-        const f5b = gui.addFolder('大標');
-        f5b.add(PF, 'titleSpan', .5, 3, .01).name('橫越幾個畫面寬').onChange(soft);
-        f5b.add(PF, 'titleMid', 0, 1, .005).name('回到版位的時機').onChange(soft);
-
-        const f4 = gui.addFolder('拼貼牆');
-        f4.add(PF, 'gridCards', 4, 15, 1).name('卡片數').onChange(hard);
-        f4.add(PF, 'gridDist', 6, 80, .5).name('拼貼牆深度').onChange(hard);
-        f4.add(PF, 'gridFov', 25, 90, 1).name('拼貼牆視角 FOV').onChange(hard);
-        f4.add(PF, 'gridScale', .3, 3, .02).name('拼貼放大').onChange(soft);
-        f4.add(PF, 'gridTilt', 0, .3, .005).name('拼貼傾角（0 = 定格）').onChange(soft);
-
-        const f5 = gui.addFolder('時間軸 progress');
-        [['titleSweepA', '大標橫越 起'], ['titleSweepB', '大標橫越 訖'],
-         ['ringInA', '緞帶進場 起'], ['ringInB', '緞帶進場 訖'],
-         ['showA', '主秀 起'], ['showB', '主秀 訖'],
-         ['ringOutA', '緞帶離場 起'], ['ringOutB', '緞帶離場 訖'],
-         ['morphA', '接拼貼牆 起'], ['morphB', '接拼貼牆 訖']
-        ].forEach(([k, label]) => f5.add(PF_T, k, 0, 1, .01).name(label).onChange(soft));
-
-        gui.add({
-          dump() {
-            console.log('PF =', JSON.stringify(PF, null, 2));
-            console.log('PF_T =', JSON.stringify(PF_T, null, 2));
-            console.log('PF_KEYS =', JSON.stringify(PF_KEYS));
-          }
-        }, 'dump').name('把目前數值印到 console');
+        pfBuildGui();
+        pfShowGui(true);
       };
       document.head.appendChild(s);
+    }
+
+    /* 鍵盤 D。輸入框、文字區、可編輯區聚焦時不搶鍵；有修飾鍵也不搶 */
+    addEventListener('keydown', (e) => {
+      if (e.key !== 'd' && e.key !== 'D') { return; }
+      if (e.ctrlKey || e.metaKey || e.altKey) { return; }
+      const t = e.target;
+      if (t && (t.isContentEditable ||
+        /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName || ''))) { return; }
+      e.preventDefault();
+      pfToggleGui();
+    });
+
+    function pfDebugPanel() {
+      if (/(^|[?&])debug\b/.test(location.search)) { pfToggleGui(true); }
+      else if (pfGuiState.open) { pfShowGui(true); }
     }
 
     pfSync();

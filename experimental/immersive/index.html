@@ -30,6 +30,8 @@
   /* 這裡只放 Tailwind 表達不了的東西，外加 CDN 失效時的保底外觀 */
   :root {
     --bg: #0b0b0c;
+    --ivory: #f4f1e9;
+    --ink: #14130f;
     --font: 'Inter', 'Noto Sans TC', sans-serif;
     --ease: cubic-bezier(.22, 1, .36, 1);
     --scene-in: .9s;
@@ -624,10 +626,44 @@
     pointer-events: none;
   }
 
-  .film-gl-wrap::before { left: 0; background: linear-gradient(90deg, rgba(6, 9, 22, .92) 10%, rgba(6, 9, 22, 0)); }
-  .film-gl-wrap::after { right: 0; background: linear-gradient(270deg, rgba(6, 9, 22, .92) 10%, rgba(6, 9, 22, 0)); }
+  .film-gl-wrap::before { left: 0; background: linear-gradient(90deg, var(--ivory) 8%, rgba(244, 241, 233, 0)); }
+  .film-gl-wrap::after { right: 0; background: linear-gradient(270deg, var(--ivory) 8%, rgba(244, 241, 233, 0)); }
 
   :root.has-filmgl .film-stage { display: none; }
+
+  /* 邊欄計數器：留白處的一組數字，不去壓在影像上 */
+  .film-count {
+    position: absolute;
+    z-index: 3;
+    right: clamp(1.25rem, 4vw, 3.5rem);
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    gap: .5rem;
+    pointer-events: none;
+  }
+
+  .film-count b {
+    font-size: clamp(1.6rem, 3.4vw, 3rem);
+    font-weight: 200;
+    letter-spacing: -.02em;
+    color: rgba(20, 19, 15, .5);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .film-count i {
+    font-style: normal;
+    font-size: .62rem;
+    letter-spacing: .2em;
+    color: rgba(20, 19, 15, .3);
+  }
+
+  @media (max-width: 860px) { .film-count { display: none; } }
+
+  /* 沒有 WebGL 時膠卷更寬，計數器會撞上去 */
+  :root:not(.has-filmgl) .film-count { display: none; }
 
   /* 連結列：人物介紹、活動成果 */
   .film-cta {
@@ -643,14 +679,13 @@
   .film-link {
     font-size: .78rem;
     letter-spacing: .1em;
-    color: rgba(255, 255, 255, .82);
-    border-bottom: 1px solid rgba(255, 255, 255, .3);
+    color: var(--ink);
+    border-bottom: 1px solid rgba(20, 19, 15, .28);
     padding-bottom: 2px;
-    text-shadow: 0 4px 24px rgba(0, 0, 0, .8);
     transition: color .4s var(--ease), border-color .4s var(--ease);
   }
 
-  .film-link:hover { color: #fff; border-color: rgba(255, 255, 255, .8); }
+  .film-link:hover { border-color: var(--ink); }
 
   /* 提示片格可以點 */
   .film-hint {
@@ -660,7 +695,7 @@
     font-size: .62rem;
     letter-spacing: .22em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, .3);
+    color: rgba(20, 19, 15, .3);
   }
 
   /* ── 人物介紹：左照片、右文字 ─────── */
@@ -696,7 +731,7 @@
   .film-title {
     position: relative;
     z-index: 3;
-    text-shadow: 0 6px 40px rgba(0, 0, 0, .85);
+    color: var(--ink);
   }
 
   .film-caption {
@@ -705,12 +740,11 @@
     margin: 1.1rem 0 0;
     font-size: .78rem;
     letter-spacing: .08em;
-    color: rgba(255, 255, 255, .58);
-    text-shadow: 0 4px 24px rgba(0, 0, 0, .8);
+    color: var(--dim);
     min-height: 1.4em;
   }
 
-  .film-caption b { font-weight: 400; color: #fff; }
+  .film-caption b { font-weight: 400; color: var(--ink); }
   .film-caption .sep { margin: 0 .6rem; opacity: .4; }
 
   /* 出血：跨滿整個視窗寬度，超出的部分由分鏡容器裁掉 */
@@ -731,14 +765,17 @@
 
   @media (max-width: 760px) { .film-bleed { margin-top: -1rem; --fw: 66vw; --fh: min(34svh, 260px); --perf: 12px; } }
 
-  /* 這個分鏡的底色：上深下亮的藍，對齊截圖；
-     背景影片仍在後面，只是被這層壓下去 */
+  /* 這個分鏡是象牙白：黑色的底片壓在暖白紙上，對比自己就成立。
+     頁首頁尾與游標都是 mix-blend-difference，白底會自己翻成黑字 */
   .scene[data-scene="teams"] .scene-inner {
     overflow: hidden;
-    background:
-      radial-gradient(130% 75% at 50% 95%, rgba(62, 104, 198, .5) 0%, rgba(24, 42, 104, .34) 48%, rgba(0, 0, 0, 0) 80%),
-      linear-gradient(180deg, rgba(6, 9, 22, .95) 0%, rgba(12, 20, 54, .92) 52%, rgba(20, 38, 96, .86) 100%);
+    background: var(--ivory);
+    color: var(--ink);
+    --dim: rgba(20, 19, 15, .42);
   }
+
+  .scene[data-scene="teams"] .eyebrow,
+  .scene[data-scene="teams"] .note { color: var(--dim); }
 
   .film-stage {
     position: relative;
@@ -775,8 +812,8 @@
     z-index: 60;
   }
 
-  .film::before { left: -1px; background: linear-gradient(90deg, rgba(4, 5, 8, .96) 15%, rgba(4, 5, 8, 0)); }
-  .film::after { right: -1px; background: linear-gradient(270deg, rgba(4, 5, 8, .96) 15%, rgba(4, 5, 8, 0)); }
+  .film::before { left: -1px; background: linear-gradient(90deg, var(--ivory) 12%, rgba(244, 241, 233, 0)); }
+  .film::after { right: -1px; background: linear-gradient(270deg, var(--ivory) 12%, rgba(244, 241, 233, 0)); }
 
   /* 中央聚光 */
   .film-spot {
@@ -787,7 +824,7 @@
     width: calc(var(--fw) * 2.4);
     height: calc(var(--fh) * 2.2);
     margin: calc(var(--fh) * -1.1) 0 0 calc(var(--fw) * -1.2);
-    background: radial-gradient(ellipse at center, rgba(150, 180, 255, .16) 0%, rgba(120, 150, 255, .06) 42%, rgba(0, 0, 0, 0) 70%);
+    background: radial-gradient(ellipse at center, rgba(20, 19, 15, .07) 0%, rgba(20, 19, 15, .03) 45%, rgba(0, 0, 0, 0) 72%);
     pointer-events: none;
   }
 
@@ -852,6 +889,17 @@
     transition: box-shadow .55s var(--ease);
   }
 
+  /* 遠近：往紙色融的一層薄膜，和 WebGL 版同一個邏輯 */
+  .frame-shot::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: var(--ivory);
+    opacity: var(--fade, 0);
+    pointer-events: none;
+  }
+
   /* 片格裡有照片時，字要壓得住 */
   .frame-shot::after {
     content: '';
@@ -861,7 +909,7 @@
     pointer-events: none;
   }
 
-  .frame-shot > span { position: relative; z-index: 1; }
+  .frame-shot > span { position: relative; z-index: 2; }
 
   .frame-shot > span:first-child {
     font-size: .6rem;
@@ -888,18 +936,17 @@
     height: 3.1rem;
     display: grid;
     place-items: center;
-    border-radius: 12px;
-    color: #fff;
-    background: rgba(10, 12, 18, .6);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18);
-    backdrop-filter: blur(8px);
+    border-radius: 2px;
+    color: var(--ink);
+    background: transparent;
+    box-shadow: inset 0 0 0 1px rgba(20, 19, 15, .28);
     transition: transform .4s var(--ease), background-color .4s var(--ease), opacity .4s var(--ease);
     z-index: 70;
   }
 
   .film-arrow svg { width: 1.1rem; height: 1.1rem; }
 
-  .film-arrow:hover { transform: scale(1.1); background: rgba(255, 255, 255, .16); }
+  .film-arrow:hover { background: rgba(20, 19, 15, .06); box-shadow: inset 0 0 0 1px var(--ink); }
   .film-arrow[disabled] { opacity: .22; pointer-events: none; }
 
   /* 分頁圓點與署名 */
@@ -927,16 +974,16 @@
   }
 
   .film-dots button {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, .26);
+    background: rgba(20, 19, 15, .22);
     transition: background-color .4s var(--ease), transform .4s var(--ease);
   }
 
   .film-dots button[aria-selected="true"] {
-    background: #fff;
-    outline: 1px solid rgba(255, 255, 255, .5);
+    background: var(--ink);
+    outline: 1px solid rgba(20, 19, 15, .38);
     outline-offset: 4px;
   }
 
@@ -1139,10 +1186,9 @@
     display: block;
     overflow: hidden;
     padding: 0;
-    background: #f2f1ee;
-    color: #0b0b0c;
-    --ink: #0b0b0c;
-    --ink-dim: rgba(11, 11, 12, .34);
+    background: var(--ivory);
+    color: var(--ink);
+    --ink-dim: rgba(20, 19, 15, .34);
   }
 
   .obys {
@@ -1186,7 +1232,7 @@
 
   .obys-shot {
     width: 100%;
-    background: #ddd9d2 center / cover no-repeat;
+    background: #e6e1d6 center / cover no-repeat;
     box-shadow: 0 18px 50px rgba(0, 0, 0, .1);
     transition: filter .5s var(--ease);
   }
@@ -1195,28 +1241,52 @@
   .obys-item[data-empty] .obys-shot {
     display: grid;
     place-items: center;
-    background: #e7e4de;
-    box-shadow: inset 0 0 0 1px rgba(11, 11, 12, .16);
-    color: rgba(11, 11, 12, .2);
+    background: #eae5da;
+    box-shadow: inset 0 0 0 1px rgba(20, 19, 15, .14);
+    color: rgba(20, 19, 15, .18);
     font-size: clamp(2rem, 4vw, 3.4rem);
     font-weight: 300;
   }
 
-  /* 正中央的括號：標出目前是哪一件 */
-  .obys-bracket {
+  /* 取景框：一個細線方框只留四角，尺寸跟著當前那一件走。
+     用 mask 把整個邊框裁成四個角，比畫四個 L 乾淨 */
+  .obys-frame {
     position: absolute;
     z-index: 2;
+    left: 50%;
     top: 50%;
-    font-size: clamp(7rem, 15vw, 15rem);
-    font-weight: 300;
-    line-height: 0;
-    color: var(--ink);
+    width: 260px;
+    height: 340px;
+    transform: translate(-50%, -50%);
+    border: 1px solid var(--ink);
     pointer-events: none;
-    transform: translateY(-50%) scaleY(1.25);
+    --arm: 30px;
+    -webkit-mask:
+      linear-gradient(#000 0 0) top left / var(--arm) var(--arm) no-repeat,
+      linear-gradient(#000 0 0) top right / var(--arm) var(--arm) no-repeat,
+      linear-gradient(#000 0 0) bottom left / var(--arm) var(--arm) no-repeat,
+      linear-gradient(#000 0 0) bottom right / var(--arm) var(--arm) no-repeat;
+    mask:
+      linear-gradient(#000 0 0) top left / var(--arm) var(--arm) no-repeat,
+      linear-gradient(#000 0 0) top right / var(--arm) var(--arm) no-repeat,
+      linear-gradient(#000 0 0) bottom left / var(--arm) var(--arm) no-repeat,
+      linear-gradient(#000 0 0) bottom right / var(--arm) var(--arm) no-repeat;
   }
 
-  .obys-bracket-l { right: calc(50% + clamp(90px, 9vw, 140px)); }
-  .obys-bracket-r { left: calc(50% + clamp(90px, 9vw, 140px)); }
+  /* 分類標籤朝取景框拉出一小段細線：
+     整條橫貫的線會穿過清單與文字，短線才乾淨 */
+  .obys-cat-a::after,
+  .obys-cat-b::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: clamp(26px, 3.5vw, 60px);
+    height: 1px;
+    background: rgba(20, 19, 15, .28);
+  }
+
+  .obys-cat-a::after { left: calc(100% + 14px); }
+  .obys-cat-b::before { right: calc(100% + 14px); }
 
   /* 左側名稱清單 */
   .obys-list {
@@ -1240,7 +1310,7 @@
     transition: color .35s var(--ease);
   }
 
-  .obys-name:hover { color: rgba(11, 11, 12, .7); }
+  .obys-name:hover { color: rgba(20, 19, 15, .7); }
   .obys-name.is-on { color: var(--ink); }
 
   /* 分類與編號，都落在中央那條線上 */
@@ -1261,7 +1331,28 @@
 
   .obys-cat-a { right: calc(50% + clamp(150px, 16vw, 260px)); text-align: right; }
   .obys-cat-b { left: calc(50% + clamp(150px, 16vw, 260px)); }
-  .obys-num { right: clamp(1.25rem, 4vw, 3.5rem); color: var(--ink-dim); }
+  /* 計數器：和團隊那一章同一組樣式 */
+  .obys-num {
+    right: clamp(1.25rem, 4vw, 3.5rem);
+    display: flex;
+    align-items: baseline;
+    gap: .5rem;
+  }
+
+  .obys-num b {
+    font-size: clamp(1.6rem, 3.4vw, 3rem);
+    font-weight: 200;
+    letter-spacing: -.02em;
+    color: rgba(20, 19, 15, .5);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .obys-num i {
+    font-style: normal;
+    font-size: .62rem;
+    letter-spacing: .2em;
+    color: rgba(20, 19, 15, .3);
+  }
 
   .obys-mode {
     position: absolute;
@@ -1302,14 +1393,12 @@
     .obys-name.is-on {
       display: block;
       padding: .35rem .8rem;
-      background: #f2f1ee;
+      background: var(--ivory);
       color: var(--ink);
     }
     .obys-cat-a, .obys-cat-b { display: none; }
     .obys-reel { width: min(52vw, 230px); }
-    .obys-bracket { font-size: clamp(3.5rem, 15vw, 6rem); }
-    .obys-bracket-l { right: calc(50% + min(29vw, 125px)); }
-    .obys-bracket-r { left: calc(50% + min(29vw, 125px)); }
+    .obys-frame { --arm: 18px; }
     .obys-num { right: 1rem; }
     .obys-eyebrow { top: clamp(3.5rem, 9vh, 5rem); }
   }
@@ -1585,6 +1674,9 @@
         <canvas class="film-gl" id="filmGL"></canvas>
       </div>
 
+      <!-- 邊欄計數器：角標壓在黑色底片上等於隱形，改用數字標示目前是第幾位 -->
+      <p class="film-count" aria-hidden="true"><b id="filmCount">01</b><i>/ 11</i></p>
+
       <div class="film-stage">
       <!-- 中央聚光：畫在 3D 場景外，免得和正中央那一格同深度互穿 -->
       <div class="film-spot" aria-hidden="true"></div>
@@ -1680,15 +1772,15 @@
       </div>
     </div>
 
-    <!-- 括號放在圖列外面：圖列有遮罩，放在裡面會被一起裁掉 -->
-    <span class="obys-bracket obys-bracket-l" aria-hidden="true">(</span>
-    <span class="obys-bracket obys-bracket-r" aria-hidden="true">)</span>
+    <!-- 取景框放在圖列外面：圖列有遮罩，放在裡面會被一起裁掉 -->
+    <div class="obys-frame" id="obysFrame" aria-hidden="true"></div>
+
 
     <!-- 分類與編號 -->
     <div class="obys-meta" aria-hidden="true">
       <span class="obys-cat-a" id="obysCatA"></span>
       <span class="obys-cat-b" id="obysCatB"></span>
-      <span class="obys-num" id="obysNum">01</span>
+      <span class="obys-num"><b id="obysNum">01</b><i>/ 05</i></span>
     </div>
 
     <p class="obys-mode" data-i18n="pf.mode">Vertical</p>
@@ -2709,10 +2801,11 @@
     const filmNext = document.getElementById('filmNext');
     const filmRole = document.getElementById('filmRole');
     const filmNote = document.getElementById('filmNote');
+    const filmCount = document.getElementById('filmCount');
     const filmSpot = filmEl.querySelector('.film-spot');
     const filmMax = filmFrames.length - 1;
 
-    let filmPos = Math.floor(filmMax / 2);   /* 目前位置（連續值） */
+    let filmPos = 1;                         /* 開場停在有照片的片格上 */
     let filmTarget = filmPos;                /* 想去的位置 */
     let filmIndex = filmPos;                 /* 對外用的整數格號 */
     let filmStep = 16;                       /* 每一格佔的圓心角 */
@@ -2760,15 +2853,15 @@
             'translateY(' + float.toFixed(2) + 'px)';
         }
 
-        f.style.opacity = clamp(1 - Math.abs(o) * .21, 0, 1).toFixed(3);
+        /* 透明度只負責收掉遠處；淺色底降透明度＝褪色，遠近改用往紙色融的薄膜 */
+        f.style.opacity = clamp(1 - Math.max(0, Math.abs(o) - 2.6) * .7, 0, 1).toFixed(3);
+        f.style.setProperty('--fade', ((1 - near) * .78).toFixed(3));
 
         /* 縮放與失焦掛在畫面上，不掛在片格本身：
            片格一縮，整條底片就會出現縫、齒孔也會對不齊 */
         const shot = filmShots[i];
         shot.style.transform = reduce ? '' : 'scale(' + (.92 + .08 * near).toFixed(3) + ')';
-        shot.style.filter =
-          'brightness(' + (.46 + .54 * near).toFixed(3) + ')' +
-          (reduce ? '' : ' blur(' + ((1 - near) * 1.5).toFixed(2) + 'px)');
+        shot.style.filter = reduce ? '' : 'blur(' + ((1 - near) * 1.2).toFixed(2) + 'px)';
       });
 
       if (filmSpot) { filmSpot.style.opacity = (.55 + .45 * Math.max(0, 1 - Math.abs(filmPos - Math.round(filmPos)) * 2)).toFixed(3); }
@@ -2782,6 +2875,7 @@
       [...filmDots.children].forEach((d, k) => d.setAttribute('aria-selected', String(k === filmIndex)));
       filmPrev.disabled = filmIndex === 0;
       filmNext.disabled = filmIndex === filmMax;
+      filmCount.textContent = String(filmIndex + 1).padStart(2, '0');
       filmSync();
     }
 
@@ -2910,12 +3004,14 @@
 
       const FRAG = [
         'uniform sampler2D uMap;',
-        'uniform float uBright;',
+        'uniform float uFade;',                        /* 往紙色融的程度 */
+        'uniform vec3 uPaper;',
         'uniform float uOpacity;',
         'varying vec2 vUv;',
         'void main() {',
         '  vec4 c = texture2D(uMap, vUv);',
-        '  gl_FragColor = vec4(c.rgb * uBright, c.a * uOpacity);',
+        /* 淺色底的遠近靠大氣透視：遠的往紙色靠，壓暗反而會顯得更近 */
+        '  gl_FragColor = vec4(mix(c.rgb, uPaper, uFade), c.a * uOpacity);',
         '}'
       ].join('\n');
 
@@ -3005,7 +3101,8 @@
             uW: { value: PANEL_W },
             uBend: { value: BEND },
             uWave: { value: new THREE.Vector3(wave, freq, 0) },
-            uBright: { value: 1 },
+            uFade: { value: 0 },
+            uPaper: { value: new THREE.Color(0xf4f1e9) },
             uOpacity: { value: 1 }
           },
           vertexShader: VERT,
@@ -3088,10 +3185,12 @@
         render: function (now) {
           panels.forEach((p, i) => {
             const o = i - filmPos;
+            const far = Math.abs(o);
             const near = 1 / (1 + (o / 1.15) * (o / 1.15));
-            const op = clamp(1 - Math.abs(o) * .17, 0, 1);
+            /* 透明度只負責收掉遠處，不參與遠近表現 —— 淺色底降透明度＝褪色 */
+            const op = clamp(1 - Math.max(0, far - 2.6) * .7, 0, 1);
             p.mat.uniforms.uOff.value = o;
-            p.mat.uniforms.uBright.value = .46 + .54 * near;
+            p.mat.uniforms.uFade.value = (1 - near) * .82;
             p.mat.uniforms.uOpacity.value = op;
             p.mesh.visible = op > .01;
             /* 遠的先畫，近的後畫：半透明疊起來前後才正確 */
@@ -3265,6 +3364,7 @@
     [...filmDots.children].forEach((d, k) => d.setAttribute('aria-selected', String(k === filmIndex)));
     filmPrev.disabled = filmIndex === 0;
     filmNext.disabled = filmIndex === filmMax;
+    filmCount.textContent = String(filmIndex + 1).padStart(2, '0');
     filmSync();
     filmMetrics();
     filmRender(performance.now());
@@ -3281,12 +3381,14 @@
     const obysCatA = document.getElementById('obysCatA');
     const obysCatB = document.getElementById('obysCatB');
     const obysNum = document.getElementById('obysNum');
+    const obysGate = document.getElementById('obysFrame');   /* 取景框 */
     const obysN = obysItems.length;
 
     let obysY = 0;          /* 目前位置（px） */
     let obysT = 0;          /* 目標位置 */
     let obysPitch = 320;    /* 一件佔的高度 */
     let obysIndex = -1;
+    let obysFw = 260, obysFh = 340;                  /* 取景框目前的尺寸，用 lerp 收斂 */
     let obysRaf = 0;
     let obysRunning = false;
 
@@ -3332,6 +3434,16 @@
       });
 
       obysSetIndex(Math.round(obysY / obysPitch));
+
+      /* 取景框跟著當前那一件的尺寸走；用 lerp 收斂，換件時才不會跳一下 */
+      const act = obysItems[obysIndex] || obysItems[0];
+      const shot = act.firstElementChild;
+      const near = Math.max(0, 1 - Math.abs(obysWrap(Number(act.dataset.i) * obysPitch - obysY, span)) / obysPitch);
+      const sc = .94 + .06 * near;
+      obysFw += (act.offsetWidth * sc + 30 - obysFw) * .16;
+      obysFh += (shot.offsetHeight * sc + 30 - obysFh) * .16;
+      obysGate.style.width = obysFw.toFixed(1) + 'px';
+      obysGate.style.height = obysFh.toFixed(1) + 'px';
 
       /* 捲得快的時候整列輕微失焦，停下來就恢復 */
       if (!reduce) {

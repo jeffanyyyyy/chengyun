@@ -1131,150 +1131,191 @@
   }
 
   /* ── 活動成果卡 ─────────────────────── */
-  /* ── 04 活動成果：動態海報清單 ───────
-     Obys 那種「動態海報展」的作法：版面交給字體本身，
-     清單是唯一的結構，預覽圖跟著游標跑，不佔版面。 */
-  /* 內容比畫面高時改靠上對齊，才捲得動（置中的話上緣會被推出畫面） */
-  .scene[data-scene="portfolio"] .scene-inner { overflow: hidden; }
-  /* 捲動由我們自己處理，交給瀏覽器的話第一次移動就會收到 pointercancel */
-  .scene[data-scene="portfolio"] .scene-inner.is-scrollable { align-items: start; touch-action: none; }
-  .scene[data-scene="portfolio"] .stagger { will-change: transform; }
-
-  .works {
-    border-top: 1px solid rgba(255, 255, 255, .14);
-    margin-top: clamp(1.5rem, 4vh, 3rem);
-  }
-
-  .work-row {
-    position: relative;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas: 'idx name year' 'idx tag year';
-    align-items: baseline;
-    column-gap: clamp(1rem, 3vw, 2.5rem);
-    width: 100%;
-    padding: clamp(.7rem, 2vh, 1.4rem) 0;
-    border-bottom: 1px solid rgba(255, 255, 255, .14);
-    text-align: left;
-    transition: opacity .45s var(--ease);
-  }
-
-  .wr-idx {
-    grid-area: idx;
-    align-self: center;
-    font-size: .6rem;
-    letter-spacing: .3em;
-    color: rgba(255, 255, 255, .34);
-    transition: color .45s var(--ease);
-  }
-
-  .wr-name {
-    grid-area: name;
+  /* ── 04 活動成果：Obys 式作品索引 ─────
+     白底、中央一條無限循環的垂直圖列、左側名稱清單、
+     正中央一對括號框住當前作品、右側分類與編號。
+     頁首頁尾與游標都是 mix-blend-difference，白底會自己翻成黑字。 */
+  .scene[data-scene="portfolio"] .scene-inner {
     display: block;
-    font-size: clamp(1.5rem, 4.6vw, 3.4rem);
-    font-weight: 300;
-    line-height: 1.04;
-    letter-spacing: -.01em;
-    color: rgba(255, 255, 255, .88);
-    transition: transform .6s var(--ease), color .45s var(--ease);
+    overflow: hidden;
+    padding: 0;
+    background: #f2f1ee;
+    color: #0b0b0c;
+    --ink: #0b0b0c;
+    --ink-dim: rgba(11, 11, 12, .34);
   }
 
-  .wr-tag {
-    grid-area: tag;
-    display: block;
-    margin-top: .5rem;
-    font-size: .68rem;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, .34);
-    transition: transform .6s var(--ease) .04s, color .45s var(--ease);
-  }
-
-  .wr-year {
-    grid-area: year;
-    align-self: center;
-    font-size: .68rem;
-    letter-spacing: .16em;
-    color: rgba(255, 255, 255, .34);
-    transition: color .45s var(--ease);
-  }
-
-  /* 滑到某一列：其餘壓暗，這一列往右讓開一點 */
-  .works:hover .work-row { opacity: .3; }
-  .works .work-row:hover,
-  .works .work-row:focus-visible { opacity: 1; }
-
-  .work-row:hover .wr-name,
-  .work-row:focus-visible .wr-name { transform: translateX(clamp(.5rem, 1.6vw, 1.5rem)); color: #fff; }
-  .work-row:hover .wr-tag { transform: translateX(clamp(.5rem, 1.6vw, 1.5rem)); }
-  .work-row:hover .wr-idx,
-  .work-row:hover .wr-year { color: rgba(255, 255, 255, .75); }
-
-  /* 還沒有內容的欄位講清楚，不要看起來像真的案例 */
-  .work-row[data-empty] .wr-name { color: rgba(255, 255, 255, .34); font-style: italic; }
-  .work-row[data-empty] { cursor: default; }
-  .work-row[data-empty]:hover .wr-name { color: rgba(255, 255, 255, .62); }
-
-  .works-foot {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1.5rem;
-    margin-top: clamp(1.25rem, 3.5vh, 2.5rem);
-  }
-
-  .works-figs {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, auto));
-    gap: 1rem clamp(1.25rem, 4vw, 3rem);
-  }
-
-  @media (max-width: 640px) {
-    .works-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .work-row { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'idx name' 'idx tag' 'idx year'; }
-    .wr-year { margin-top: .35rem; }
-  }
-
-  /* 跟著游標的海報 */
-  .poster {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: clamp(180px, 22vw, 320px);
-    aspect-ratio: 3 / 4;
-    pointer-events: none;
-    opacity: 0;
-    z-index: 2;
-    will-change: transform, opacity;
-    transition: opacity .45s var(--ease);
-  }
-
-  .poster.is-on { opacity: 1; }
-  .poster-gl,
-  .poster-img {
+  .obys {
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
   }
 
-  .poster-img { object-fit: cover; opacity: 0; transition: opacity .35s ease; }
-  :root:not(.has-postergl) .poster-img { opacity: 1; }
-  :root:not(.has-postergl) .poster-gl { display: none; }
+  /* 中央圖列 */
+  .obys-reel {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    /* 上下淡出，圖列才不會直接撞上頁首頁尾 */
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0, #000 9%, #000 91%, transparent 100%);
+    width: clamp(150px, 15vw, 230px);
+    transform: translateX(-50%);
+    touch-action: none;
+    cursor: grab;
+  }
 
-  /* 指標裝置才有懸停預覽；觸控直接點開 */
-  @media (hover: none) {
-    .poster { display: none; }
-    .works:hover .work-row { opacity: 1; }
+  .obys-reel.is-dragging { cursor: grabbing; }
+
+  .obys-track {
+    position: absolute;
+    inset: 0;
+    will-change: filter;
+  }
+
+  .obys-item {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 100%;
+    margin: 0;
+    transform-origin: 50% 50%;
+    will-change: transform;
+  }
+
+  .obys-shot {
+    width: 100%;
+    background: #ddd9d2 center / cover no-repeat;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, .1);
+    transition: filter .5s var(--ease);
+  }
+
+  /* 還沒有內容的欄位：虛線框 + 編號，一看就知道是佔位 */
+  .obys-item[data-empty] .obys-shot {
+    display: grid;
+    place-items: center;
+    background: #e7e4de;
+    box-shadow: inset 0 0 0 1px rgba(11, 11, 12, .16);
+    color: rgba(11, 11, 12, .2);
+    font-size: clamp(2rem, 4vw, 3.4rem);
+    font-weight: 300;
+  }
+
+  /* 正中央的括號：標出目前是哪一件 */
+  .obys-bracket {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    font-size: clamp(7rem, 15vw, 15rem);
+    font-weight: 300;
+    line-height: 0;
+    color: var(--ink);
+    pointer-events: none;
+    transform: translateY(-50%) scaleY(1.25);
+  }
+
+  .obys-bracket-l { right: calc(50% + clamp(90px, 9vw, 140px)); }
+  .obys-bracket-r { left: calc(50% + clamp(90px, 9vw, 140px)); }
+
+  /* 左側名稱清單 */
+  .obys-list {
+    position: absolute;
+    z-index: 3;
+    left: clamp(1.25rem, 4vw, 3.5rem);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .35rem;
+    max-width: 30vw;
+  }
+
+  .obys-name {
+    font-size: clamp(.72rem, 1vw, .88rem);
+    letter-spacing: .01em;
+    color: var(--ink-dim);
+    text-align: left;
+    transition: color .35s var(--ease);
+  }
+
+  .obys-name:hover { color: rgba(11, 11, 12, .7); }
+  .obys-name.is-on { color: var(--ink); }
+
+  /* 分類與編號，都落在中央那條線上 */
+  .obys-meta {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    pointer-events: none;
+    font-size: clamp(.68rem, .9vw, .84rem);
+    color: var(--ink);
+  }
+
+  .obys-meta span {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .obys-cat-a { right: calc(50% + clamp(150px, 16vw, 260px)); text-align: right; }
+  .obys-cat-b { left: calc(50% + clamp(150px, 16vw, 260px)); }
+  .obys-num { right: clamp(1.25rem, 4vw, 3.5rem); color: var(--ink-dim); }
+
+  .obys-mode {
+    position: absolute;
+    left: clamp(1.25rem, 4vw, 3.5rem);
+    bottom: clamp(3.5rem, 8vh, 5rem);
+    margin: 0;
+    font-size: .62rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  .obys-eyebrow {
+    position: absolute;
+    left: clamp(1.25rem, 4vw, 3.5rem);
+    top: clamp(4.5rem, 12vh, 7rem);
+    font-size: .6rem;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+
+  /* 窄螢幕：清單收到上方，分類讓位 */
+  @media (max-width: 860px) {
+    .obys-list {
+      left: 0;
+      right: 0;
+      top: clamp(5.5rem, 14vh, 8rem);
+      transform: none;
+      max-width: none;
+      align-items: center;
+      gap: .2rem;
+    }
+
+    /* 整串清單和圖列會疊在一起，手機只顯示當前這一件，
+       並給一塊與底色相同的墊底，壓在圖上也讀得到 */
+    .obys-name { display: none; font-size: .78rem; }
+    .obys-name.is-on {
+      display: block;
+      padding: .35rem .8rem;
+      background: #f2f1ee;
+      color: var(--ink);
+    }
+    .obys-cat-a, .obys-cat-b { display: none; }
+    .obys-reel { width: min(52vw, 230px); }
+    .obys-bracket { font-size: clamp(3.5rem, 15vw, 6rem); }
+    .obys-bracket-l { right: calc(50% + min(29vw, 125px)); }
+    .obys-bracket-r { left: calc(50% + min(29vw, 125px)); }
+    .obys-num { right: 1rem; }
+    .obys-eyebrow { top: clamp(3.5rem, 9vh, 5rem); }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .poster { display: none; }
-    .wr-name, .wr-tag { transition: color .3s ease; }
-    .work-row:hover .wr-name,
-    .work-row:hover .wr-tag { transform: none; }
+    .obys-track { filter: none !important; }
   }
 
   .detail {
@@ -1604,66 +1645,56 @@
   </div>
 </section>
 
-<!-- ── 04 Portfolio：動態海報清單 ───── -->
+<!-- ── 04 Portfolio：Obys 式作品索引 ─── -->
 <section class="scene" data-scene="portfolio" aria-hidden="true">
-  <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-16">
+  <div class="scene-inner obys">
+    <span class="obys-eyebrow" data-i18n="portfolio.eyebrow">04 — Portfolio</span>
 
-    <!-- 懸停預覽：跟著游標的海報。有 WebGL 走畫布（會扭曲），沒有就走圖片 -->
-    <div class="poster" id="poster" aria-hidden="true">
-      <canvas class="poster-gl" id="posterGL"></canvas>
-      <img class="poster-img" id="posterImg" alt="" />
-    </div>
+    <!-- 左：作品名稱，點名稱就捲到那一件 -->
+    <nav class="obys-list" id="obysList" aria-label="Works">
+        <button class="obys-name hover-target" type="button" data-i="0" data-i18n="pf.t1">Silent Market</button>
+        <button class="obys-name hover-target" type="button" data-i="1" data-i18n="pf.t2">Slot to be filled</button>
+        <button class="obys-name hover-target" type="button" data-i="2" data-i18n="pf.t3">Slot to be filled</button>
+        <button class="obys-name hover-target" type="button" data-i="3" data-i18n="pf.t4">Slot to be filled</button>
+        <button class="obys-name hover-target" type="button" data-i="4" data-i18n="pf.t5">Slot to be filled</button>
+    </nav>
 
-    <div class="stagger w-full max-w-6xl text-left">
-      <span class="eyebrow" data-i18n="portfolio.eyebrow">04 — Portfolio</span>
-
-      <div class="works" id="works">
-        <button class="work-row hover-target" type="button" data-work="0" data-detail="silent">
-          <span class="wr-idx">01</span>
-          <span class="wr-name" data-i18n="pf.t1">Silent Market</span>
-          <span class="wr-tag" data-i18n="pf.k1">Curation · Brand Selection · Production</span>
-          <span class="wr-year" data-i18n="pf.y1">2026</span>
-        </button>
-        <button class="work-row hover-target" type="button" data-work="1">
-          <span class="wr-idx">02</span>
-          <span class="wr-name" data-i18n="pf.t2">Slot to be filled</span>
-          <span class="wr-tag" data-i18n="pf.k2">Awaiting content</span>
-          <span class="wr-year" data-i18n="pf.y2">—</span>
-        </button>
-        <button class="work-row hover-target" type="button" data-work="2">
-          <span class="wr-idx">03</span>
-          <span class="wr-name" data-i18n="pf.t3">Slot to be filled</span>
-          <span class="wr-tag" data-i18n="pf.k3">Awaiting content</span>
-          <span class="wr-year" data-i18n="pf.y3">—</span>
-        </button>
-        <button class="work-row hover-target" type="button" data-work="3">
-          <span class="wr-idx">04</span>
-          <span class="wr-name" data-i18n="pf.t4">Slot to be filled</span>
-          <span class="wr-tag" data-i18n="pf.k4">Awaiting content</span>
-          <span class="wr-year" data-i18n="pf.y4">—</span>
-        </button>
-        <button class="work-row hover-target" type="button" data-work="4">
-          <span class="wr-idx">05</span>
-          <span class="wr-name" data-i18n="pf.t5">Slot to be filled</span>
-          <span class="wr-tag" data-i18n="pf.k5">Awaiting content</span>
-          <span class="wr-year" data-i18n="pf.y5">—</span>
-        </button>
-      </div>
-
-      <div class="works-foot">
-        <dl class="works-figs">
-          <div><dt class="fig">6</dt><dd class="desc" data-i18n="portfolio.f1">Sessions, alternate weekends</dd></div>
-          <div><dt class="fig">12</dt><dd class="desc" data-i18n="portfolio.f2">Days of market</dd></div>
-          <div><dt class="fig">15:00</dt><dd class="desc" data-i18n="portfolio.f3">Opens daily, until 20:30</dd></div>
-          <div><dt class="fig">2026</dt><dd class="desc" data-i18n="portfolio.f4">First edition</dd></div>
-        </dl>
-        <p class="note" data-i18n="portfolio.note">More work to be added.</p>
+    <!-- 中：無限循環的垂直圖列 -->
+    <div class="obys-reel" id="obysReel">
+      <div class="obys-track" id="obysTrack">
+        <figure class="obys-item" data-i="0" data-detail="silent">
+          <div class="obys-shot" style="aspect-ratio: 3 / 4; background-image: url(../../assets/work/01.jpg)"></div>
+        </figure>
+        <figure class="obys-item" data-empty data-i="1">
+          <div class="obys-shot" style="aspect-ratio: 4 / 5">02</div>
+        </figure>
+        <figure class="obys-item" data-empty data-i="2">
+          <div class="obys-shot" style="aspect-ratio: 1 / 1">03</div>
+        </figure>
+        <figure class="obys-item" data-empty data-i="3">
+          <div class="obys-shot" style="aspect-ratio: 3 / 4">04</div>
+        </figure>
+        <figure class="obys-item" data-empty data-i="4">
+          <div class="obys-shot" style="aspect-ratio: 5 / 4">05</div>
+        </figure>
       </div>
     </div>
+
+    <!-- 括號放在圖列外面：圖列有遮罩，放在裡面會被一起裁掉 -->
+    <span class="obys-bracket obys-bracket-l" aria-hidden="true">(</span>
+    <span class="obys-bracket obys-bracket-r" aria-hidden="true">)</span>
+
+    <!-- 分類與編號 -->
+    <div class="obys-meta" aria-hidden="true">
+      <span class="obys-cat-a" id="obysCatA"></span>
+      <span class="obys-cat-b" id="obysCatB"></span>
+      <span class="obys-num" id="obysNum">01</span>
+    </div>
+
+    <p class="obys-mode" data-i18n="pf.mode">Vertical</p>
   </div>
 </section>
 
-<!-- ── 05 Q&A ──────────────────────── -->
 <section class="scene" data-scene="faq" aria-hidden="true">
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-3xl text-left">
@@ -1913,6 +1944,11 @@
         'teams.b9': 'Name, role and photo to be supplied.',
         'teams.b10': 'Name, role and photo to be supplied.',
         'teams.b11': 'Name, role and photo to be supplied.',
+        'pf.a1': 'Curation', 'pf.b1': 'Production', 'pf.mode': 'Vertical',
+        'pf.a2': '—', 'pf.b2': '—',
+        'pf.a3': '—', 'pf.b3': '—',
+        'pf.a4': '—', 'pf.b4': '—',
+        'pf.a5': '—', 'pf.b5': '—',
         'pf.t1': 'Silent Market', 'pf.k1': 'Curation · Brand Selection · Production', 'pf.y1': '2026',
         'pf.t2': 'Slot to be filled', 'pf.k2': 'Awaiting content', 'pf.y2': '—',
         'pf.t3': 'Slot to be filled', 'pf.k3': 'Awaiting content', 'pf.y3': '—',
@@ -2037,6 +2073,11 @@
         'teams.s9': '職務待補', 'teams.b9': '姓名、職務與照片待提供。',
         'teams.s10': '職務待補', 'teams.b10': '姓名、職務與照片待提供。',
         'teams.s11': '職務待補', 'teams.b11': '姓名、職務與照片待提供。',
+        'pf.a1': '策展', 'pf.b1': '現場執行', 'pf.mode': '直式',
+        'pf.a2': '—', 'pf.b2': '—',
+        'pf.a3': '—', 'pf.b3': '—',
+        'pf.a4': '—', 'pf.b4': '—',
+        'pf.a5': '—', 'pf.b5': '—',
         'pf.t1': '默者文畫', 'pf.k1': '策展 · 品牌審查 · 現場執行', 'pf.y1': '2026',
         'pf.t2': '案例待補', 'pf.k2': '內容待提供', 'pf.y2': '—',
         'pf.t3': '案例待補', 'pf.k3': '內容待提供', 'pf.y3': '—',
@@ -2186,6 +2227,11 @@
         'teams.s9': '担当は調整中', 'teams.b9': '氏名・担当・写真は後日追加。',
         'teams.s10': '担当は調整中', 'teams.b10': '氏名・担当・写真は後日追加。',
         'teams.s11': '担当は調整中', 'teams.b11': '氏名・担当・写真は後日追加。',
+        'pf.a1': 'キュレーション', 'pf.b1': '現場運営', 'pf.mode': '縦',
+        'pf.a2': '—', 'pf.b2': '—',
+        'pf.a3': '—', 'pf.b3': '—',
+        'pf.a4': '—', 'pf.b4': '—',
+        'pf.a5': '—', 'pf.b5': '—',
         'pf.t1': 'サイレントマーケット', 'pf.k1': 'キュレーション · 出店審査 · 現場運営', 'pf.y1': '2026',
         'pf.t2': '事例は後日追加', 'pf.k2': '内容は準備中', 'pf.y2': '—',
         'pf.t3': '事例は後日追加', 'pf.k3': '内容は準備中', 'pf.y3': '—',
@@ -2259,6 +2305,7 @@
 
     let lang = 'en';
     let filmSync = () => { /* 膠卷初始化前先當作沒事 */ };
+    let obysSync = () => { /* 作品索引初始化前先當作沒事 */ };
     const t = (key) => (I18N[lang] && I18N[lang][key]) || I18N.en[key] || '';
 
     function applyLang(next) {
@@ -2285,6 +2332,7 @@
 
       try { localStorage.setItem('cy-lang', next); } catch (err) { /* 無痕視窗寫不進去，忽略即可 */ }
       filmSync();
+      obysSync();
       syncChrome();
       if (detail.classList.contains('is-on')) { renderDetail(); }
       requestAnimationFrame(updateCue);
@@ -3221,348 +3269,187 @@
     filmMetrics();
     filmRender(performance.now());
 
-    /* ══ 活動成果：動態海報清單 ═════════════════════════════════
-       版面只有一張清單，預覽海報跟著游標跑、不佔版面。
-       海報用 WebGL 畫：切換時由一道波浪擦除、移動時依游標速度拉出 RGB 偏移。
-       沒有 WebGL、沒有指標裝置、或使用者要求減少動態時，換成單純的圖片（或整個不出現）。 */
-    const posterBox = document.getElementById('poster');
-    const posterCanvas = document.getElementById('posterGL');
-    const posterImg = document.getElementById('posterImg');
-    const worksList = document.getElementById('works');
-    const workRows = [...document.querySelectorAll('.work-row')];
-    const canHover = matchMedia('(hover: hover)').matches;
+    /* ══ 活動成果：Obys 式作品索引 ═══════════════════════════════
+       中央是一條無限循環的垂直圖列：位置用一個連續的 px 值表示，
+       每一件依「離中央多遠」取最短的環繞距離擺放，所以永遠不會捲到盡頭。
+       正中央那一對括號標出目前是哪一件，左側清單與右側分類跟著換。
+       這一章沒有整頁捲動，所以不引入 Lenis，用同樣手感的 lerp 接手。 */
+    const obysReel = document.getElementById('obysReel');
+    const obysTrack = document.getElementById('obysTrack');
+    const obysItems = [...obysTrack.children];
+    const obysNames = [...document.querySelectorAll('.obys-name')];
+    const obysCatA = document.getElementById('obysCatA');
+    const obysCatB = document.getElementById('obysCatB');
+    const obysNum = document.getElementById('obysNum');
+    const obysN = obysItems.length;
 
-    /* 第一筆是真的案例，其餘是待補的欄位。
-       之後有案例就把 src 填上，順便把 data-empty 拿掉、補上 i18n 文案 */
-    const WORK_ART = [
-      { src: '../../assets/work/01.jpg' },
-      {}, {}, {}, {}
-    ];
+    let obysY = 0;          /* 目前位置（px） */
+    let obysT = 0;          /* 目標位置 */
+    let obysPitch = 320;    /* 一件佔的高度 */
+    let obysIndex = -1;
+    let obysRaf = 0;
+    let obysRunning = false;
 
-    workRows.forEach((row, i) => { if (!WORK_ART[i] || !WORK_ART[i].src) { row.setAttribute('data-empty', ''); } });
-
-    /* 佔位海報：暗底、巨大編號、虛線框 —— 一看就知道還沒有內容 */
-    function placeholderPoster(i) {
-      const c = document.createElement('canvas');
-      c.width = 600;
-      c.height = 800;
-      const x = c.getContext('2d');
-      const g = x.createLinearGradient(0, 0, 600, 800);
-      g.addColorStop(0, '#15171d');
-      g.addColorStop(1, '#0a0b0f');
-      x.fillStyle = g;
-      x.fillRect(0, 0, 600, 800);
-
-      x.strokeStyle = 'rgba(255,255,255,.16)';
-      x.lineWidth = 2;
-      x.setLineDash([10, 12]);
-      x.strokeRect(36, 36, 528, 728);
-
-      x.fillStyle = 'rgba(255,255,255,.1)';
-      x.font = '300 300px Inter, system-ui, sans-serif';
-      x.textAlign = 'center';
-      x.textBaseline = 'middle';
-      x.fillText(String(i + 1).padStart(2, '0'), 300, 400);
-      return c;
+    function obysMeasure() {
+      const h = obysReel.clientHeight || 600;
+      /* 一件的高度取「最高的那張」加間距，循環時才不會互相重疊 */
+      const tallest = obysItems.reduce((m, el) => Math.max(m, el.firstElementChild.offsetHeight), 0);
+      obysPitch = (tallest || h * .45) + Math.round(h * .04);
     }
 
-    function workSource(i) {
-      const art = WORK_ART[i] || {};
-      if (!art.src) { return { canvas: placeholderPoster(i) }; }
-      return { src: art.src };
+    /* 最短環繞距離：把 v 折進 [-span/2, span/2) */
+    function obysWrap(v, span) {
+      return v - span * Math.floor(v / span + .5);
     }
 
-    /* ── WebGL 海報 ── */
-    function makePosterGL() {
-      if (!canHover || reduce || !window.THREE) { return null; }
-      const probe = document.createElement('canvas');
-      if (!(probe.getContext('webgl2') || probe.getContext('webgl') || probe.getContext('experimental-webgl'))) { return null; }
+    function obysSetIndex(i) {
+      const n = ((i % obysN) + obysN) % obysN;
+      if (n === obysIndex) { return; }
+      obysIndex = n;
+      obysNames.forEach((b, k) => b.classList.toggle('is-on', k === n));
+      obysCatA.textContent = t('pf.a' + (n + 1));
+      obysCatB.textContent = t('pf.b' + (n + 1));
+      obysNum.textContent = String(n + 1).padStart(2, '0');
+    }
 
-      let renderer;
-      try {
-        renderer = new THREE.WebGLRenderer({ canvas: posterCanvas, antialias: true, alpha: true });
-      } catch (err) {
-        return null;
-      }
-      renderer.setClearColor(0x000000, 0);
+    /* 換語言時分類也要跟著換 */
+    obysSync = function () {
+      const n = obysIndex < 0 ? 0 : obysIndex;
+      obysCatA.textContent = t('pf.a' + (n + 1));
+      obysCatB.textContent = t('pf.b' + (n + 1));
+    };
 
-      const scene = new THREE.Scene();
-      const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    function obysFrame() {
+      obysY += (obysT - obysY) * .1;
+      const span = obysPitch * obysN;
 
-      const VERT = [
-        'varying vec2 vUv;',
-        'void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }'
-      ].join('\n');
-
-      const FRAG = [
-        'precision mediump float;',
-        'uniform sampler2D uA;',
-        'uniform sampler2D uB;',
-        'uniform vec2 uRa;',                           /* 兩張圖各自的等比裁切係數 */
-        'uniform vec2 uRb;',
-        'uniform float uMix;',                         /* 0 → 1：由左而右的波浪擦除 */
-        'uniform float uHover;',
-        'uniform vec2 uVel;',                          /* 游標速度，決定拖影與 RGB 偏移 */
-        'uniform float uTime;',
-        'varying vec2 vUv;',
-        '',
-        'vec2 cover(vec2 uv, vec2 r) { return (uv - 0.5) * r + 0.5; }',
-        '',
-        'vec3 split(sampler2D t, vec2 uv, vec2 v) {',
-        '  return vec3(texture2D(t, uv + v * 0.014).r, texture2D(t, uv).g, texture2D(t, uv - v * 0.014).b);',
-        '}',
-        '',
-        'void main() {',
-        '  vec2 uv = vUv;',
-        '  float d = distance(uv, vec2(0.5));',
-        /* 從中心擴散的波紋 + 跟著游標速度的整體拖曳 */
-        '  float w = sin(d * 13.0 - uTime * 2.6) * 0.012 * uHover;',
-        '  uv += vec2(w, -w) + uVel * 0.07;',
-        '',
-        '  vec3 a = split(uA, cover(uv, uRa), uVel);',
-        '  vec3 b = split(uB, cover(uv, uRb), uVel);',
-        /* 擦除的邊緣加一點正弦擾動，切換才不會像硬推的直線 */
-        '  float edge = smoothstep(0.0, 0.5, uMix * 1.5 - uv.x * 0.5 + sin(uv.y * 7.0 + uTime) * 0.05);',
-        '  gl_FragColor = vec4(mix(a, b, edge), uHover);',
-        '}'
-      ].join('\n');
-
-      const blank = new THREE.Texture();
-      const mat = new THREE.ShaderMaterial({
-        uniforms: {
-          uA: { value: blank }, uB: { value: blank },
-          uRa: { value: new THREE.Vector2(1, 1) }, uRb: { value: new THREE.Vector2(1, 1) },
-          uMix: { value: 1 }, uHover: { value: 0 },
-          uVel: { value: new THREE.Vector2(0, 0) }, uTime: { value: 0 }
-        },
-        vertexShader: VERT,
-        fragmentShader: FRAG,
-        transparent: true
+      obysItems.forEach((el, i) => {
+        const y = obysWrap(i * obysPitch - obysY, span);
+        const near = Math.max(0, 1 - Math.abs(y) / obysPitch);
+        el.style.transform =
+          'translate3d(-50%,' + (y - el.offsetHeight / 2).toFixed(1) + 'px,0)' +
+          ' scale(' + (.94 + .06 * near).toFixed(3) + ')';
       });
-      scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
 
-      /* 等比裁切：圖比面板寬就切左右，反之切上下 */
-      function ratio(target, tw, th) {
-        const box = posterBox.getBoundingClientRect();
-        const pa = (box.width || 1) / (box.height || 1);
-        const ta = tw / th;
-        if (ta > pa) { target.set(pa / ta, 1); } else { target.set(1, ta / pa); }
+      obysSetIndex(Math.round(obysY / obysPitch));
+
+      /* 捲得快的時候整列輕微失焦，停下來就恢復 */
+      if (!reduce) {
+        const v = Math.min(Math.abs(obysT - obysY) / 90, 1);
+        obysTrack.style.filter = v > .02 ? 'blur(' + (v * 3.5).toFixed(2) + 'px)' : '';
       }
 
-      const cache = [];
-      function texture(i) {
-        if (cache[i]) { return cache[i]; }
-        const src = workSource(i);
-        let tex;
-        if (src.canvas) {
-          tex = new THREE.CanvasTexture(src.canvas);
-          tex.userData = { w: src.canvas.width, h: src.canvas.height };
-        } else {
-          const img = new Image();
-          tex = new THREE.Texture(img);
-          tex.userData = { w: 3, h: 4 };               /* 載好之前先用面板比例，不會閃一下變形 */
-          img.onload = () => {
-            tex.userData = { w: img.naturalWidth, h: img.naturalHeight };
-            tex.needsUpdate = true;
-          };
-          img.src = src.src;
-        }
-        tex.minFilter = THREE.LinearFilter;
-        tex.generateMipmaps = false;
-        cache[i] = tex;
-        return tex;
-      }
-
-      return {
-        show: function (i) {
-          mat.uniforms.uA.value = mat.uniforms.uB.value;
-          mat.uniforms.uRa.value.copy(mat.uniforms.uRb.value);
-          const tex = texture(i);
-          mat.uniforms.uB.value = tex;
-          ratio(mat.uniforms.uRb.value, tex.userData.w, tex.userData.h);
-          mat.uniforms.uMix.value = 0;
-        },
-        frame: function (now, hover, vel) {
-          const u = mat.uniforms;
-          u.uTime.value = now / 1000;
-          u.uHover.value = hover;
-          u.uVel.value.set(vel.x, vel.y);
-          if (u.uMix.value < 1) { u.uMix.value = Math.min(1, u.uMix.value + .045); }
-          /* 圖片是非同步載入的，尺寸到了才算得準，所以每幀重算一次 */
-          const tb = u.uB.value;
-          if (tb && tb.userData) { ratio(u.uRb.value, tb.userData.w, tb.userData.h); }
-          renderer.render(scene, camera);
-        },
-        resize: function () {
-          const box = posterBox.getBoundingClientRect();
-          if (!box.width) { return; }
-          renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
-          renderer.setSize(box.width, box.height, false);
-        },
-        dispose: function () { mat.dispose(); renderer.dispose(); }
-      };
+      obysRaf = requestAnimationFrame(obysFrame);
     }
 
-    let posterGL = makePosterGL();
-    if (posterGL) { root.classList.add('has-postergl'); posterGL.resize(); }
-
-    /* 沒有 WebGL 時的退路：同一套跟隨邏輯，只是換成 <img> */
-    const imgCache = [];
-    function posterFallback(i) {
-      if (!imgCache[i]) {
-        const src = workSource(i);
-        imgCache[i] = src.canvas ? src.canvas.toDataURL('image/jpeg', .8) : src.src;
-      }
-      posterImg.src = imgCache[i];
+    function obysStart() {
+      if (obysRunning) { return; }
+      obysRunning = true;
+      obysMeasure();
+      obysRaf = requestAnimationFrame(obysFrame);
     }
 
-    /* ── 跟著游標 ── */
-    let pX = 0, pY = 0, tX = 0, tY = 0;
-    let pHover = 0, tHover = 0, pWork = -1;
-    let posterRaf = 0, posterRunning = false;
-    const posterLive = canHover && !reduce;          /* 觸控裝置只留捲動，不做懸停預覽 */
-    const vel = { x: 0, y: 0 };
-
-    function posterShow(i) {
-      if (i === pWork) { return; }
-      pWork = i;
-      if (posterGL) { posterGL.show(i); } else { posterFallback(i); }
+    function obysStop() {
+      obysRunning = false;
+      cancelAnimationFrame(obysRaf);
     }
 
-    /* 這一頁是分鏡式的、沒有整頁捲動，所以不引入 Lenis；
-       內容比畫面高時（多半是手機），用同樣手感的 lerp 捲動器接手 */
-    const pfHost = document.querySelector('.scene[data-scene="portfolio"] .scene-inner');
-    const pfContent = pfHost.querySelector('.stagger');
-    let pfY = 0, pfTarget = 0, pfMax = 0;
-
-    function pfMeasure() {
-      const cs = getComputedStyle(pfHost);
-      const avail = pfHost.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-      pfMax = Math.max(0, pfContent.scrollHeight - avail);
-      pfHost.classList.toggle('is-scrollable', pfMax > 0);
-      pfTarget = clamp(pfTarget, -pfMax, 0);
-      if (!pfMax) { pfY = 0; pfContent.style.transform = ''; }
+    function obysGo(i) {
+      /* 走最短的一邊，不會為了到隔壁而繞一整圈 */
+      const span = obysPitch * obysN;
+      obysT += obysWrap(i * obysPitch - obysT, span);
+      obysStart();
     }
 
-    pfHost.addEventListener('wheel', (e) => {
-      if (current !== 'portfolio' || !pfMax) { return; }
+    /* ── 滾輪 ── */
+    let obysWheelT = 0;
+    obysReel.addEventListener('wheel', (e) => {
+      if (current !== 'portfolio') { return; }
       e.preventDefault();
-      pfTarget = clamp(pfTarget - e.deltaY, -pfMax, 0);
+      obysT += e.deltaY;
+      obysStart();
+      /* 停手後吸附到最近一件，括號才框得正 */
+      clearTimeout(obysWheelT);
+      obysWheelT = setTimeout(() => { obysT = Math.round(obysT / obysPitch) * obysPitch; }, 140);
     }, { passive: false });
 
-    /* 手機：按住拖動也能捲；移動超過門檻才算捲動，不會誤觸清單 */
-    const pfDrag = { on: false, y: 0, moved: 0 };
-    pfHost.addEventListener('pointerdown', (e) => {
-      if (!pfMax) { return; }
-      pfDrag.on = true;
-      pfDrag.y = e.clientY;
-      pfDrag.moved = 0;
+    /* ── 拖曳／滑動 ── */
+    const obysDrag = { on: false, id: null, y: 0, moved: 0 };
+
+    obysReel.addEventListener('pointerdown', (e) => {
+      obysDrag.on = true;
+      obysDrag.id = e.pointerId;
+      obysDrag.y = e.clientY;
+      obysDrag.moved = 0;
+      obysReel.classList.add('is-dragging');
+      obysReel.setPointerCapture(e.pointerId);
+      obysStart();
     });
-    pfHost.addEventListener('pointermove', (e) => {
-      if (!pfDrag.on) { return; }
-      const dy = e.clientY - pfDrag.y;
-      pfDrag.y = e.clientY;
-      pfDrag.moved += Math.abs(dy);
-      pfTarget = clamp(pfTarget + dy, -pfMax, 0);
+
+    obysReel.addEventListener('pointermove', (e) => {
+      if (!obysDrag.on || e.pointerId !== obysDrag.id) { return; }
+      const dy = e.clientY - obysDrag.y;
+      obysDrag.y = e.clientY;
+      obysDrag.moved += Math.abs(dy);
+      obysT -= dy;
+      obysY -= dy;                                   /* 拖曳時直接跟手，不用等 lerp */
     });
-    addEventListener('pointerup', () => { pfDrag.on = false; });
-    addEventListener('pointercancel', () => { pfDrag.on = false; });
 
-    function posterFrame(now) {
-      if (pfMax) {
-        pfY += (pfTarget - pfY) * .12;
-        pfContent.style.transform = 'translate3d(0,' + pfY.toFixed(1) + 'px,0)';
-      }
-
-      if (!posterLive) { posterRaf = requestAnimationFrame(posterFrame); return; }
-
-      const dx = (tX - pX) * .12;
-      const dy = (tY - pY) * .12;
-      pX += dx;
-      pY += dy;
-      /* 速度換算成畫面比例，面板大小不同也有一致的手感 */
-      const box = posterBox.getBoundingClientRect();
-      vel.x += (clamp(dx / (box.width || 1), -.5, .5) - vel.x) * .2;
-      vel.y += (clamp(dy / (box.height || 1), -.5, .5) - vel.y) * .2;
-
-      pHover += (tHover - pHover) * .12;
-      posterBox.style.transform =
-        'translate3d(' + (pX - box.width / 2).toFixed(1) + 'px,' + (pY - box.height / 2).toFixed(1) + 'px,0)' +
-        ' scale(' + (.86 + .14 * pHover).toFixed(3) + ')' +
-        ' rotate(' + (vel.x * 9).toFixed(2) + 'deg)';
-
-      if (posterGL) { posterGL.frame(now, pHover, vel); }
-      else { posterImg.style.opacity = pHover.toFixed(3); }
-
-      posterRaf = requestAnimationFrame(posterFrame);
+    function obysRelease() {
+      if (!obysDrag.on) { return; }
+      obysDrag.on = false;
+      obysReel.classList.remove('is-dragging');
+      obysT = Math.round(obysT / obysPitch) * obysPitch;   /* 放手吸附到最近一件 */
     }
 
-    function posterStart() {
-      if (posterRunning) { return; }
-      posterRunning = true;
-      pfMeasure();
-      if (posterGL) { posterGL.resize(); }
-      posterRaf = requestAnimationFrame(posterFrame);
-    }
+    obysReel.addEventListener('pointerup', obysRelease);
+    obysReel.addEventListener('pointercancel', obysRelease);
 
-    function posterStop() {
-      posterRunning = false;
-      cancelAnimationFrame(posterRaf);
-      tHover = 0;
-      pHover = 0;
-      posterBox.classList.remove('is-on');
-    }
+    /* ── 點擊 ── */
+    obysReel.addEventListener('click', (e) => {
+      if (obysDrag.moved >= 8) { return; }             /* 剛剛在拖曳，不算點擊 */
+      /* 用座標找元素，不能用 e.target：拖曳時捕獲了指標，
+         click 的 target 會被改寫成捲軸本身，closest 永遠找不到片格 */
+      const under = document.elementFromPoint(e.clientX, e.clientY);
+      const item = under && under.closest('.obys-item');
+      if (!item) { return; }
+      const i = Number(item.dataset.i);
+      if (i !== obysIndex) { obysGo(i); return; }
+      /* 目前這一件；有內容才開詳情 */
+      if (!item.hasAttribute('data-empty')) { openDetail('work', 0, obysReel); }
+    });
 
-    if (canHover && !reduce) {
-      workRows.forEach((row, i) => {
-        row.addEventListener('pointerenter', () => {
-          posterShow(i);
-          tHover = 1;
-          posterBox.classList.add('is-on');
-        });
-      });
+    obysNames.forEach((b) => b.addEventListener('click', () => obysGo(Number(b.dataset.i))));
 
-      worksList.addEventListener('pointerleave', () => {
-        tHover = 0;
-        posterBox.classList.remove('is-on');
-      });
+    addEventListener('keydown', (e) => {
+      if (current !== 'portfolio' || detail.classList.contains('is-on') || menuOverlay.classList.contains('is-open')) { return; }
+      if (e.key === 'ArrowDown') { obysGo(obysIndex + 1); }
+      if (e.key === 'ArrowUp') { obysGo(obysIndex - 1); }
+    });
 
-      /* 座標以分鏡容器為準，分鏡本身是滿版的，所以等同於視窗座標 */
-      worksList.addEventListener('pointermove', (e) => {
-        const host = worksList.closest('.scene-inner').getBoundingClientRect();
-        tX = e.clientX - host.left;
-        tY = e.clientY - host.top;
-      }, { passive: true });
-    }
-
-    /* ── 進場：清單逐列浮現 ── */
-    function worksIntro() {
+    /* ── 進場：圖列與清單依序浮現 ── */
+    function obysIntro() {
       if (!hasGsap || reduce) { return; }
-      gsap.killTweensOf(workRows);
-      gsap.fromTo(workRows,
-        { opacity: 0, y: 26, clipPath: 'inset(0 0 100% 0)' },
-        { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: .85, stagger: .07, ease: 'power3.out', delay: .18,
-          onComplete: () => workRows.forEach((r) => { r.style.clipPath = ''; r.style.opacity = ''; r.style.transform = ''; }) });
+      gsap.killTweensOf(obysNames);
+      gsap.fromTo(obysNames, { opacity: 0, x: -14 },
+        { opacity: 1, x: 0, duration: .7, stagger: .05, ease: 'power3.out', delay: .2, clearProps: 'all' });
+      gsap.fromTo(obysReel, { opacity: 0 }, { opacity: 1, duration: .9, ease: 'power2.out' });
     }
 
     addEventListener('cy:scene', (e) => {
-      if (e.detail === 'portfolio') {
-        requestAnimationFrame(() => { posterStart(); });
-        worksIntro();
-      } else {
-        posterStop();
-      }
+      if (e.detail === 'portfolio') { requestAnimationFrame(() => { obysStart(); obysIntro(); }); }
+      else { obysStop(); }
     });
 
     addEventListener('visibilitychange', () => {
-      if (document.hidden) { posterStop(); }
-      else if (current === 'portfolio') { posterStart(); }
+      if (document.hidden) { obysStop(); }
+      else if (current === 'portfolio') { obysStart(); }
     });
 
-    addEventListener('resize', () => {
-      pfMeasure();
-      if (posterGL) { posterGL.resize(); }
-    });
+    addEventListener('resize', () => { obysMeasure(); });
+
+    obysMeasure();
+    obysSetIndex(0);
 
     /* ══ 聯絡表單 ══════════════════════════════════════════════
        這是純靜態頁面，沒有伺服器可以寫資料庫或寄信。

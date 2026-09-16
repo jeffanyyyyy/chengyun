@@ -1131,59 +1131,152 @@
   }
 
   /* ── 活動成果卡 ─────────────────────── */
-  .work-card {
-    display: block;
+  /* ── 04 活動成果：動態海報清單 ───────
+     Obys 那種「動態海報展」的作法：版面交給字體本身，
+     清單是唯一的結構，預覽圖跟著游標跑，不佔版面。 */
+  /* 內容比畫面高時改靠上對齊，才捲得動（置中的話上緣會被推出畫面） */
+  .scene[data-scene="portfolio"] .scene-inner { overflow: hidden; }
+  /* 捲動由我們自己處理，交給瀏覽器的話第一次移動就會收到 pointercancel */
+  .scene[data-scene="portfolio"] .scene-inner.is-scrollable { align-items: start; touch-action: none; }
+  .scene[data-scene="portfolio"] .stagger { will-change: transform; }
+
+  .works {
+    border-top: 1px solid rgba(255, 255, 255, .14);
+    margin-top: clamp(1.5rem, 4vh, 3rem);
+  }
+
+  .work-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'idx name year' 'idx tag year';
+    align-items: baseline;
+    column-gap: clamp(1rem, 3vw, 2.5rem);
     width: 100%;
+    padding: clamp(.7rem, 2vh, 1.4rem) 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .14);
     text-align: left;
-    padding: 2rem 0 2.25rem;
-    border-top: 1px solid rgba(255, 255, 255, .16);
-    border-bottom: 1px solid rgba(255, 255, 255, .16);
-    transition: padding-left .6s var(--ease), border-color .5s var(--ease);
+    transition: opacity .45s var(--ease);
   }
 
-  .work-card:hover,
-  .work-card:focus-visible {
-    padding-left: 1.25rem;
-    border-color: rgba(255, 255, 255, .45);
-  }
-
-  .work-meta {
-    display: block;
+  .wr-idx {
+    grid-area: idx;
+    align-self: center;
     font-size: .6rem;
     letter-spacing: .3em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, .45);
-    margin-bottom: 1.25rem;
+    color: rgba(255, 255, 255, .34);
+    transition: color .45s var(--ease);
   }
 
-  .work-title {
+  .wr-name {
+    grid-area: name;
     display: block;
-    font-size: clamp(1.6rem, 6vw, 3.25rem);
+    font-size: clamp(1.5rem, 4.6vw, 3.4rem);
     font-weight: 300;
-    line-height: 1.25;
-    letter-spacing: .03em;
-    margin-bottom: 1.25rem;
+    line-height: 1.04;
+    letter-spacing: -.01em;
+    color: rgba(255, 255, 255, .88);
+    transition: transform .6s var(--ease), color .45s var(--ease);
   }
 
-  .work-line {
+  .wr-tag {
+    grid-area: tag;
     display: block;
-    font-size: .78rem;
-    letter-spacing: .1em;
-    color: rgba(255, 255, 255, .5);
-  }
-
-  .work-open {
-    display: inline-block;
-    margin-top: 1.5rem;
-    font-size: .6rem;
-    letter-spacing: .3em;
+    margin-top: .5rem;
+    font-size: .68rem;
+    letter-spacing: .12em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, .7);
-    border-bottom: 1px solid rgba(255, 255, 255, .3);
-    padding-bottom: .35rem;
+    color: rgba(255, 255, 255, .34);
+    transition: transform .6s var(--ease) .04s, color .45s var(--ease);
   }
 
-  /* 展開後的作品細節 */
+  .wr-year {
+    grid-area: year;
+    align-self: center;
+    font-size: .68rem;
+    letter-spacing: .16em;
+    color: rgba(255, 255, 255, .34);
+    transition: color .45s var(--ease);
+  }
+
+  /* 滑到某一列：其餘壓暗，這一列往右讓開一點 */
+  .works:hover .work-row { opacity: .3; }
+  .works .work-row:hover,
+  .works .work-row:focus-visible { opacity: 1; }
+
+  .work-row:hover .wr-name,
+  .work-row:focus-visible .wr-name { transform: translateX(clamp(.5rem, 1.6vw, 1.5rem)); color: #fff; }
+  .work-row:hover .wr-tag { transform: translateX(clamp(.5rem, 1.6vw, 1.5rem)); }
+  .work-row:hover .wr-idx,
+  .work-row:hover .wr-year { color: rgba(255, 255, 255, .75); }
+
+  /* 還沒有內容的欄位講清楚，不要看起來像真的案例 */
+  .work-row[data-empty] .wr-name { color: rgba(255, 255, 255, .34); font-style: italic; }
+  .work-row[data-empty] { cursor: default; }
+  .work-row[data-empty]:hover .wr-name { color: rgba(255, 255, 255, .62); }
+
+  .works-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: clamp(1.25rem, 3.5vh, 2.5rem);
+  }
+
+  .works-figs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, auto));
+    gap: 1rem clamp(1.25rem, 4vw, 3rem);
+  }
+
+  @media (max-width: 640px) {
+    .works-figs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .work-row { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'idx name' 'idx tag' 'idx year'; }
+    .wr-year { margin-top: .35rem; }
+  }
+
+  /* 跟著游標的海報 */
+  .poster {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: clamp(180px, 22vw, 320px);
+    aspect-ratio: 3 / 4;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 2;
+    will-change: transform, opacity;
+    transition: opacity .45s var(--ease);
+  }
+
+  .poster.is-on { opacity: 1; }
+  .poster-gl,
+  .poster-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .poster-img { object-fit: cover; opacity: 0; transition: opacity .35s ease; }
+  :root:not(.has-postergl) .poster-img { opacity: 1; }
+  :root:not(.has-postergl) .poster-gl { display: none; }
+
+  /* 指標裝置才有懸停預覽；觸控直接點開 */
+  @media (hover: none) {
+    .poster { display: none; }
+    .works:hover .work-row { opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .poster { display: none; }
+    .wr-name, .wr-tag { transition: color .3s ease; }
+    .work-row:hover .wr-name,
+    .work-row:hover .wr-tag { transform: none; }
+  }
+
   .detail {
     position: fixed;
     inset: 0;
@@ -1511,27 +1604,61 @@
   </div>
 </section>
 
-<!-- ── 04 Portfolio ────────────────── -->
+<!-- ── 04 Portfolio：動態海報清單 ───── -->
 <section class="scene" data-scene="portfolio" aria-hidden="true">
-  <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
-    <div class="stagger w-full max-w-4xl text-left">
+  <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-16">
+
+    <!-- 懸停預覽：跟著游標的海報。有 WebGL 走畫布（會扭曲），沒有就走圖片 -->
+    <div class="poster" id="poster" aria-hidden="true">
+      <canvas class="poster-gl" id="posterGL"></canvas>
+      <img class="poster-img" id="posterImg" alt="" />
+    </div>
+
+    <div class="stagger w-full max-w-6xl text-left">
       <span class="eyebrow" data-i18n="portfolio.eyebrow">04 — Portfolio</span>
 
-      <button class="work-card hover-target" type="button" data-detail="silent">
-        <span class="work-meta" data-i18n="portfolio.meta">Curation · Brand Selection · Production</span>
-        <span class="work-title" data-i18n-html="portfolio.title">Silent Market<br />默者文畫</span>
-        <span class="work-line" data-i18n="portfolio.line">3 Oct – 13 Dec 2026　|　Shuangshi Plaza, Banqiao, New Taipei</span>
-        <span class="work-open" data-i18n="portfolio.open">Click to expand</span>
-      </button>
+      <div class="works" id="works">
+        <button class="work-row hover-target" type="button" data-work="0" data-detail="silent">
+          <span class="wr-idx">01</span>
+          <span class="wr-name" data-i18n="pf.t1">Silent Market</span>
+          <span class="wr-tag" data-i18n="pf.k1">Curation · Brand Selection · Production</span>
+          <span class="wr-year" data-i18n="pf.y1">2026</span>
+        </button>
+        <button class="work-row hover-target" type="button" data-work="1">
+          <span class="wr-idx">02</span>
+          <span class="wr-name" data-i18n="pf.t2">Slot to be filled</span>
+          <span class="wr-tag" data-i18n="pf.k2">Awaiting content</span>
+          <span class="wr-year" data-i18n="pf.y2">—</span>
+        </button>
+        <button class="work-row hover-target" type="button" data-work="2">
+          <span class="wr-idx">03</span>
+          <span class="wr-name" data-i18n="pf.t3">Slot to be filled</span>
+          <span class="wr-tag" data-i18n="pf.k3">Awaiting content</span>
+          <span class="wr-year" data-i18n="pf.y3">—</span>
+        </button>
+        <button class="work-row hover-target" type="button" data-work="3">
+          <span class="wr-idx">04</span>
+          <span class="wr-name" data-i18n="pf.t4">Slot to be filled</span>
+          <span class="wr-tag" data-i18n="pf.k4">Awaiting content</span>
+          <span class="wr-year" data-i18n="pf.y4">—</span>
+        </button>
+        <button class="work-row hover-target" type="button" data-work="4">
+          <span class="wr-idx">05</span>
+          <span class="wr-name" data-i18n="pf.t5">Slot to be filled</span>
+          <span class="wr-tag" data-i18n="pf.k5">Awaiting content</span>
+          <span class="wr-year" data-i18n="pf.y5">—</span>
+        </button>
+      </div>
 
-      <dl class="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-6 mt-12">
-        <div><dt class="fig">6</dt><dd class="desc" data-i18n="portfolio.f1">Sessions, alternate weekends</dd></div>
-        <div><dt class="fig">12</dt><dd class="desc" data-i18n="portfolio.f2">Days of market</dd></div>
-        <div><dt class="fig">15:00</dt><dd class="desc" data-i18n="portfolio.f3">Opens daily, until 20:30</dd></div>
-        <div><dt class="fig">2026</dt><dd class="desc" data-i18n="portfolio.f4">First edition</dd></div>
-      </dl>
-
-      <p class="note mt-10" data-i18n="portfolio.note">More work to be added.</p>
+      <div class="works-foot">
+        <dl class="works-figs">
+          <div><dt class="fig">6</dt><dd class="desc" data-i18n="portfolio.f1">Sessions, alternate weekends</dd></div>
+          <div><dt class="fig">12</dt><dd class="desc" data-i18n="portfolio.f2">Days of market</dd></div>
+          <div><dt class="fig">15:00</dt><dd class="desc" data-i18n="portfolio.f3">Opens daily, until 20:30</dd></div>
+          <div><dt class="fig">2026</dt><dd class="desc" data-i18n="portfolio.f4">First edition</dd></div>
+        </dl>
+        <p class="note" data-i18n="portfolio.note">More work to be added.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -1786,6 +1913,11 @@
         'teams.b9': 'Name, role and photo to be supplied.',
         'teams.b10': 'Name, role and photo to be supplied.',
         'teams.b11': 'Name, role and photo to be supplied.',
+        'pf.t1': 'Silent Market', 'pf.k1': 'Curation · Brand Selection · Production', 'pf.y1': '2026',
+        'pf.t2': 'Slot to be filled', 'pf.k2': 'Awaiting content', 'pf.y2': '—',
+        'pf.t3': 'Slot to be filled', 'pf.k3': 'Awaiting content', 'pf.y3': '—',
+        'pf.t4': 'Slot to be filled', 'pf.k4': 'Awaiting content', 'pf.y4': '—',
+        'pf.t5': 'Slot to be filled', 'pf.k5': 'Awaiting content', 'pf.y5': '—',
         'teams.link': 'View our work →',
         'teams.profile': 'Profile →',
         'teams.bioTodo': 'A fuller introduction for this person is still to be supplied.',
@@ -1905,6 +2037,11 @@
         'teams.s9': '職務待補', 'teams.b9': '姓名、職務與照片待提供。',
         'teams.s10': '職務待補', 'teams.b10': '姓名、職務與照片待提供。',
         'teams.s11': '職務待補', 'teams.b11': '姓名、職務與照片待提供。',
+        'pf.t1': '默者文畫', 'pf.k1': '策展 · 品牌審查 · 現場執行', 'pf.y1': '2026',
+        'pf.t2': '案例待補', 'pf.k2': '內容待提供', 'pf.y2': '—',
+        'pf.t3': '案例待補', 'pf.k3': '內容待提供', 'pf.y3': '—',
+        'pf.t4': '案例待補', 'pf.k4': '內容待提供', 'pf.y4': '—',
+        'pf.t5': '案例待補', 'pf.k5': '內容待提供', 'pf.y5': '—',
         'teams.link': '活動成果 →',
         'teams.profile': '人物介紹 →',
         'teams.bioTodo': '這位夥伴的完整介紹待提供。',
@@ -2049,6 +2186,11 @@
         'teams.s9': '担当は調整中', 'teams.b9': '氏名・担当・写真は後日追加。',
         'teams.s10': '担当は調整中', 'teams.b10': '氏名・担当・写真は後日追加。',
         'teams.s11': '担当は調整中', 'teams.b11': '氏名・担当・写真は後日追加。',
+        'pf.t1': 'サイレントマーケット', 'pf.k1': 'キュレーション · 出店審査 · 現場運営', 'pf.y1': '2026',
+        'pf.t2': '事例は後日追加', 'pf.k2': '内容は準備中', 'pf.y2': '—',
+        'pf.t3': '事例は後日追加', 'pf.k3': '内容は準備中', 'pf.y3': '—',
+        'pf.t4': '事例は後日追加', 'pf.k4': '内容は準備中', 'pf.y4': '—',
+        'pf.t5': '事例は後日追加', 'pf.k5': '内容は準備中', 'pf.y5': '—',
         'teams.link': '活動実績 →',
         'teams.profile': 'プロフィール →',
         'teams.bioTodo': 'このメンバーの詳しい紹介は後日追加します。',
@@ -3078,6 +3220,349 @@
     filmSync();
     filmMetrics();
     filmRender(performance.now());
+
+    /* ══ 活動成果：動態海報清單 ═════════════════════════════════
+       版面只有一張清單，預覽海報跟著游標跑、不佔版面。
+       海報用 WebGL 畫：切換時由一道波浪擦除、移動時依游標速度拉出 RGB 偏移。
+       沒有 WebGL、沒有指標裝置、或使用者要求減少動態時，換成單純的圖片（或整個不出現）。 */
+    const posterBox = document.getElementById('poster');
+    const posterCanvas = document.getElementById('posterGL');
+    const posterImg = document.getElementById('posterImg');
+    const worksList = document.getElementById('works');
+    const workRows = [...document.querySelectorAll('.work-row')];
+    const canHover = matchMedia('(hover: hover)').matches;
+
+    /* 第一筆是真的案例，其餘是待補的欄位。
+       之後有案例就把 src 填上，順便把 data-empty 拿掉、補上 i18n 文案 */
+    const WORK_ART = [
+      { src: '../../assets/work/01.jpg' },
+      {}, {}, {}, {}
+    ];
+
+    workRows.forEach((row, i) => { if (!WORK_ART[i] || !WORK_ART[i].src) { row.setAttribute('data-empty', ''); } });
+
+    /* 佔位海報：暗底、巨大編號、虛線框 —— 一看就知道還沒有內容 */
+    function placeholderPoster(i) {
+      const c = document.createElement('canvas');
+      c.width = 600;
+      c.height = 800;
+      const x = c.getContext('2d');
+      const g = x.createLinearGradient(0, 0, 600, 800);
+      g.addColorStop(0, '#15171d');
+      g.addColorStop(1, '#0a0b0f');
+      x.fillStyle = g;
+      x.fillRect(0, 0, 600, 800);
+
+      x.strokeStyle = 'rgba(255,255,255,.16)';
+      x.lineWidth = 2;
+      x.setLineDash([10, 12]);
+      x.strokeRect(36, 36, 528, 728);
+
+      x.fillStyle = 'rgba(255,255,255,.1)';
+      x.font = '300 300px Inter, system-ui, sans-serif';
+      x.textAlign = 'center';
+      x.textBaseline = 'middle';
+      x.fillText(String(i + 1).padStart(2, '0'), 300, 400);
+      return c;
+    }
+
+    function workSource(i) {
+      const art = WORK_ART[i] || {};
+      if (!art.src) { return { canvas: placeholderPoster(i) }; }
+      return { src: art.src };
+    }
+
+    /* ── WebGL 海報 ── */
+    function makePosterGL() {
+      if (!canHover || reduce || !window.THREE) { return null; }
+      const probe = document.createElement('canvas');
+      if (!(probe.getContext('webgl2') || probe.getContext('webgl') || probe.getContext('experimental-webgl'))) { return null; }
+
+      let renderer;
+      try {
+        renderer = new THREE.WebGLRenderer({ canvas: posterCanvas, antialias: true, alpha: true });
+      } catch (err) {
+        return null;
+      }
+      renderer.setClearColor(0x000000, 0);
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+
+      const VERT = [
+        'varying vec2 vUv;',
+        'void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }'
+      ].join('\n');
+
+      const FRAG = [
+        'precision mediump float;',
+        'uniform sampler2D uA;',
+        'uniform sampler2D uB;',
+        'uniform vec2 uRa;',                           /* 兩張圖各自的等比裁切係數 */
+        'uniform vec2 uRb;',
+        'uniform float uMix;',                         /* 0 → 1：由左而右的波浪擦除 */
+        'uniform float uHover;',
+        'uniform vec2 uVel;',                          /* 游標速度，決定拖影與 RGB 偏移 */
+        'uniform float uTime;',
+        'varying vec2 vUv;',
+        '',
+        'vec2 cover(vec2 uv, vec2 r) { return (uv - 0.5) * r + 0.5; }',
+        '',
+        'vec3 split(sampler2D t, vec2 uv, vec2 v) {',
+        '  return vec3(texture2D(t, uv + v * 0.014).r, texture2D(t, uv).g, texture2D(t, uv - v * 0.014).b);',
+        '}',
+        '',
+        'void main() {',
+        '  vec2 uv = vUv;',
+        '  float d = distance(uv, vec2(0.5));',
+        /* 從中心擴散的波紋 + 跟著游標速度的整體拖曳 */
+        '  float w = sin(d * 13.0 - uTime * 2.6) * 0.012 * uHover;',
+        '  uv += vec2(w, -w) + uVel * 0.07;',
+        '',
+        '  vec3 a = split(uA, cover(uv, uRa), uVel);',
+        '  vec3 b = split(uB, cover(uv, uRb), uVel);',
+        /* 擦除的邊緣加一點正弦擾動，切換才不會像硬推的直線 */
+        '  float edge = smoothstep(0.0, 0.5, uMix * 1.5 - uv.x * 0.5 + sin(uv.y * 7.0 + uTime) * 0.05);',
+        '  gl_FragColor = vec4(mix(a, b, edge), uHover);',
+        '}'
+      ].join('\n');
+
+      const blank = new THREE.Texture();
+      const mat = new THREE.ShaderMaterial({
+        uniforms: {
+          uA: { value: blank }, uB: { value: blank },
+          uRa: { value: new THREE.Vector2(1, 1) }, uRb: { value: new THREE.Vector2(1, 1) },
+          uMix: { value: 1 }, uHover: { value: 0 },
+          uVel: { value: new THREE.Vector2(0, 0) }, uTime: { value: 0 }
+        },
+        vertexShader: VERT,
+        fragmentShader: FRAG,
+        transparent: true
+      });
+      scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
+
+      /* 等比裁切：圖比面板寬就切左右，反之切上下 */
+      function ratio(target, tw, th) {
+        const box = posterBox.getBoundingClientRect();
+        const pa = (box.width || 1) / (box.height || 1);
+        const ta = tw / th;
+        if (ta > pa) { target.set(pa / ta, 1); } else { target.set(1, ta / pa); }
+      }
+
+      const cache = [];
+      function texture(i) {
+        if (cache[i]) { return cache[i]; }
+        const src = workSource(i);
+        let tex;
+        if (src.canvas) {
+          tex = new THREE.CanvasTexture(src.canvas);
+          tex.userData = { w: src.canvas.width, h: src.canvas.height };
+        } else {
+          const img = new Image();
+          tex = new THREE.Texture(img);
+          tex.userData = { w: 3, h: 4 };               /* 載好之前先用面板比例，不會閃一下變形 */
+          img.onload = () => {
+            tex.userData = { w: img.naturalWidth, h: img.naturalHeight };
+            tex.needsUpdate = true;
+          };
+          img.src = src.src;
+        }
+        tex.minFilter = THREE.LinearFilter;
+        tex.generateMipmaps = false;
+        cache[i] = tex;
+        return tex;
+      }
+
+      return {
+        show: function (i) {
+          mat.uniforms.uA.value = mat.uniforms.uB.value;
+          mat.uniforms.uRa.value.copy(mat.uniforms.uRb.value);
+          const tex = texture(i);
+          mat.uniforms.uB.value = tex;
+          ratio(mat.uniforms.uRb.value, tex.userData.w, tex.userData.h);
+          mat.uniforms.uMix.value = 0;
+        },
+        frame: function (now, hover, vel) {
+          const u = mat.uniforms;
+          u.uTime.value = now / 1000;
+          u.uHover.value = hover;
+          u.uVel.value.set(vel.x, vel.y);
+          if (u.uMix.value < 1) { u.uMix.value = Math.min(1, u.uMix.value + .045); }
+          /* 圖片是非同步載入的，尺寸到了才算得準，所以每幀重算一次 */
+          const tb = u.uB.value;
+          if (tb && tb.userData) { ratio(u.uRb.value, tb.userData.w, tb.userData.h); }
+          renderer.render(scene, camera);
+        },
+        resize: function () {
+          const box = posterBox.getBoundingClientRect();
+          if (!box.width) { return; }
+          renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+          renderer.setSize(box.width, box.height, false);
+        },
+        dispose: function () { mat.dispose(); renderer.dispose(); }
+      };
+    }
+
+    let posterGL = makePosterGL();
+    if (posterGL) { root.classList.add('has-postergl'); posterGL.resize(); }
+
+    /* 沒有 WebGL 時的退路：同一套跟隨邏輯，只是換成 <img> */
+    const imgCache = [];
+    function posterFallback(i) {
+      if (!imgCache[i]) {
+        const src = workSource(i);
+        imgCache[i] = src.canvas ? src.canvas.toDataURL('image/jpeg', .8) : src.src;
+      }
+      posterImg.src = imgCache[i];
+    }
+
+    /* ── 跟著游標 ── */
+    let pX = 0, pY = 0, tX = 0, tY = 0;
+    let pHover = 0, tHover = 0, pWork = -1;
+    let posterRaf = 0, posterRunning = false;
+    const posterLive = canHover && !reduce;          /* 觸控裝置只留捲動，不做懸停預覽 */
+    const vel = { x: 0, y: 0 };
+
+    function posterShow(i) {
+      if (i === pWork) { return; }
+      pWork = i;
+      if (posterGL) { posterGL.show(i); } else { posterFallback(i); }
+    }
+
+    /* 這一頁是分鏡式的、沒有整頁捲動，所以不引入 Lenis；
+       內容比畫面高時（多半是手機），用同樣手感的 lerp 捲動器接手 */
+    const pfHost = document.querySelector('.scene[data-scene="portfolio"] .scene-inner');
+    const pfContent = pfHost.querySelector('.stagger');
+    let pfY = 0, pfTarget = 0, pfMax = 0;
+
+    function pfMeasure() {
+      const cs = getComputedStyle(pfHost);
+      const avail = pfHost.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      pfMax = Math.max(0, pfContent.scrollHeight - avail);
+      pfHost.classList.toggle('is-scrollable', pfMax > 0);
+      pfTarget = clamp(pfTarget, -pfMax, 0);
+      if (!pfMax) { pfY = 0; pfContent.style.transform = ''; }
+    }
+
+    pfHost.addEventListener('wheel', (e) => {
+      if (current !== 'portfolio' || !pfMax) { return; }
+      e.preventDefault();
+      pfTarget = clamp(pfTarget - e.deltaY, -pfMax, 0);
+    }, { passive: false });
+
+    /* 手機：按住拖動也能捲；移動超過門檻才算捲動，不會誤觸清單 */
+    const pfDrag = { on: false, y: 0, moved: 0 };
+    pfHost.addEventListener('pointerdown', (e) => {
+      if (!pfMax) { return; }
+      pfDrag.on = true;
+      pfDrag.y = e.clientY;
+      pfDrag.moved = 0;
+    });
+    pfHost.addEventListener('pointermove', (e) => {
+      if (!pfDrag.on) { return; }
+      const dy = e.clientY - pfDrag.y;
+      pfDrag.y = e.clientY;
+      pfDrag.moved += Math.abs(dy);
+      pfTarget = clamp(pfTarget + dy, -pfMax, 0);
+    });
+    addEventListener('pointerup', () => { pfDrag.on = false; });
+    addEventListener('pointercancel', () => { pfDrag.on = false; });
+
+    function posterFrame(now) {
+      if (pfMax) {
+        pfY += (pfTarget - pfY) * .12;
+        pfContent.style.transform = 'translate3d(0,' + pfY.toFixed(1) + 'px,0)';
+      }
+
+      if (!posterLive) { posterRaf = requestAnimationFrame(posterFrame); return; }
+
+      const dx = (tX - pX) * .12;
+      const dy = (tY - pY) * .12;
+      pX += dx;
+      pY += dy;
+      /* 速度換算成畫面比例，面板大小不同也有一致的手感 */
+      const box = posterBox.getBoundingClientRect();
+      vel.x += (clamp(dx / (box.width || 1), -.5, .5) - vel.x) * .2;
+      vel.y += (clamp(dy / (box.height || 1), -.5, .5) - vel.y) * .2;
+
+      pHover += (tHover - pHover) * .12;
+      posterBox.style.transform =
+        'translate3d(' + (pX - box.width / 2).toFixed(1) + 'px,' + (pY - box.height / 2).toFixed(1) + 'px,0)' +
+        ' scale(' + (.86 + .14 * pHover).toFixed(3) + ')' +
+        ' rotate(' + (vel.x * 9).toFixed(2) + 'deg)';
+
+      if (posterGL) { posterGL.frame(now, pHover, vel); }
+      else { posterImg.style.opacity = pHover.toFixed(3); }
+
+      posterRaf = requestAnimationFrame(posterFrame);
+    }
+
+    function posterStart() {
+      if (posterRunning) { return; }
+      posterRunning = true;
+      pfMeasure();
+      if (posterGL) { posterGL.resize(); }
+      posterRaf = requestAnimationFrame(posterFrame);
+    }
+
+    function posterStop() {
+      posterRunning = false;
+      cancelAnimationFrame(posterRaf);
+      tHover = 0;
+      pHover = 0;
+      posterBox.classList.remove('is-on');
+    }
+
+    if (canHover && !reduce) {
+      workRows.forEach((row, i) => {
+        row.addEventListener('pointerenter', () => {
+          posterShow(i);
+          tHover = 1;
+          posterBox.classList.add('is-on');
+        });
+      });
+
+      worksList.addEventListener('pointerleave', () => {
+        tHover = 0;
+        posterBox.classList.remove('is-on');
+      });
+
+      /* 座標以分鏡容器為準，分鏡本身是滿版的，所以等同於視窗座標 */
+      worksList.addEventListener('pointermove', (e) => {
+        const host = worksList.closest('.scene-inner').getBoundingClientRect();
+        tX = e.clientX - host.left;
+        tY = e.clientY - host.top;
+      }, { passive: true });
+    }
+
+    /* ── 進場：清單逐列浮現 ── */
+    function worksIntro() {
+      if (!hasGsap || reduce) { return; }
+      gsap.killTweensOf(workRows);
+      gsap.fromTo(workRows,
+        { opacity: 0, y: 26, clipPath: 'inset(0 0 100% 0)' },
+        { opacity: 1, y: 0, clipPath: 'inset(0 0 0% 0)', duration: .85, stagger: .07, ease: 'power3.out', delay: .18,
+          onComplete: () => workRows.forEach((r) => { r.style.clipPath = ''; r.style.opacity = ''; r.style.transform = ''; }) });
+    }
+
+    addEventListener('cy:scene', (e) => {
+      if (e.detail === 'portfolio') {
+        requestAnimationFrame(() => { posterStart(); });
+        worksIntro();
+      } else {
+        posterStop();
+      }
+    });
+
+    addEventListener('visibilitychange', () => {
+      if (document.hidden) { posterStop(); }
+      else if (current === 'portfolio') { posterStart(); }
+    });
+
+    addEventListener('resize', () => {
+      pfMeasure();
+      if (posterGL) { posterGL.resize(); }
+    });
 
     /* ══ 聯絡表單 ══════════════════════════════════════════════
        這是純靜態頁面，沒有伺服器可以寫資料庫或寄信。

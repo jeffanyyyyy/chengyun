@@ -33,7 +33,7 @@ assets/deer-480.mp4            同上，窄螢幕／省流量模式使用
 experimental/index.html        實驗性作品頁：捲動式（獨立頁面，不影響主站）
 experimental/immersive/        實驗性作品頁：分鏡式，滿版影片背景
 experimental/immersive-navy/   同上，改用品牌色（深藍寶石＋金）
-experimental/work-index/       單檔獨立版的「活動成果」版型（Trionn 風格參考實作）
+experimental/work-index/       清單式「活動成果」版型的單檔參考實作（站上已改用捲動式）
 ```
 
 ## 實驗性作品頁

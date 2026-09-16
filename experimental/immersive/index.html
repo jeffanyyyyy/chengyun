@@ -10,10 +10,13 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Noto+Sans+JP:wght@200;300;400&family=Noto+Sans+TC:wght@200;300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Inter+Tight:wght@400;500&family=Noto+Sans+JP:wght@200;300;400&family=Noto+Sans+TC:wght@200;300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<!-- 活動成果那一章用：捲動推進的三段式 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
 <!-- 膠卷轉盤用：載不到或沒有 WebGL 時，下面的 CSS 3D 版本會接手 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -1340,271 +1343,208 @@
   }
 
 
-  /* ── 04 活動成果：Trionn 式的作品索引 ────
-     象牙白的紙、左側作品清單、右側大字敘述與現場劇照。
-     背景壓著澄耘的英文，當作這一頁的地。
-     頁首頁尾與游標都是 mix-blend-difference，白底會自己翻成黑字。 */
+  /* ── 04 活動成果：捲動推進的三段式 ────
+     這一章有自己的捲動行程（300svh），舞台用 sticky 釘住，
+     進度 0→1 推著三段走：大標 → 3D 弧形卡片帶 → 散落拼貼。
+     整段只由一個 pfRender(p) 決定畫面，所以往回捲就是把 p 倒著走，
+     沒有任何單向的狀態，天生可逆。 */
   .scene[data-scene="portfolio"] .scene-inner {
     display: block;
     padding: 0;
-    background: var(--ivory);
-    color: var(--ink);
+    background: var(--pf-bg);
+    color: var(--pf-ink);
     text-align: left;
-    --cs-mute: rgba(20, 19, 15, .45);
-    --cs-faint: rgba(20, 19, 15, .26);
-    --cs-line: rgba(20, 19, 15, .16);
+    --pf-bg: #e8e8e6;
+    --pf-ink: #1a1a1a;
+    --pf-dim: rgba(26, 26, 26, .52);
+    --pf-font: 'Inter Tight', 'Inter', 'Noto Sans TC', sans-serif;
   }
 
-  .cs-ghost-clip {
+  .pf-track { position: relative; height: 300svh; }
+
+  .pf-stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    overflow: hidden;
+  }
+
+  /* 卡片帶的畫布鋪滿舞台，滑鼠事件一律放行給底下的拼貼 */
+  .pf-gl {
     position: absolute;
     inset: 0;
-    overflow: hidden;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    display: block;
     pointer-events: none;
-    z-index: 0;
   }
 
-  .cs-ghost {
+  /* ── 第一段：錯開的兩行大標 ────────── */
+  .pf-head {
     position: absolute;
-    left: 50%; bottom: -4.5vh;
-    transform: translateX(-50%);
+    inset: 0;
+    z-index: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    font-size: clamp(56px, 15.6vw, 268px);
+    justify-content: center;
+    padding: 0 clamp(18px, 5vw, 92px);
+    pointer-events: none;
+    will-change: opacity;
+  }
+
+  .pf-line {
+    margin: 0;
+    font-family: var(--pf-font);
+    font-size: 9vw;
     font-weight: 500;
     letter-spacing: -.04em;
-    line-height: .8;
-    color: rgba(20, 19, 15, .05);
+    line-height: .92;
     white-space: nowrap;
-    user-select: none;
+    color: var(--pf-ink);
+    will-change: transform, opacity;
   }
 
-  .cs-ghost small {
-    order: -1;
-    font-size: .085em;
-    font-weight: 400;
-    letter-spacing: .42em;
-    color: rgba(20, 19, 15, .075);
-    margin-bottom: .3em;
+  .pf-line-a { align-self: flex-start; }
+  .pf-line-b { align-self: flex-end; margin-top: .18em; }
+
+  .pf-kicker {
+    margin: clamp(14px, 2.6vh, 34px) auto;
+    max-width: 34ch;
+    text-align: center;
+    font-size: 11px;
+    line-height: 1.75;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--pf-dim);
+    will-change: transform, opacity;
   }
 
-  /* 三列兩欄：標題 / 內容 / 頁腳，次要導覽 / 主視覺 */
-  /* box-sizing 自己寫死：Tailwind 的 preflight 載不到時，
-     content-box 會讓 min-height 再加上內距，整塊多出一段捲動 */
-  .cs, .cs *, .cs-ghost, .cs-ghost * { box-sizing: border-box; }
-
-  .cs {
-    position: relative;
-    z-index: 1;
-    min-height: 100svh;
-    padding: clamp(60px, 9vh, 104px) clamp(20px, 5vw, 92px) clamp(52px, 8vh, 80px);
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    grid-template-columns: minmax(150px, 20%) 1fr;
-    column-gap: clamp(24px, 5vw, 96px);
-    row-gap: clamp(18px, 3vh, 40px);
+  /* ── 第三段：散落的拼貼 ──────────────
+     位置與大小寫在 markup 的 inline style 裡，
+     因為它們是版面資料，不是可以重用的樣式。 */
+  .pf-collage {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
   }
 
-  .cs-head {
-    grid-column: 1 / -1;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 32px;
-  }
-
-  .cs-title {
+  .pf-card {
+    position: absolute;
     margin: 0;
-    font-size: clamp(40px, 8.2vw, 126px);
-    font-weight: 500;
-    letter-spacing: -.045em;
-    line-height: .86;
-    /* 參考畫面的標題不是純黑，上淺下深，像有厚度 */
-    background: linear-gradient(175deg, #9a968c 0%, #2e2d28 78%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .cs-sub {
-    margin: .7em 0 0;
-    max-width: 24ch;
-    font-size: clamp(11px, 1.02vw, 13px);
-    line-height: 1.62;
-    color: var(--cs-mute);
-    flex: 0 0 auto;
-  }
-
-  /* 左欄：大寫、寬字距，滑過去是顏色與位移一起走 */
-  .cs-nav {
-    align-self: center;
-    display: flex;
-    flex-direction: column;
-    gap: clamp(9px, 1.5vh, 15px);
-    align-items: flex-start;
-  }
-
-  .cs-link {
-    display: inline-flex;
-    align-items: center;
-    gap: .7em;
     padding: 0;
     border: 0;
     background: none;
-    color: var(--cs-faint);
-    font: inherit;
-    font-size: clamp(9.5px, .78vw, 11px);
-    font-weight: 400;
-    letter-spacing: .175em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    transition: color .5s var(--ease), transform .5s var(--ease);
-  }
-
-  .cs-link .arw {
     opacity: 0;
-    transform: translateX(-6px);
-    transition: opacity .5s var(--ease), transform .5s var(--ease);
+    will-change: transform, opacity;
+    pointer-events: none;
   }
 
-  .cs-link:hover { color: rgba(20, 19, 15, .8); transform: translateX(7px); }
-  .cs-link.is-on { color: var(--ink); transform: translateX(7px); }
-  .cs-link.is-on .arw { opacity: 1; transform: translateX(0); }
+  .pf-card.is-live { pointer-events: auto; }
 
-  /* 右欄：引言、劇照、署名 */
-  .cs-body {
-    align-self: center;
-    max-width: min(48ch, 48vw);
-    margin-left: clamp(0px, 5.5vw, 104px);
+  .pf-shot {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border-radius: 3px;
+    background: #d6d5d0 center / cover no-repeat;
+    box-shadow: 0 18px 44px rgba(26, 26, 26, .14);
+    transition: transform .6s var(--ease), box-shadow .6s var(--ease);
   }
 
-  .cs-quote {
+  .pf-card.is-live:hover .pf-shot {
+    transform: translateY(-6px);
+    box-shadow: 0 26px 60px rgba(26, 26, 26, .22);
+  }
+
+  .pf-cap {
+    display: block;
+    margin-top: .7em;
+    text-align: left;
+    font-size: clamp(9px, .72vw, 10.5px);
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--pf-dim);
+  }
+
+  .pf-cap b { display: block; font-weight: 400; color: var(--pf-ink); letter-spacing: .1em; }
+
+  .pf-card .pf-cap::after {
+    content: ' \2192';
+    color: var(--pf-ink);
+  }
+
+  /* 進度：右下角一條細線，讓人知道這一章還有多長 */
+  .pf-meter {
+    position: absolute;
+    z-index: 4;
+    right: clamp(18px, 5vw, 92px);
+    bottom: clamp(52px, 8vh, 80px);
+    width: clamp(90px, 12vw, 180px);
+    height: 1px;
+    background: rgba(26, 26, 26, .16);
+    pointer-events: none;
+  }
+
+  .pf-meter i {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--pf-ink);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+
+  .pf-eyebrow {
+    position: absolute;
+    z-index: 4;
+    left: clamp(18px, 5vw, 92px);
+    bottom: clamp(52px, 8vh, 80px);
     margin: 0;
-    font-size: clamp(17px, 2.02vw, 29px);
-    font-weight: 300;
-    line-height: 1.44;
-    letter-spacing: -.012em;
-    color: rgba(20, 19, 15, .88);
-  }
-
-  .cs-by {
-    margin-top: clamp(22px, 3.4vh, 42px);
-    display: flex;
-    align-items: center;
-    gap: clamp(12px, 1.4vw, 20px);
-  }
-
-  /* 參考畫面是小方頭像；這裡放的是活動現場，所以裁成寬一點的劇照 */
-  .cs-shot {
-    flex: 0 0 auto;
-    width: clamp(88px, 11.5vw, 168px);
-    aspect-ratio: 3 / 2;
-    background: rgba(20, 19, 15, .08) center / cover no-repeat;
-    filter: saturate(.92);
-  }
-
-  .cs-name { font-size: clamp(12px, 1.02vw, 14px); line-height: 1.5; }
-  .cs-role { font-size: clamp(10.5px, .88vw, 12px); color: var(--cs-mute); line-height: 1.5; }
-
-  /* 只有寫得出細節的案子才長出這一行 */
-  .cs-more {
-    margin-top: .85em;
-    padding: 0 0 2px;
-    border: 0;
-    border-bottom: 1px solid var(--cs-line);
-    background: none;
-    color: rgba(20, 19, 15, .7);
-    font: inherit;
-    font-size: clamp(10px, .82vw, 11.5px);
-    letter-spacing: .14em;
+    font-size: .6rem;
+    letter-spacing: .3em;
     text-transform: uppercase;
-    transition: color .4s var(--ease), border-color .4s var(--ease);
+    color: var(--pf-dim);
   }
 
-  .cs-more:hover { color: var(--ink); border-color: var(--ink); }
-  .cs-more[hidden] { display: none; }
+  @media (max-width: 767px) {
+    .pf-line { font-size: 13.5vw; }
+    .pf-kicker { font-size: 10px; max-width: 26ch; }
+    .pf-meter { width: 70px; }
 
-  /* 換一則的時候整塊往上提一點再回來，不是硬切 */
-  .cs-fade { transition: opacity .34s var(--ease), transform .34s var(--ease); }
-  .cs-body.is-out .cs-fade { opacity: 0; transform: translateY(-10px); }
-
-  .cs-foot { grid-column: 1 / -1; display: flex; align-items: flex-end; }
-  .cs-arrows { display: flex; gap: 10px; flex: 0 0 auto; }
-
-  .cs-arrow {
-    width: clamp(46px, 4vw, 62px);
-    height: clamp(30px, 2.6vw, 38px);
-    display: grid;
-    place-items: center;
-    border: 1px solid var(--cs-line);
-    background: none;
-    color: var(--cs-mute);
-    transition: color .45s var(--ease), border-color .45s var(--ease), background-color .45s var(--ease);
-  }
-
-  .cs-arrow svg { width: 15px; height: 15px; }
-  .cs-arrow:hover { color: var(--ink); border-color: var(--ink); background: rgba(20, 19, 15, .04); }
-
-  .cs-cta { flex: 1 1 auto; display: flex; justify-content: center; }
-
-  .cs-cta a {
-    display: inline-flex;
-    align-items: center;
-    gap: 3.4em;
-    padding-bottom: .7em;
-    border-bottom: 1px solid var(--cs-line);
-    font-size: clamp(9.5px, .78vw, 11px);
-    letter-spacing: .215em;
-    text-transform: uppercase;
-    color: rgba(20, 19, 15, .78);
-    text-decoration: none;
-    transition: color .45s var(--ease), border-color .45s var(--ease);
-  }
-
-  .cs-cta a:hover { color: var(--ink); border-color: var(--ink); }
-  .cs-cta i { font-style: normal; transition: transform .45s var(--ease); }
-  .cs-cta a:hover i { transform: translateX(6px); }
-
-  .cs-count {
-    flex: 0 0 auto;
-    align-self: flex-end;
-    padding-bottom: .2em;
-    font-size: clamp(9.5px, .78vw, 11px);
-    letter-spacing: .17em;
-    color: var(--cs-faint);
-  }
-
-  .cs-count b { font-weight: 400; color: rgba(20, 19, 15, .78); }
-
-  /* 進場：由下往上依序淡入，delay 由 --d 決定，
-     觸發交給 IntersectionObserver，進到這一章才開始數 */
-  .cs [data-cs-reveal] {
-    opacity: 0;
-    transform: translateY(26px);
-    transition: opacity .95s var(--ease), transform .95s var(--ease);
-    transition-delay: var(--d, 0s);
-  }
-
-  .cs [data-cs-reveal].is-in { opacity: 1; transform: none; }
-
-  @media (max-width: 860px) {
-    .cs {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto auto 1fr auto;
-      row-gap: clamp(14px, 2.4vh, 26px);
-      padding-top: clamp(64px, 11vh, 96px);
-      padding-bottom: clamp(60px, 10vh, 92px);
+    /* 散落的百分比版位在窄螢幕只會擠成一團，改成兩欄交錯 */
+    .pf-collage {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-content: center;
+      gap: clamp(14px, 4vw, 22px);
+      padding: 0 18px;
     }
-    .cs-head { flex-direction: column; gap: 14px; }
-    .cs-sub { margin-top: 0; max-width: 34ch; }
-    .cs-nav { gap: clamp(7px, 1.2vh, 12px); align-self: start; }
-    .cs-link:hover, .cs-link.is-on { transform: none; }
-    .cs-link .arw { display: none; }
-    .cs-body { margin-left: 0; max-width: none; align-self: center; }
-    .cs-foot { flex-wrap: wrap; gap: 18px; align-items: center; }
-    .cs-cta { justify-content: flex-start; flex: 1 1 100%; order: 3; }
-    .cs-ghost { font-size: 27vw; bottom: -7vh; }
-    .cs-ghost small { display: none; }
+    .pf-card { position: static !important; width: auto !important; }
+    .pf-card:nth-child(even) { margin-top: 14%; }
+    .pf-cap { font-size: 8.5px; letter-spacing: .12em; }
+    /* 客戶那一行在這個寬度一定會斷成四行，收起來，點進去看 */
+    .pf-cap > span { display: none; }
+  }
+
+  /* 動態偏好關閉：沒有釘住、沒有卡片帶，就是一份靜態的網格 */
+  @media (prefers-reduced-motion: reduce) {
+    .pf-track { height: auto; }
+    .pf-stage { position: static; height: auto; overflow: visible; padding: clamp(78px, 12vh, 120px) clamp(18px, 5vw, 92px) clamp(70px, 10vh, 110px); }
+    .pf-gl { display: none; }
+    .pf-head { position: static; padding: 0; }
+    .pf-collage {
+      position: static;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
+      gap: clamp(20px, 3vw, 40px);
+      margin-top: clamp(40px, 7vh, 80px);
+      pointer-events: auto;
+    }
+    .pf-card { position: static !important; width: auto !important; opacity: 1 !important; transform: none !important; pointer-events: auto; }
+    .pf-meter, .pf-eyebrow { position: static; margin-top: 2.5rem; }
+    .pf-meter { display: none; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1612,8 +1552,7 @@
     .scene, .detail { transition-duration: .2s; }
     .stage, .bloom, .hero-top, .hero-lede, .hero-hint { transition: none; filter: none; }
     .scene.is-active .stagger > * { animation: none; }
-    .cs [data-cs-reveal] { opacity: 1; transform: none; transition: none; }
-    .cs-fade, .cs-link, .cs-arrow, .cs-cta a, .cs-cta i { transition: none; }
+    .pf-shot { transition: none; }
   }
 </style>
 </head>
@@ -1891,50 +1830,61 @@
   </div>
 </section>
 
-<!-- ── 04 Portfolio：Trionn 式作品索引 ─── -->
+<!-- ── 04 Portfolio：捲動推進的三段式 ─── -->
 <section class="scene" data-scene="portfolio" aria-hidden="true">
-  <div class="scene-inner">
+  <div class="scene-inner" id="pfWrap">
+    <div class="pf-track" id="pfTrack">
+      <div class="pf-stage" id="pfStage">
 
-    <div class="cs-ghost-clip" aria-hidden="true">
-      <div class="cs-ghost"><small>EVENT STUDIO</small>CHENGYUN</div>
-    </div>
+        <!-- 第二段：弧形卡片帶。沒有 WebGL 就整個不出現，拼貼自己成立 -->
+        <canvas class="pf-gl" id="pfGL" aria-hidden="true"></canvas>
 
-    <div class="cs">
-      <header class="cs-head">
-        <h2 class="cs-title" data-cs-reveal style="--d:.05s" data-i18n="pf.title">Selected work</h2>
-        <p class="cs-sub" data-cs-reveal style="--d:.18s" data-i18n="pf.sub">Each line is one thing we built, and the room it was built for.</p>
-      </header>
-
-      <!-- 左：作品清單，點名稱就換一件 -->
-      <nav class="cs-nav" id="csNav" aria-label="Works"></nav>
-
-      <!-- 右：敘述、劇照、案名 -->
-      <div class="cs-body" id="csBody" data-cs-reveal style="--d:.42s">
-        <blockquote class="cs-quote cs-fade" id="csQuote"></blockquote>
-        <div class="cs-by cs-fade">
-          <div class="cs-shot" id="csShot" role="img" aria-label=""></div>
-          <div>
-            <div class="cs-name" id="csName"></div>
-            <div class="cs-role" id="csRole"></div>
-            <button class="cs-more hover-target" type="button" id="csMore" hidden data-i18n="pf.more">Open the case</button>
-          </div>
+        <!-- 第一段：錯開的兩行大標 -->
+        <div class="pf-head" id="pfHead">
+          <h2 class="pf-line pf-line-a" id="pfLineA" data-i18n="pf.l1">EVENTS IN</h2>
+          <p class="pf-kicker" id="pfKicker" data-i18n="pf.kicker">Six rooms we built, and what it took to build them.</p>
+          <h2 class="pf-line pf-line-b" id="pfLineB" data-i18n="pf.l2">MOTION</h2>
         </div>
+
+        <!-- 第三段：散落的拼貼 -->
+        <div class="pf-collage" id="pfCollage">
+        <button class="pf-card" type="button" data-i="0" data-speed="0.86"
+                style="left:  4%; top:  8%; width: 26%">
+          <span class="pf-shot" style="background-image: url(../../assets/work/01.jpg)"></span>
+          <span class="pf-cap"><b data-i18n="pf.t1">Silent Market</b><span data-i18n="pf.m1">Chengyun Event Studio · Banqiao, New Taipei · 2026</span></span>
+        </button>
+        <button class="pf-card" type="button" data-i="1" data-speed="1.22"
+                style="left: 36%; top: 20%; width: 20%">
+          <span class="pf-shot" style="background-image: url(../../assets/work/02.jpg)"></span>
+          <span class="pf-cap"><b data-i18n="pf.t2">Year-end gala</b><span data-i18n="pf.m2">GREAT HONOR × JYUAN.AN · 2025</span></span>
+        </button>
+        <button class="pf-card" type="button" data-i="2" data-speed="0.94"
+                style="left: 62%; top:  4%; width: 30%">
+          <span class="pf-shot" style="background-image: url(../../assets/work/03.jpg)"></span>
+          <span class="pf-cap"><b data-i18n="pf.t3">Welcome act</b><span data-i18n="pf.m3">GREAT HONOR × JYUAN.AN · 2025</span></span>
+        </button>
+        <button class="pf-card" type="button" data-i="3" data-speed="1.16"
+                style="left:  8%; top: 52%; width: 22%">
+          <span class="pf-shot" style="background-image: url(../../assets/work/04.jpg)"></span>
+          <span class="pf-cap"><b data-i18n="pf.t4">Awards stage</b><span data-i18n="pf.m4">GREAT HONOR × JYUAN.AN · 2025</span></span>
+        </button>
+        <button class="pf-card" type="button" data-i="4" data-speed="0.82"
+                style="left: 34%; top: 58%; width: 28%">
+          <span class="pf-shot" style="background-image: url(../../assets/work/05.jpg)"></span>
+          <span class="pf-cap"><b data-i18n="pf.t5">Brand film</b><span data-i18n="pf.m5">Client and date to be confirmed</span></span>
+        </button>
+        <button class="pf-card" type="button" data-i="5" data-speed="1.28"
+                style="left: 70%; top: 46%; width: 24%">
+          <span class="pf-shot" style="background-image: url(../../assets/work/06.jpg)"></span>
+          <span class="pf-cap"><b data-i18n="pf.t6">Founder interview</b><span data-i18n="pf.m6">Client and date to be confirmed</span></span>
+        </button>
+        </div>
+
+        <span class="pf-eyebrow" data-i18n="pf.eyebrow">04 — Portfolio</span>
+        <div class="pf-meter" aria-hidden="true"><i id="pfMeter"></i></div>
+
       </div>
-
-      <footer class="cs-foot" data-cs-reveal style="--d:.56s">
-        <div class="cs-arrows">
-          <button class="cs-arrow hover-target" type="button" id="csPrev" aria-label="Previous work">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <button class="cs-arrow hover-target" type="button" id="csNext" aria-label="Next work">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-        <div class="cs-cta"><a class="hover-target" href="#contact" id="csCta"><span data-i18n="pf.cta">Start a project</span><i>&#8594;</i></a></div>
-        <div class="cs-count"><b id="csNum">01</b> / <span id="csTotal">06</span></div>
-      </footer>
     </div>
-
   </div>
 </section>
 
@@ -2210,10 +2160,10 @@
         'menu.about': 'About Us',
         'menu.services': 'Services',
         'menu.teams': 'Teams',
-        'pf.title': 'Selected work',
-        'pf.sub': 'Each line is one thing we built, and the room it was built for.',
-        'pf.cta': 'Start a project',
-        'pf.more': 'Open the case',
+        'pf.l1': 'EVENTS IN', 'pf.l2': 'MOTION',
+        'pf.kicker': 'Six rooms we built, and what it took to build them.',
+        'pf.eyebrow': '04 — Portfolio',
+        'pf.scope': 'Scope',
         'pf.t1': 'Silent Market', 'pf.t2': 'Year-end gala', 'pf.t3': 'Welcome act',
         'pf.t4': 'Awards stage', 'pf.t5': 'Brand film', 'pf.t6': 'Founder interview',
         'pf.d1': 'A curated market built on one rule: silence. No loudspeakers, no PA, no microphones \u2014 hand-held signs, boards and purpose-built props carry the exchange instead, so attention stays on the work and the person who made it.',
@@ -2287,10 +2237,10 @@
         'menu.about': '關於我們',
         'menu.services': '服務內容',
         'menu.teams': '我們的團隊',
-        'pf.title': '活動成果',
-        'pf.sub': '一行是一件做過的事，以及它被放進去的那個場。',
-        'pf.cta': '談一個案子',
-        'pf.more': '看案例細節',
+        'pf.l1': '把現場', 'pf.l2': '推到位',
+        'pf.kicker': '六個被我們做出來的場，以及它們花了什麼。',
+        'pf.eyebrow': '04 — 活動成果',
+        'pf.scope': '服務範圍',
         'pf.t1': '默者文畫', 'pf.t2': '年終晚會', 'pf.t3': '迎賓演出',
         'pf.t4': '頒獎舞台', 'pf.t5': '品牌影片', 'pf.t6': '人物專訪',
         'pf.d1': '一場以「安靜」為唯一規則的策展市集。沒有大聲公、沒有音響、沒有麥克風——手舉牌、看板與專屬道具接手叫賣這件事，注意力才留得住在作品與做作品的人身上。',
@@ -2456,10 +2406,10 @@
         'menu.about': '私たちについて',
         'menu.services': 'サービス内容',
         'menu.teams': 'チーム',
-        'pf.title': '実績',
-        'pf.sub': '一行が、つくったもの一つ。そして、それを置いた場所。',
-        'pf.cta': '相談する',
-        'pf.more': '事例を見る',
+        'pf.l1': '現場を', 'pf.l2': '動かす',
+        'pf.kicker': 'つくった六つの場と、それにかかったもの。',
+        'pf.eyebrow': '04 — 実績',
+        'pf.scope': '対応範囲',
         'pf.t1': 'サイレントマーケット', 'pf.t2': '年末式典', 'pf.t3': 'ウェルカム演出',
         'pf.t4': '表彰ステージ', 'pf.t5': 'ブランドムービー', 'pf.t6': '創業者インタビュー',
         'pf.d1': '「静けさ」をただ一つのルールにしたキュレーション・マーケット。拡声器も、PAも、マイクもありません。手持ちの札や看板、専用の小道具がやり取りを引き受け、注意は作品とつくった人のもとに留まります。',
@@ -2925,9 +2875,18 @@
     let detailReturn = null;
 
     function renderWork() {
-      detailMeta.textContent = t('detail.meta');
-      detailTitle.textContent = t('detail.title');
-      detailBody.innerHTML = t('detail.body');
+      if (detailIndex === 0) {
+        detailMeta.textContent = t('detail.meta');
+        detailTitle.textContent = t('detail.title');
+        detailBody.innerHTML = t('detail.body');
+        return;
+      }
+      const n = detailIndex + 1;
+      detailMeta.textContent = t('pf.m' + n);
+      detailTitle.textContent = t('pf.t' + n);
+      detailBody.innerHTML = '<p class="scene-body">' + t('pf.d' + n) + '</p>'
+        + '<dl class="mt-8"><dt class="term">' + t('pf.scope') + '</dt>'
+        + '<dd class="desc">' + t('pf.n' + n) + '</dd></dl>';
     }
 
     function renderPerson() {
@@ -3674,12 +3633,10 @@
       if (navBusy() || current === 'hero' || current === 'intro') { return; }
       const dir = e.deltaY > 0 ? 1 : -1;
 
-      /* 膠卷與作品索引自己吃滾輪，走到頭才交棒；
-         這兩個分鏡的容器是 overflow: hidden，捲動空間的判斷對它們沒有意義 */
+      /* 膠卷自己吃滾輪，走到頭才交棒；
+         它的容器是 overflow: hidden，捲動空間的判斷對它沒有意義 */
       if (current === 'teams') {
         if (!filmAtEdge(dir)) { navEdge = 0; return; }
-      } else if (current === 'portfolio') {
-        if (!pfAtEdge(dir)) { navEdge = 0; return; }
       } else if (navRoom(dir) > 2) {
         navEdge = 0;                                 /* 章節裡還捲得動就讓它自己捲 */
         return;
@@ -3713,7 +3670,6 @@
         : navTouch.top <= 2);
       if (!wasEdge) { return; }
       if (current === 'teams' && !filmAtEdge(dir)) { return; }
-      if (current === 'portfolio' && !pfAtEdge(dir)) { csShow(csIndex + dir); return; }
       if (performance.now() < navLock) { return; }
       sceneStep(dir);
     }, { passive: true });
@@ -3971,135 +3927,380 @@
     });
 
 
-    /* ══ 04 活動成果 ═══════════════════════════════════════════
-       每一件共用同一個版位，換的是內容不是版面。
-       文字全部走 t()，換語言時整塊自己重畫；
-       照片與「有沒有細節頁」寫在這裡，因為它們不隨語言變。 */
-    const PF_WORKS = [
-      { shot: '../../assets/work/01.jpg', detail: true },
-      { shot: '../../assets/work/02.jpg' },
-      { shot: '../../assets/work/03.jpg' },
-      { shot: '../../assets/work/04.jpg' },
-      { shot: '../../assets/work/05.jpg' },
-      { shot: '../../assets/work/06.jpg' }
+    /* ══ 04 活動成果：捲動推進的三段式 ═══════════════════════
+       這一章有自己的 300svh 行程，舞台用 CSS sticky 釘住。
+       畫面完全由 pfRender(p) 這一個純函式決定，p 是 0→1 的進度：
+       往回捲就是把 p 倒著餵進去，所以可逆是結構上的，不是補出來的。
+       p 的來源有兩個：有 ScrollTrigger 就用它的 scrub（慣性比較好），
+       沒有就直接讀 scrollTop——兩條路餵的是同一個函式。 */
+    const pfWrap = document.getElementById('pfWrap');
+    const pfTrack = document.getElementById('pfTrack');
+    const pfHead = document.getElementById('pfHead');
+    const pfLineA = document.getElementById('pfLineA');
+    const pfLineB = document.getElementById('pfLineB');
+    const pfKicker = document.getElementById('pfKicker');
+    const pfMeter = document.getElementById('pfMeter');
+    const pfCanvas = document.getElementById('pfGL');
+    const pfCards = [...document.querySelectorAll('.pf-card')];
+
+    const PF_SHOTS = [
+      '../../assets/work/01.jpg', '../../assets/work/02.jpg', '../../assets/work/03.jpg',
+      '../../assets/work/04.jpg', '../../assets/work/05.jpg', '../../assets/work/06.jpg'
     ];
 
-    const csNav = document.getElementById('csNav');
-    const csBody = document.getElementById('csBody');
-    const csQuote = document.getElementById('csQuote');
-    const csShot = document.getElementById('csShot');
-    const csName = document.getElementById('csName');
-    const csRole = document.getElementById('csRole');
-    const csMore = document.getElementById('csMore');
-    const csNum = document.getElementById('csNum');
+    /* 三段的區間 */
+    const PF_HEAD = [0, .20];
+    const PF_BAND = [.15, .70];
+    const PF_GRID = [.70, 1];
 
-    let csIndex = 0;
-    let csSwap = 0;
-    let csEdge = 0;
-    let csLock = 0;
+    const pfSpan = (v, a, b) => clamp((v - a) / (b - a), 0, 1);
+    const pfEase = (x) => 1 - Math.pow(1 - x, 3);
 
-    document.getElementById('csTotal').textContent = String(PF_WORKS.length).padStart(2, '0');
-
-    /* 左欄一件一顆按鈕，進場時依序淡入 */
-    PF_WORKS.forEach((w, i) => {
-      const b = document.createElement('button');
-      b.className = 'cs-link hover-target';
-      b.type = 'button';
-      b.dataset.i = String(i);
-      b.setAttribute('data-cs-reveal', '');
-      b.style.setProperty('--d', (0.22 + i * 0.055).toFixed(3) + 's');
-      b.innerHTML = '<span class="nm"></span><span class="arw">&#8594;</span>';
-      csNav.appendChild(b);
-    });
-
-    const csLinks = [...csNav.querySelectorAll('.cs-link')];
-
-    /* 目前這一件的文字，跟著語言與選取狀態走 */
+    /* 拼貼卡片的說明跟著語言走 */
     pfSync = function () {
-      const n = csIndex + 1;
-      csQuote.textContent = t('pf.d' + n);
-      csName.textContent = t('pf.n' + n);
-      csRole.textContent = t('pf.m' + n);
-      csMore.textContent = t('pf.more');
-      csShot.setAttribute('aria-label', t('pf.t' + n));
-      csNum.textContent = String(n).padStart(2, '0');
-      csLinks.forEach((l, k) => {
-        l.querySelector('.nm').textContent = t('pf.t' + (k + 1));
-        l.classList.toggle('is-on', k === csIndex);
-        l.setAttribute('aria-current', k === csIndex ? 'true' : 'false');
+      pfCards.forEach((el) => {
+        const i = +el.dataset.i;
+        el.setAttribute('aria-label', t('pf.t' + (i + 1)));
       });
     };
 
-    function csPaint() {
-      csShot.style.backgroundImage = 'url(' + PF_WORKS[csIndex].shot + ')';
-      /* 只有寫得出細節的案子才給連結，其餘不留一個按了沒反應的按鈕 */
-      csMore.hidden = !PF_WORKS[csIndex].detail;
-      pfSync();
+    let pfBand = null;          /* 弧形卡片帶，WebGL 起得來才有 */
+    let pfNoBand = false;       /* 沒有卡片帶時整段行程縮短，不要空捲一大段 */
+    let pfIntro = 0;            /* 進到這一章時大標自己的亮相，和捲動進度取大值 */
+    let pfIntroRaf = 0;
+
+    /* 停在 p=0 時大標本來是全透明的，那樣進章節會先看到一片空白。
+       所以進場先跑一次同樣的位移淡入，之後捲動接手 */
+    function pfHeadIntro() {
+      cancelAnimationFrame(pfIntroRaf);
+      if (reduce) { pfIntro = 1; pfRender(1); return; }
+      pfIntro = 0;
+      const t0 = performance.now();
+      const step = () => {
+        pfIntro = pfEase(clamp((performance.now() - t0) / 900, 0, 1));
+        pfRender(pfScrub ? pfLast : pfProgress());
+        if (pfIntro < 1) { pfIntroRaf = requestAnimationFrame(step); }
+      };
+      pfIntroRaf = requestAnimationFrame(step);
     }
 
-    function csShow(i) {
-      i = (i + PF_WORKS.length) % PF_WORKS.length;
-      if (i === csIndex) { return; }
-      if (reduce) { csIndex = i; csPaint(); return; }
-      csIndex = i;
-      /* 先把舊的推走，換完內容再放回來。切換有重量，才不像換投影片 */
-      csBody.classList.add('is-out');
-      clearTimeout(csSwap);
-      csSwap = setTimeout(() => {
-        csPaint();
-        requestAnimationFrame(() => csBody.classList.remove('is-out'));
-      }, 340);
+    let pfLast = 0;
+
+    function pfRender(p) {
+      p = clamp(p, 0, 1);
+      pfLast = p;
+
+      /* 關掉動態時沒有捲動敘事可言，全部停在最終狀態 */
+      if (reduce) {
+        pfHead.style.opacity = '1';
+        pfLineA.style.transform = pfLineB.style.transform = pfKicker.style.transform = 'none';
+        pfCards.forEach((el) => { el.style.opacity = '1'; el.style.transform = 'none'; el.classList.add('is-live'); });
+        pfMeter.style.transform = 'scaleX(1)';
+        return;
+      }
+
+      /* 第一段：兩行大標從相反方向滑進來，卡片帶掃過去之後再淡出 */
+      const inn = Math.max(pfIntro, pfEase(pfSpan(p, PF_HEAD[0], PF_HEAD[1])));
+      const out = 1 - (pfNoBand ? pfSpan(p, .20, .34) : pfSpan(p, .62, .76));
+      pfLineA.style.transform = 'translate3d(' + (-80 * (1 - inn)).toFixed(2) + 'px,0,0)';
+      pfLineB.style.transform = 'translate3d(' + (80 * (1 - inn)).toFixed(2) + 'px,0,0)';
+      pfKicker.style.transform = 'translate3d(0,' + (20 * (1 - inn)).toFixed(2) + 'px,0)';
+      pfHead.style.opacity = (inn * out).toFixed(3);
+
+      /* 第三段：散落的拼貼，一張一個速度，所以有前後 */
+      const g = pfSpan(p, pfNoBand ? .28 : PF_GRID[0], PF_GRID[1]);
+      pfCards.forEach((el, i) => {
+        const sp = parseFloat(el.dataset.speed) || 1;
+        const k = pfEase(clamp((g - i * .05) / .42, 0, 1));
+        el.style.opacity = k.toFixed(3);
+        el.style.transform = 'translate3d(0,' + ((1 - g) * 170 * sp).toFixed(2) + 'px,0) scale(' + (.9 + .1 * k).toFixed(3) + ')';
+        el.classList.toggle('is-live', k > .6);
+      });
+
+      pfMeter.style.transform = 'scaleX(' + p.toFixed(4) + ')';
+      if (pfBand) { pfBand.set(pfSpan(p, PF_BAND[0], PF_BAND[1])); }
     }
 
-    /* 走到第一件／最後一件，滾輪與滑動才交棒給章節切換 */
-    function pfAtEdge(dir) {
-      return dir > 0 ? csIndex >= PF_WORKS.length - 1 : csIndex <= 0;
+    /* ── 弧形卡片帶（Three.js）─────────────────────────────
+       每一張卡片都是一片 32x1 的平面，頂點著色器把它的 x 當成弧長，
+       換算成同一個圓柱面上的座標，所以卡片本身是真的彎的，
+       而不是一堆平面排成弧形。整條帶子再整體傾斜、旋轉、推近拉遠。 */
+    const PF_VERT = `
+      uniform float uR;
+      uniform float uTheta;
+      uniform vec2 uPlane;
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        float a = uTheta + (position.x / uR);
+        vec3 p = vec3(sin(a) * uR, position.y, cos(a) * uR);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+      }
+    `;
+
+    /* 平面比卡片大一圈，多出來的那一圈拿來畫圓角外的柔影 */
+    const PF_FRAG = `
+      precision mediump float;
+      uniform sampler2D uMap;
+      uniform vec2 uPlane;
+      uniform vec2 uCard;
+      uniform float uRad;
+      uniform float uOpacity;
+      uniform float uFade;
+      uniform vec3 uPaper;
+      varying vec2 vUv;
+
+      float roundBox(vec2 p, vec2 b, float r) {
+        vec2 q = abs(p) - b + r;
+        return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+      }
+
+      void main() {
+        vec2 pos = (vUv - 0.5) * uPlane;
+        float d = roundBox(pos, uCard * 0.5, uRad);
+        float aa = uCard.x * 0.004;
+        float inside = 1.0 - smoothstep(-aa, aa, d);
+
+        /* 影子往下偏一點，光源才像是從上面來的 */
+        float ds = roundBox(pos + vec2(0.0, uCard.y * 0.05), uCard * 0.5, uRad);
+        float shade = (1.0 - smoothstep(0.0, uCard.y * 0.14, ds)) * 0.26 * (1.0 - inside);
+
+        vec2 uvCard = (vUv * uPlane - (uPlane - uCard) * 0.5) / uCard;
+        vec4 tex = texture2D(uMap, clamp(uvCard, 0.0, 1.0));
+        /* 遠端不是變透明，是往紙色融——在淺色底上那才像空氣 */
+        vec3 col = mix(tex.rgb, uPaper, uFade);
+        gl_FragColor = vec4(col * inside, (inside + shade) * uOpacity);
+      }
+    `;
+
+    function pfMakeBand() {
+      if (pfBand || reduce || !window.THREE) { return; }
+
+      let renderer;
+      try {
+        renderer = new THREE.WebGLRenderer({ canvas: pfCanvas, alpha: true, antialias: true });
+      } catch (err) {
+        return;                                   /* 沒有 WebGL：拼貼自己成立，不補救 */
+      }
+      renderer.setClearColor(0x000000, 0);
+
+      const narrow = innerWidth < 768;
+      const N = narrow ? 8 : 14;
+      const CARD_H = 1.5;
+      const CARD_W = CARD_H * 1.6;                /* 16:10 */
+      const R = narrow ? 15 : 9;                  /* 窄螢幕半徑放大，弧度就淺 */
+      const STEP = (CARD_W * 1.06) / R;
+      const PLANE_W = CARD_W * 1.24;
+      const PLANE_H = CARD_H * 1.34;
+      const DIST = 16;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(38, 1, .1, 200);
+      camera.position.set(0, 0, R + DIST);
+
+      const group = new THREE.Group();
+      group.rotation.z = -20 * Math.PI / 180;     /* 整條帶子斜著走 */
+      scene.add(group);
+
+      const paper = new THREE.Color(0xe8e8e6);
+      const loader = new THREE.TextureLoader();
+      const textures = PF_SHOTS.map((src) => {
+        const tex = loader.load(src);
+        tex.minFilter = THREE.LinearFilter;
+        tex.generateMipmaps = false;
+        return tex;
+      });
+
+      const geo = new THREE.PlaneGeometry(PLANE_W, PLANE_H, 32, 1);
+      const cards = [];
+
+      for (let i = 0; i < N; i++) {
+        const theta = (i - (N - 1) / 2) * STEP;
+        const mat = new THREE.ShaderMaterial({
+          vertexShader: PF_VERT,
+          fragmentShader: PF_FRAG,
+          transparent: true,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+          uniforms: {
+            uMap: { value: textures[i % textures.length] },
+            uR: { value: R },
+            uTheta: { value: theta },
+            uPlane: { value: new THREE.Vector2(PLANE_W, PLANE_H) },
+            uCard: { value: new THREE.Vector2(CARD_W, CARD_H) },
+            uRad: { value: CARD_H * .035 },
+            uOpacity: { value: 0 },
+            uFade: { value: 0 },
+            uPaper: { value: new THREE.Vector3(paper.r, paper.g, paper.b) }
+          }
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.frustumCulled = false;               /* 頂點著色器改過位置，包圍盒不再準 */
+        group.add(mesh);
+        cards.push({ mesh, mat, theta });
+      }
+
+      const WANT = narrow ? 3 : 7.5;        /* 想在畫面上同時看到幾張 */
+      let halfH = 1, halfW = 1, base = 1;
+      let raf = 0, live = false, t = 0, dead = false, wasBlank = false;
+
+      function resize() {
+        const w = pfCanvas.clientWidth || innerWidth;
+        const h = pfCanvas.clientHeight || innerHeight;
+        renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        halfH = Math.tan(camera.fov * Math.PI / 360) * DIST;
+        halfW = halfH * camera.aspect;
+        /* 直式螢幕的視錐很窄，固定縮放會讓一張卡片就吃掉整個畫面 */
+        base = (halfW * 2) / (WANT * CARD_W);
+      }
+
+      function frame() {
+        /* 進場：左下角、遠、轉過去。出場：右上角、遠、轉過來。
+           中間那一段最靠近鏡頭，剛好掃過大標前面 */
+        const bell = Math.sin(Math.PI * clamp(t, 0, 1));
+        group.rotation.y = lerp(-1.35, 1.35, t);
+        group.position.set(
+          lerp(-halfW * .95, halfW * .95, t),
+          lerp(-halfH * 1.15, halfH * 1.15, t) - halfH * .2,
+          lerp(-9, 5, bell)
+        );
+        const sc = base * (.88 + bell * .22);
+        group.scale.set(sc, sc, sc);
+
+        const alpha = pfSpan(t, 0, .08) * (1 - pfSpan(t, .90, 1));
+        if (alpha < .002 && wasBlank) { return; }         /* 整條看不見就不重畫 */
+        wasBlank = alpha < .002;
+
+        for (let i = 0; i < cards.length; i++) {
+          const c = cards[i];
+          /* 轉到背面的卡片不畫；接近側面的先往紙色融掉 */
+          const face = Math.cos(c.theta + group.rotation.y);
+          const vis = clamp((face - .02) / .34, 0, 1);
+          c.mat.uniforms.uOpacity.value = alpha * vis;
+          c.mat.uniforms.uFade.value = (1 - face) * .5;
+          c.mesh.visible = alpha * vis > .004;
+        }
+
+        renderer.render(scene, camera);
+      }
+
+      function loop() {
+        if (dead) { return; }
+        frame();
+        raf = requestAnimationFrame(loop);
+      }
+
+      function dispose() {
+        dead = true;
+        cancelAnimationFrame(raf);
+        cards.forEach((c) => c.mat.dispose());
+        textures.forEach((tex) => tex.dispose());
+        geo.dispose();
+        renderer.dispose();
+        pfBand = null;
+        pfCanvas.style.display = 'none';
+      }
+
+      /* 顯示卡被回收時 Three.js 會整個失效，收乾淨、讓拼貼接手 */
+      pfCanvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); dispose(); });
+
+      resize();
+      addEventListener('resize', resize);
+
+      pfBand = {
+        set(v) { t = v; },
+        resize,
+        start() { if (!live && !dead) { live = true; loop(); } },
+        stop() { live = false; cancelAnimationFrame(raf); },
+        dispose
+      };
     }
 
-    csPaint();
+    /* ── 進度來源：Lenis + ScrollTrigger，兩者都缺就讀 scrollTop ── */
+    let pfLenis = null;
+    let pfScrub = null;
+    let pfLenisRaf = 0;
 
-    csNav.addEventListener('click', (e) => {
-      const b = e.target.closest('.cs-link');
-      if (b) { csShow(+b.dataset.i); }
-    });
-    document.getElementById('csPrev').addEventListener('click', () => csShow(csIndex - 1));
-    document.getElementById('csNext').addEventListener('click', () => csShow(csIndex + 1));
-    document.getElementById('csCta').addEventListener('click', (e) => { e.preventDefault(); goTo('contact'); });
-    csMore.addEventListener('click', () => {
-      if (PF_WORKS[csIndex].detail) { openDetail('work', 0, csMore); }
-    });
+    function pfProgress() {
+      const max = pfWrap.scrollHeight - pfWrap.clientHeight;
+      return max > 0 ? pfWrap.scrollTop / max : 0;
+    }
 
-    addEventListener('keydown', (e) => {
-      if (current !== 'portfolio' || navBusy()) { return; }
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { csShow(csIndex - 1); }
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { csShow(csIndex + 1); }
-    });
+    function pfWire() {
+      if (reduce) { return; }
 
-    /* 滾輪先走完六件，到頭了才讓章節切換接手 */
-    addEventListener('wheel', (e) => {
-      if (current !== 'portfolio' || navBusy()) { return; }
-      const dir = e.deltaY > 0 ? 1 : -1;
-      if (pfAtEdge(dir)) { return; }
-      if (performance.now() < csLock) { return; }
-      csEdge += Math.abs(e.deltaY);
-      if (csEdge > 90) { csEdge = 0; csLock = performance.now() + 620; csShow(csIndex + dir); }
+      if (window.Lenis && !pfLenis) {
+        try {
+          pfLenis = new Lenis({ wrapper: pfWrap, content: pfTrack, lerp: .1, smoothWheel: true });
+        } catch (err) {
+          pfLenis = null;                          /* 版本對不上就用原生捲動 */
+        }
+      }
+
+      if (pfLenis) {
+        if (hasGsap) {
+          /* 把 Lenis 掛到 GSAP 的 ticker 上，兩邊共用同一個時間軸 */
+          gsap.ticker.add(pfTick);
+          gsap.ticker.lagSmoothing(0);
+        } else {
+          const spin = (time) => { pfLenis.raf(time); pfLenisRaf = requestAnimationFrame(spin); };
+          pfLenisRaf = requestAnimationFrame(spin);
+        }
+        if (window.ScrollTrigger) { pfLenis.on('scroll', ScrollTrigger.update); }
+      }
+
+      if (hasGsap && window.ScrollTrigger && !pfScrub) {
+        gsap.registerPlugin(ScrollTrigger);
+        const at = { p: 0 };
+        pfScrub = gsap.to(at, {
+          p: 1,
+          ease: 'none',
+          onUpdate: () => pfRender(at.p),
+          scrollTrigger: {
+            scroller: pfWrap,
+            start: 0,
+            end: () => Math.max(1, pfWrap.scrollHeight - pfWrap.clientHeight),
+            invalidateOnRefresh: true,
+            scrub: 1
+          }
+        });
+      }
+    }
+
+    function pfTick(time) { if (pfLenis) { pfLenis.raf(time * 1000); } }
+
+    /* ScrollTrigger 不在的時候，原生捲動就是唯一的進度來源 */
+    pfWrap.addEventListener('scroll', () => {
+      if (!pfScrub) { pfRender(pfProgress()); }
     }, { passive: true });
 
-    /* ══ 進場動畫 ══════════════════════════════════════════════
-       分鏡在非作用中時是 visibility: hidden，幾何上仍然「在畫面裡」，
-       所以不能一開始就觀察——那樣進場動畫在首頁就播完了。
-       進到這一章才開始觀察，離開時歸零，每次進來都重播一次。 */
-    const csIO = new IntersectionObserver((entries) => {
-      entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add('is-in'); } });
-    }, { threshold: 0, rootMargin: '0px 0px -24px 0px' });
+    /* 拼貼點進去看這一件的細節 */
+    pfCards.forEach((el) => {
+      el.addEventListener('click', () => openDetail('work', +el.dataset.i, el));
+    });
 
-    const csReveals = [...document.querySelectorAll('.cs [data-cs-reveal]')];
+    pfSync();
+    pfRender(reduce ? 1 : 0);
 
     addEventListener('cy:scene', (e) => {
       if (e.detail === 'portfolio') {
-        csReveals.forEach((el) => { el.classList.remove('is-in'); csIO.observe(el); });
+        pfMakeBand();
+        /* 沒有 WebGL 就沒有第二段，行程也跟著收短 */
+        pfNoBand = !pfBand && !reduce;
+        if (pfNoBand) { pfTrack.style.height = '170svh'; }
+        pfWire();
+        pfHeadIntro();
+        if (pfBand) { pfBand.resize(); pfBand.start(); }
+        if (pfLenis) { pfLenis.resize(); pfLenis.start(); }
+        /* 分鏡剛顯示出來，量測要重做一次，否則行程長度是舊的 */
+        if (window.ScrollTrigger) { requestAnimationFrame(() => ScrollTrigger.refresh()); }
+        else { requestAnimationFrame(() => pfRender(pfProgress())); }
       } else {
-        csReveals.forEach((el) => csIO.unobserve(el));
+        if (pfBand) { pfBand.stop(); }
+        if (pfLenis) { pfLenis.stop(); }
       }
     });
 

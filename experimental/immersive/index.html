@@ -4056,23 +4056,26 @@
     /* 可調參數。?debug 會開一個 lil-gui 面板接到這裡 */
     const PF = {
       cards: 14,
-      radiusFrac: 1.55,   /* 圓環半徑 = 這個倍數 x 圓環深度上的畫面半寬（>1 代表環比畫面大，只看得到一段） */
-      ringDist: 15,       /* 圓環中心離鏡頭多遠 */
+      fov: 58,            /* 視角：越大透視越強，近側的卡片才會被畫面切掉 */
+      radiusFrac: 0.95,   /* 圓環半徑 = 這個倍數 x 圓環深度上的畫面半寬 */
+      ringDist: 20,       /* 圓環中心離鏡頭多遠 */
       tiltX: 0.35,        /* 軸心傾斜：前緣偏下、後緣偏上 */
       tiltZ: -0.30,
       spinTurns: 0.78,    /* 整段自轉幾圈 */
       spin0: -0.55,       /* 起始相位 */
-      cardScale: 1.0,     /* 卡片尺寸（高度倍率；寬度由圓周均分決定） */
+      cardHFrac: 0.35,    /* 卡片高 = 這個倍數 x 圓環半徑，帶子才是寬絲帶不是細手環 */
+      cardScale: 1.0,     /* 卡片尺寸的額外倍率 */
       gap: 0.97,          /* 卡片間距倍率，1 = 剛好邊靠邊繞滿一圈 */
       bend: 1,            /* 卡片沿圓柱面的彎曲度 */
       splitZ: 0,          /* 前後分界：相對圓環中心的 z 位置 */
       splitSoft: 0.14,    /* 分界的柔邊（佔半徑的比例），跨界時交叉淡出不閃 */
       riseFrac: 3.20,     /* 升起前藏在畫面下方多遠（半高倍數） */
-      outX: 0.85,         /* 離場往右多遠（半寬倍數） */
-      outY: 1.25,         /* 離場往上多遠（半高倍數） */
-      outScale: 0.34,     /* 離場縮到多小 */
-      outZ: 26,           /* 離場同時往後退多遠 */
-      outTilt: 0.80,      /* 離場時軸心往側面倒多少（環被壓扁成細弧） */
+      outX: 3.20,         /* 離場往右多遠（半寬倍數）：不縮小，靠平移出畫面 */
+      outY: 2.40,         /* 離場往上多遠（半高倍數） */
+      scaleShow: 1.00,    /* 主秀時的尺寸；整段只在 0.8–1.2 之間變化 */
+      scaleOut: 1.12,     /* 離場時的尺寸——維持大，不縮成小物件 */
+      shade: 0.10,        /* 卡片外緣柔影的濃度 */
+      outTilt: 1.05,      /* 離場時軸心往側面倒多少 */
       outTiltZ: 0.18,     /* 離場時 Z 軸再轉多少 */
       gridDist: 26,       /* 拼貼牆離鏡頭多遠 */
       gridScale: 1.0,
@@ -4085,7 +4088,7 @@
       ringInA:  0.24, ringInB:  0.44,
       showA:    0.35, showB:    0.60,
       ringOutA: 0.55, ringOutB: 0.85,
-      titleOutA:0.60, titleOutB:0.90,
+      titleOutA:0.66, titleOutB:0.84,
       morphA:   0.82, morphB:   0.99
     };
 
@@ -4157,7 +4160,7 @@
       /* 第一段：兩行大標從畫面左右外側滑進來，停在錯位定位；
          離場時各自沿原方向繼續走出去，兩行交錯穿越 */
       const inn = pfEaseOut(pfSpan(p, PF_T.titleInA, PF_T.titleInB));
-      const gone = pfSmooth(pfSpan(p, PF_T.titleOutA, PF_T.titleOutB));
+      const gone = pfEaseIn(pfSpan(p, PF_T.titleOutA, PF_T.titleOutB));
       const W = pfHead.clientWidth || innerWidth;
       const ax = (inn - 1) * W * 1.05 + gone * W * 1.25;
       const bx = (1 - inn) * W * 1.05 - gone * W * 1.25;
@@ -4214,9 +4217,8 @@
       uniform vec2 uCard;
       uniform float uRad;
       uniform float uOpacity;
-      uniform float uFade;
-      uniform float uLift;
-      uniform vec3 uPaper;
+      uniform float uShade;
+      uniform vec2 uCover;      /* 貼圖以 cover 方式裁切，照片比例不被卡片比例拉歪 */
       varying vec2 vUv;
 
       float roundBox(vec2 p, vec2 b, float r) {
@@ -4232,13 +4234,13 @@
 
         /* 影子往下偏一點，光源才像是從上面來的 */
         float ds = roundBox(pos + vec2(0.0, uCard.y * 0.05), uCard * 0.5, uRad);
-        float shade = (1.0 - smoothstep(0.0, uCard.y * 0.14, ds)) * (0.26 + uLift * 0.12) * (1.0 - inside);
+        float shade = (1.0 - smoothstep(0.0, uCard.y * 0.12, ds)) * uShade * (1.0 - inside);
 
         vec2 uvCard = (vUv * uPlane - (uPlane - uCard) * 0.5) / uCard;
         if (!gl_FrontFacing) { uvCard.x = 1.0 - uvCard.x; }
-        vec4 tex = texture2D(uMap, clamp(uvCard, 0.0, 1.0));
-        /* 遠端不是變透明，是往紙色融——在淺色底上那才像空氣 */
-        vec3 col = mix(tex.rgb, uPaper, uFade);
+        uvCard = (uvCard - 0.5) * uCover + 0.5;
+        /* 直接輸出貼圖原本的值：沒有色調映射、沒有往紙色融，照片就是照片 */
+        vec3 col = texture2D(uMap, clamp(uvCard, 0.0, 1.0)).rgb;
         gl_FragColor = vec4(col * inside, (inside + shade) * uOpacity);
       }
     `;
@@ -4269,19 +4271,39 @@
           '改用 CSS 3D 退路。原因：', err);
         return;
       }
-      rBack.setClearColor(0x000000, 0);
-      rFront.setClearColor(0x000000, 0);
+      [rBack, rFront].forEach((r) => {
+        r.setClearColor(0x000000, 0);
+        /* 色調映射會把照片壓灰；ShaderMaterial 直接輸出貼圖值，
+           不做編碼轉換就是「所見即原圖」 */
+        r.toneMapping = THREE.NoToneMapping;
+        r.outputEncoding = THREE.LinearEncoding;
+      });
 
       const scene = new THREE.Scene();
       /* 鏡頭擺在原點朝 -Z 看，深度就直接是「離鏡頭多遠」 */
-      const camera = new THREE.PerspectiveCamera(38, 1, .1, 400);
+      const camera = new THREE.PerspectiveCamera(PF.fov, 1, .1, 400);
 
-      const paper = new THREE.Color(0xe8e8e6);
       const loader = new THREE.TextureLoader();
-      const textures = PF_SHOTS.map((src) => loader.load(src,
-        (tex) => { tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false; },
+      const texAspect = PF_SHOTS.map(() => 4 / 3);        /* 載好之前先給一個合理值 */
+      const textures = PF_SHOTS.map((src, i) => loader.load(src,
+        (tex) => {
+          tex.minFilter = THREE.LinearFilter;
+          tex.generateMipmaps = false;
+          if (tex.image && tex.image.height) { texAspect[i] = tex.image.width / tex.image.height; }
+          applyCover();
+        },
         undefined,
         () => console.warn('[chengyun] 活動成果：貼圖載不到 —', src)));
+
+      /* cover：照片比卡片瘦就裁上下，比卡片胖就裁左右，比例不被拉歪 */
+      function applyCover() {
+        const cardA = cardW / cardH;
+        cards.forEach((c, i) => {
+          const texA = texAspect[i % texAspect.length];
+          const v = c.mat.uniforms.uCover.value;
+          if (cardA > texA) { v.set(1, texA / cardA); } else { v.set(cardA / texA, 1); }
+        });
+      }
 
       let geo = null;
       let cards = [];
@@ -4308,11 +4330,12 @@
         cards = [];
 
         const N = PF.cards;
-        /* 圓周均分：卡片寬度由半徑與張數決定，gap = 1 就剛好繞滿一圈 */
+        /* 圓周均分：寬度由半徑與張數決定，gap = 1 就剛好繞滿一圈。
+           高度直接掛在半徑上，帶子才是一條寬絲帶而不是細手環 */
         cardW = (2 * Math.PI * ringR / N) * PF.gap;
-        cardH = (cardW / 1.6) * PF.cardScale;
-        const planeW = cardW * 1.18;
-        const planeH = cardH * 1.3;
+        cardH = ringR * PF.cardHFrac * PF.cardScale;
+        const planeW = cardW * 1.14;
+        const planeH = cardH * 1.16;
         geo = new THREE.PlaneGeometry(planeW, planeH, 40, 1);
 
         for (let i = 0; i < N; i++) {
@@ -4329,10 +4352,9 @@
               uPlane: { value: new THREE.Vector2(planeW, planeH) },
               uCard: { value: new THREE.Vector2(cardW, cardH) },
               uRad: { value: cardH * .04 },
-              uOpacity: { value: 0 },
-              uFade: { value: 0 },
-              uLift: { value: 0 },
-              uPaper: { value: new THREE.Vector3(paper.r, paper.g, paper.b) }
+              uOpacity: { value: 1 },
+              uShade: { value: PF.shade },
+              uCover: { value: new THREE.Vector2(1, 1) }
             }
           });
           const mesh = new THREE.Mesh(geo, mat);
@@ -4347,6 +4369,7 @@
             wFront: 1
           });
         }
+        applyCover();
       }
 
       function resize() {
@@ -4357,15 +4380,20 @@
         camera.aspect = w / h;
         camera.position.set(0, 0, 0);
         camera.updateProjectionMatrix();
+        camera.fov = PF.fov;
+        camera.updateProjectionMatrix();
         const tanHalf = Math.tan(camera.fov * Math.PI / 360);
         halfH = tanHalf * PF.ringDist;
         halfW = halfH * camera.aspect;
         /* 半徑大於標題半寬，環才「包」得住文字 */
         ringR = PF.radiusFrac * halfW;
+        /* 但近側那一段不能穿過鏡頭，否則卡片會翻到相機後面 */
+        const maxR = (PF.ringDist - 3.2) / Math.max(Math.cos(PF.tiltX), .25);
+        ringR = Math.min(ringR, maxR);
         gridH = tanHalf * PF.gridDist;
         gridW = gridH * camera.aspect;
         const across = camera.aspect > 1 ? 7 : 3.4;
-        gridBase = (gridW * 2) / ((2 * Math.PI * ringR / PF.cards) * PF.gap / 1.6 * PF.cardScale * 1.6 * across);
+        gridBase = (gridW * 2) / (ringR * PF.cardHFrac * PF.cardScale * 1.6 * across);
         build();
       }
 
@@ -4373,19 +4401,20 @@
         if (dead) { return; }
 
         const rise = pfSmooth(pfSpan(p, PF_T.ringInA, PF_T.ringInB));
-        const out = pfSmooth(pfSpan(p, PF_T.ringOutA, PF_T.ringOutB));
-        /* 縮小與後退走得比位移快，離場中段才不會還是一個佔滿畫面的大圈 */
-        const outFast = pfSmooth(pfSpan(p, PF_T.ringOutA,
-          PF_T.ringOutA + (PF_T.ringOutB - PF_T.ringOutA) * .72));
+        const outRaw = pfSpan(p, PF_T.ringOutA, PF_T.ringOutB);
+        /* 位移用 easeIn：圓環先留在文字上掃很久，最後才加速衝出畫面 */
+        const out = pfEaseIn(outRaw);
+        /* 傾角與尺寸走得比位移平順一點 */
+        const outFast = pfSmooth(outRaw);
         const morph = pfEaseOut(pfSpan(p, PF_T.morphA, PF_T.morphB));
-        const alive = Math.max(rise, morph);
 
         /* 圓環：從畫面下方升起 → 與標題同心 → 往右上縮小離場 */
         const ringX = out * PF.outX * halfW;
         const ringY = (rise - 1) * PF.riseFrac * halfH + out * PF.outY * halfH;
-        const ringZ = -PF.ringDist - outFast * PF.outZ;
-        const ringScale = lerp(1, PF.outScale, outFast);
-        eTilt.set(PF.tiltX + out * PF.outTilt, 0, PF.tiltZ - out * PF.outTiltZ);
+        const ringZ = -PF.ringDist;
+        /* 尺寸全段夾在 0.8–1.2：離場是「保持大、平移出畫面」，不是縮成小物件 */
+        const ringScale = clamp(lerp(PF.scaleShow, PF.scaleOut, outFast), .8, 1.2);
+        eTilt.set(PF.tiltX + outFast * PF.outTilt, 0, PF.tiltZ - outFast * PF.outTiltZ);
         qTilt.setFromEuler(eTilt);
 
         /* 自轉由捲動推著走 */
@@ -4422,14 +4451,10 @@
 
           c.mat.uniforms.uR.value = ringR;
           c.mat.uniforms.uBend.value = lerp(PF.bend, 0, morph);
-          c.mat.uniforms.uLift.value = morph;
-          /* 遠端往紙色融，近端維持原色 */
-          const dist = -c.mesh.position.z;
-          c.mat.uniforms.uFade.value = lerp(clamp((dist - PF.ringDist) / 26, 0, .6), 0, morph);
+          c.mat.uniforms.uShade.value = PF.shade;
 
           /* 前半圈 / 後半圈。跨界時卡片正好側面朝鏡頭，再加柔邊交叉淡出 */
           c.wFront = lerp(clamp((zRel - PF.splitZ) / soft * .5 + .5, 0, 1), 1, morph);
-          c.base = alive;
         }
 
         /* 一幀畫兩次：先後半圈，再前半圈 */
@@ -4441,7 +4466,8 @@
       function drawPass(renderer, front) {
         for (let i = 0; i < cards.length; i++) {
           const c = cards[i];
-          const w = c.base * (front ? c.wFront : 1 - c.wFront);
+          /* 卡片本身永遠是 opacity 1，這裡只是把它分給前後兩張畫布 */
+          const w = front ? c.wFront : 1 - c.wFront;
           c.mat.uniforms.uOpacity.value = w;
           c.mesh.visible = w > .004;
         }
@@ -4537,7 +4563,7 @@
         halfH = (pfCssFront.clientHeight || innerHeight) / 2;
         R = PF.radiusFrac * halfW;
         cw = (2 * Math.PI * R / PF.cards) * PF.gap;
-        ch = (cw / 1.6) * PF.cardScale;
+        ch = R * PF.cardHFrac * PF.cardScale;
         cards.forEach((c) => {
           c.el.style.width = cw + 'px';
           c.el.style.height = ch + 'px';
@@ -4548,7 +4574,7 @@
 
       function set(p) {
         const rise = pfSmooth(pfSpan(p, PF_T.ringInA, PF_T.ringInB));
-        const out = pfSmooth(pfSpan(p, PF_T.ringOutA, PF_T.ringOutB));
+        const out = pfEaseIn(pfSpan(p, PF_T.ringOutA, PF_T.ringOutB));
         const alpha = rise * (1 - pfSpan(p, PF_T.ringOutB - .04, PF_T.ringOutB + .04));
         [pfCssBack, pfCssFront].forEach((h) => {
           h.style.opacity = alpha.toFixed(3);
@@ -4558,7 +4584,7 @@
 
         const ringX = out * PF.outX * halfW;
         const ringY = (rise - 1) * PF.riseFrac * halfH + out * PF.outY * halfH;
-        const sc = lerp(1, PF.outScale, out);
+        const sc = clamp(lerp(PF.scaleShow, PF.scaleOut, out), .8, 1.2);
         const tx = PF.tiltX + out * PF.outTilt;
         const tz = PF.tiltZ - out * PF.outTiltZ;
         const spin = PF.spin0 + PF.spinTurns * Math.PI * 2 *
@@ -4579,7 +4605,7 @@
             ' scale(' + sc.toFixed(3) + ')' +
             ' rotateX(' + tx.toFixed(3) + 'rad) rotateZ(' + tz.toFixed(3) + 'rad)' +
             ' rotateY(' + a.toFixed(3) + 'rad) translateZ(' + R.toFixed(1) + 'px)';
-          c.el.style.opacity = (0.35 + 0.65 * clamp(Math.cos(a) * .5 + .5, 0, 1)).toFixed(3);
+          c.el.style.opacity = '1';
         }
       }
 
@@ -4670,6 +4696,7 @@
 
         const f1 = gui.addFolder('圓環');
         f1.add(PF, 'cards', 4, 30, 1).name('卡片數量').onFinishChange(hard);
+        f1.add(PF, 'fov', 30, 80, 1).name('相機視角 FOV').onChange(hard);
         f1.add(PF, 'radiusFrac', .2, 1.6, .01).name('圓環半徑（半寬倍數）').onChange(hard);
         f1.add(PF, 'ringDist', 6, 60, .5).name('圓環深度').onChange(hard);
         f1.add(PF, 'tiltX', -1.4, 1.4, .01).name('軸心傾斜 X').onChange(soft);
@@ -4678,7 +4705,9 @@
         f1.add(PF, 'spin0', -Math.PI, Math.PI, .01).name('起始相位').onChange(soft);
 
         const f2 = gui.addFolder('卡片');
-        f2.add(PF, 'cardScale', .3, 3, .01).name('卡片尺寸').onChange(hard);
+        f2.add(PF, 'cardHFrac', .1, .8, .01).name('卡片高（半徑倍數）').onChange(hard);
+        f2.add(PF, 'cardScale', .3, 3, .01).name('卡片尺寸倍率').onChange(hard);
+        f2.add(PF, 'shade', 0, .6, .01).name('柔影濃度').onChange(soft);
         f2.add(PF, 'gap', .5, 1.4, .01).name('卡片間距').onChange(hard);
         f2.add(PF, 'bend', 0, 2, .01).name('沿圓柱彎曲度').onChange(soft);
         f2.add(PF, 'splitZ', -20, 20, .1).name('前後分界位置').onChange(soft);
@@ -4688,8 +4717,8 @@
         f3.add(PF, 'riseFrac', 0, 3, .01).name('升起前藏多低').onChange(soft);
         f3.add(PF, 'outX', -2, 3, .01).name('離場往右').onChange(soft);
         f3.add(PF, 'outY', -2, 3, .01).name('離場往上').onChange(soft);
-        f3.add(PF, 'outScale', .05, 1.5, .01).name('離場縮到').onChange(soft);
-        f3.add(PF, 'outZ', 0, 80, .5).name('離場往後退').onChange(soft);
+        f3.add(PF, 'scaleShow', .8, 1.2, .01).name('主秀尺寸').onChange(soft);
+        f3.add(PF, 'scaleOut', .8, 1.2, .01).name('離場尺寸').onChange(soft);
         f3.add(PF, 'outTilt', -1.5, 2, .01).name('離場軸心倒向').onChange(soft);
         f3.add(PF, 'outTiltZ', -1.5, 1.5, .01).name('離場 Z 軸再轉').onChange(soft);
 

@@ -1,0 +1,23 @@
+{
+  "note": "04 活動成果的圓環參數快照（v3）。改壞了就把 PF / PF_T 的值貼回 index.html 對應的物件。",
+  "saved": "2026-09-16 · 依 trionn 截圖重做鏡頭與路線之前",
+  "PF": {
+    "cards": 10, "fov": 56, "radiusFrac": 0.70, "ringDist": 20,
+    "tiltX": 0.15, "tiltZ": -0.245,
+    "spinTurns": 0.78, "spin0": -0.55,
+    "cardScale": 1.0, "gapPct": 0.03,
+    "bend": 1, "splitZ": 0, "splitSoft": 0.14,
+    "riseFrac": 3.20, "outX": 3.20, "outY": 2.40,
+    "scaleShow": 1.00, "scaleOut": 1.12, "shade": 0.10,
+    "outTilt": 1.05, "outTiltZ": 0.18,
+    "gridDist": 26, "gridScale": 1.0, "gridTilt": 0.05
+  },
+  "PF_T": {
+    "titleInA": 0.00, "titleInB": 0.25,
+    "ringInA": 0.20, "ringInB": 0.35,
+    "showA": 0.35, "showB": 0.60,
+    "ringOutA": 0.55, "ringOutB": 0.84,
+    "titleOutA": 0.60, "titleOutB": 0.80, "titleOutLag": 0.04,
+    "morphA": 0.85, "morphB": 1.00
+  }
+}

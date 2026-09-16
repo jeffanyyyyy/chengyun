@@ -1381,15 +1381,17 @@
   .pf-gl {
     position: absolute;
     inset: 0;
-    z-index: 2;
     width: 100%;
     height: 100%;
     display: block;
-    /* 拼貼期要點得到卡片，所以畫布收事件；緞帶期由 JS 讓它放行 */
+    /* 拼貼期要點得到卡片，所以畫布收事件；圓環期由 JS 讓它放行 */
     pointer-events: none;
   }
 
-  .pf-gl.is-live { pointer-events: auto; }
+  /* 三明治：後半圈壓在大標下面，前半圈疊在大標上面 */
+  .pf-gl-back { z-index: 1; }
+  .pf-gl-front { z-index: 3; }
+  .pf-gl-front.is-live { pointer-events: auto; }
 
   /* ── 第二段的 CSS 3D 退路 ─────────────
      沒有 WebGL 時用 CSS transform 把卡片排在圓柱面上。
@@ -1397,20 +1399,14 @@
   .pf-band-css {
     position: absolute;
     inset: 0;
-    z-index: 2;
     perspective: 1500px;
     perspective-origin: 50% 50%;
     pointer-events: none;
     will-change: opacity;
   }
 
-  .pf-band-inner {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform-style: preserve-3d;
-    will-change: transform;
-  }
+  .pf-band-back { z-index: 1; }
+  .pf-band-front { z-index: 3; }
 
   .pf-bcard {
     position: absolute;
@@ -1426,7 +1422,7 @@
   /* 滑到某一張卡片時，左下角報出它是哪一件 */
   .pf-hover {
     position: absolute;
-    z-index: 5;
+    z-index: 6;
     left: clamp(18px, 5vw, 92px);
     bottom: calc(clamp(52px, 8vh, 80px) + 1.8em);
     margin: 0;
@@ -1447,7 +1443,7 @@
   .pf-head {
     position: absolute;
     inset: 0;
-    z-index: 1;
+    z-index: 2;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -1489,7 +1485,7 @@
   .pf-collage {
     position: absolute;
     inset: 0;
-    z-index: 3;
+    z-index: 4;
     pointer-events: none;
   }
 
@@ -1570,7 +1566,7 @@
   /* 進度：右下角一條細線，讓人知道這一章還有多長 */
   .pf-meter {
     position: absolute;
-    z-index: 4;
+    z-index: 5;
     right: clamp(18px, 5vw, 92px);
     bottom: clamp(52px, 8vh, 80px);
     width: clamp(90px, 12vw, 180px);
@@ -1590,7 +1586,7 @@
 
   .pf-eyebrow {
     position: absolute;
-    z-index: 4;
+    z-index: 5;
     left: clamp(18px, 5vw, 92px);
     bottom: clamp(52px, 8vh, 80px);
     margin: 0;
@@ -1624,7 +1620,7 @@
   @media (prefers-reduced-motion: reduce) {
     .pf-track { height: auto; }
     .pf-stage { position: static; height: auto; overflow: visible; padding: clamp(78px, 12vh, 120px) clamp(18px, 5vw, 92px) clamp(70px, 10vh, 110px); }
-    .pf-gl, .pf-band-css, .pf-hover { display: none; }
+    .pf-gl, .pf-band-css, .pf-hover { display: none !important; }
     .pf-head { position: static; padding: 0; }
     .pf-collage {
       position: static;
@@ -1929,11 +1925,11 @@
     <div class="pf-track" id="pfTrack">
       <div class="pf-stage" id="pfStage">
 
-        <!-- 第二段：弧形卡片帶。WebGL 起不來就換下面那條 CSS 3D 的退路 -->
-        <canvas class="pf-gl" id="pfGL" aria-hidden="true"></canvas>
-        <div class="pf-band-css" id="pfBandCss" hidden aria-hidden="true">
-          <div class="pf-band-inner" id="pfBandInner"></div>
-        </div>
+        <!-- 三明治：後半圈的卡片 → 大標 → 前半圈的卡片。
+             兩張畫布共用同一個場景與同一台相機，每一幀畫兩次，
+             大標才能真的被圓環套住 -->
+        <canvas class="pf-gl pf-gl-back" id="pfGLBack" aria-hidden="true"></canvas>
+        <div class="pf-band-css pf-band-back" id="pfCssBack" hidden aria-hidden="true"></div>
 
         <!-- 第一段：錯開的兩行大標 -->
         <div class="pf-head" id="pfHead">
@@ -1941,6 +1937,9 @@
           <p class="pf-kicker" id="pfKicker" data-i18n="pf.kicker">Six rooms we built, and what it took to build them.</p>
           <h2 class="pf-line pf-line-b" id="pfLineB" data-i18n="pf.l2">MOTION</h2>
         </div>
+
+        <canvas class="pf-gl pf-gl-front" id="pfGLFront" aria-hidden="true"></canvas>
+        <div class="pf-band-css pf-band-front" id="pfCssFront" hidden aria-hidden="true"></div>
 
         <!-- 第三段：散落的拼貼 -->
         <div class="pf-collage" id="pfCollage">
@@ -4040,9 +4039,10 @@
     const pfLineB = document.getElementById('pfLineB');
     const pfKicker = document.getElementById('pfKicker');
     const pfMeter = document.getElementById('pfMeter');
-    const pfCanvas = document.getElementById('pfGL');
-    const pfCssHost = document.getElementById('pfBandCss');
-    const pfCssInner = document.getElementById('pfBandInner');
+    const pfCanvasBack = document.getElementById('pfGLBack');
+    const pfCanvasFront = document.getElementById('pfGLFront');
+    const pfCssBack = document.getElementById('pfCssBack');
+    const pfCssFront = document.getElementById('pfCssFront');
     const pfHover = document.getElementById('pfHover');
     const pfCards = [...document.querySelectorAll('.pf-card')];
 
@@ -4052,39 +4052,42 @@
     ];
 
     /* 三段的區間 */
-    const PF_HEAD = [0, .20];
-    const PF_GRID = [.70, 1];           /* 只有退路的 DOM 拼貼用得到 */
-    const PF_FLOW  = [.17, .56];        /* 卡片沿路徑流過的區間 */
-    const PF_MORPH = [.48, .86];        /* 由路徑補間成拼貼的區間（和路徑重疊一段，接得起來）*/
 
     /* 可調參數。?debug 會開一個 lil-gui 面板接到這裡 */
     const PF = {
       cards: 14,
-      cardH: 1.3,         /* 卡片高（世界單位），寬 = 高 x 1.6 */
-      gap: 1.44,          /* 卡片間距倍率：沿路徑的弧長間隔 = 卡片寬 x 這個值 */
-      faceCam: true,      /* 卡片定格：正面永遠對著鏡頭，不隨路徑切線轉 */
-      bendR: 11,          /* 彎曲半徑：越小彎得越厲害 */
-      bend: 0,            /* 緞帶期的彎曲度（定格時預設為 0，卡片是平的） */
-      bendGrid: 0,        /* 拼貼期的彎曲度 */
-      gridTilt: 0.05,     /* 拼貼期每張卡片的輕微傾角（0 = 完全定格） */
-      gridDist: 26,       /* 拼貼牆離鏡頭多遠（＝相機距離） */
-      gridScale: 1.0      /* 拼貼期的卡片放大倍率（1 = 自動算出來的基準） */
+      radiusFrac: 1.55,   /* 圓環半徑 = 這個倍數 x 圓環深度上的畫面半寬（>1 代表環比畫面大，只看得到一段） */
+      ringDist: 15,       /* 圓環中心離鏡頭多遠 */
+      tiltX: 0.35,        /* 軸心傾斜：前緣偏下、後緣偏上 */
+      tiltZ: -0.30,
+      spinTurns: 0.78,    /* 整段自轉幾圈 */
+      spin0: -0.55,       /* 起始相位 */
+      cardScale: 1.0,     /* 卡片尺寸（高度倍率；寬度由圓周均分決定） */
+      gap: 0.97,          /* 卡片間距倍率，1 = 剛好邊靠邊繞滿一圈 */
+      bend: 1,            /* 卡片沿圓柱面的彎曲度 */
+      splitZ: 0,          /* 前後分界：相對圓環中心的 z 位置 */
+      splitSoft: 0.14,    /* 分界的柔邊（佔半徑的比例），跨界時交叉淡出不閃 */
+      riseFrac: 3.20,     /* 升起前藏在畫面下方多遠（半高倍數） */
+      outX: 0.85,         /* 離場往右多遠（半寬倍數） */
+      outY: 1.25,         /* 離場往上多遠（半高倍數） */
+      outScale: 0.34,     /* 離場縮到多小 */
+      outZ: 26,           /* 離場同時往後退多遠 */
+      outTilt: 0.80,      /* 離場時軸心往側面倒多少（環被壓扁成細弧） */
+      outTiltZ: 0.18,     /* 離場時 Z 軸再轉多少 */
+      gridDist: 26,       /* 拼貼牆離鏡頭多遠 */
+      gridScale: 1.0,
+      gridTilt: 0.05
     };
 
-    /* 卡片流過的那條路徑的控制點。
-       sx / sy 是「在自己那個深度上，畫面半寬（半高）的倍數」——
-       所以 sx = -1 永遠代表畫面左緣，不管那一點有多遠。
-       鏡頭在原點朝 -Z 看，z 越負代表越深。
-       起點在左下的深處，中段幾乎擦過鏡頭，終點回到右上的深處。 */
-    const PF_PATH = [
-      { sx: -1.45, sy: -0.55, z: -26 },
-      { sx: -0.95, sy:  0.14, z: -17 },
-      { sx: -0.42, sy:  0.44, z: -11 },
-      { sx:  0.05, sy:  0.10, z:  -8 },
-      { sx:  0.50, sy: -0.34, z: -11 },
-      { sx:  1.00, sy:  0.06, z: -17 },
-      { sx:  1.50, sy:  0.60, z: -26 }
-    ];
+    /* 各階段的 progress 起訖 */
+    const PF_T = {
+      titleInA: 0.00, titleInB: 0.19,
+      ringInA:  0.24, ringInB:  0.44,
+      showA:    0.35, showB:    0.60,
+      ringOutA: 0.55, ringOutB: 0.85,
+      titleOutA:0.60, titleOutB:0.90,
+      morphA:   0.82, morphB:   0.99
+    };
 
     /* 拼貼的落點：x、y 是視錐半寬半高的倍數，第三個是相對大小 */
     const PF_SPOTS = [
@@ -4095,27 +4098,10 @@
     ];
 
     const pfSpan = (v, a, b) => clamp((v - a) / (b - a), 0, 1);
-    const pfEase = (x) => 1 - Math.pow(1 - x, 3);
-
-    /* 沒有 Three.js 時也要能沿著同一條路徑走，所以自己寫一份
-       Catmull-Rom 取樣（均勻參數就夠了，退路不需要弧長等距） */
-    function pfPathAt(u) {
-      const P = PF_PATH;
-      const n = P.length;
-      const s = clamp(u, 0, 1) * (n - 1);
-      const i = Math.min(Math.floor(s), n - 2);
-      const f = s - i;
-      const p0 = P[Math.max(i - 1, 0)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(i + 2, n - 1)];
-      const cr = (a, b, c, d) => {
-        const t2 = f * f, t3 = t2 * f;
-        return 0.5 * ((2 * b) + (-a + c) * f + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3);
-      };
-      return {
-        sx: cr(p0.sx, p1.sx, p2.sx, p3.sx),
-        sy: cr(p0.sy, p1.sy, p2.sy, p3.sy),
-        z: cr(p0.z, p1.z, p2.z, p3.z)
-      };
-    }
+    const pfEaseOut = (x) => 1 - Math.pow(1 - x, 3);
+    const pfEaseIn = (x) => x * x * x;
+    const pfSmooth = (x) => x * x * (3 - 2 * x);   /* 兩端都緩，中段才是主要行程 */
+    const pfEase = pfEaseOut;
 
     /* 每張卡片固定的小傾角與視差速度：用編號算，重新整理也不會變 */
     function pfTilt(i) { return (i * 37 % 25) / 12 - 1; }   /* -1 ~ 1 */
@@ -4133,24 +4119,15 @@
 
     let pfBand = null;          /* WebGL 版的卡片帶（第二段 + 第三段） */
     let pfCss = null;           /* 沒有 WebGL 時的 CSS 3D 退路（只有第二段） */
-    let pfIntro = 0;
     let pfIntroRaf = 0;
-    let pfLast = 0;
-    let pfHoverIndex = -1;
+    let pfLast = 0;             /* 最後一次算過的 progress */
+    let pfHoverIndex = -1;      /* 滑鼠停在哪一張卡片上 */
 
-    /* 停在 p=0 時大標本來是全透明的，那樣進章節會先看到一片空白。
-       所以進場先跑一次同樣的位移淡入，之後捲動接手 */
+    /* 進到這一章時重畫一次，讓畫面對上目前的捲動位置。
+       大標的進場本身交給 progress（0.00–0.25），不再另外播一次 */
     function pfHeadIntro() {
       cancelAnimationFrame(pfIntroRaf);
-      if (reduce) { pfIntro = 1; pfRender(1); return; }
-      pfIntro = 0;
-      const t0 = performance.now();
-      const step = () => {
-        pfIntro = pfEase(clamp((performance.now() - t0) / 900, 0, 1));
-        pfRender(pfScrub ? pfLast : pfProgress());
-        if (pfIntro < 1) { pfIntroRaf = requestAnimationFrame(step); }
-      };
-      pfIntroRaf = requestAnimationFrame(step);
+      pfIntroRaf = requestAnimationFrame(() => pfRender(reduce ? 1 : (pfScrub ? pfLast : pfProgress())));
     }
 
     function pfShowHover(i) {
@@ -4177,13 +4154,18 @@
         return;
       }
 
-      /* 第一段：兩行大標從相反方向滑進來，卡片帶掃過去之後再淡出 */
-      const inn = Math.max(pfIntro, pfEase(pfSpan(p, PF_HEAD[0], PF_HEAD[1])));
-      const out = 1 - pfSpan(p, .62, .76);
-      pfLineA.style.transform = 'translate3d(' + (-80 * (1 - inn)).toFixed(2) + 'px,0,0)';
-      pfLineB.style.transform = 'translate3d(' + (80 * (1 - inn)).toFixed(2) + 'px,0,0)';
+      /* 第一段：兩行大標從畫面左右外側滑進來，停在錯位定位；
+         離場時各自沿原方向繼續走出去，兩行交錯穿越 */
+      const inn = pfEaseOut(pfSpan(p, PF_T.titleInA, PF_T.titleInB));
+      const gone = pfSmooth(pfSpan(p, PF_T.titleOutA, PF_T.titleOutB));
+      const W = pfHead.clientWidth || innerWidth;
+      const ax = (inn - 1) * W * 1.05 + gone * W * 1.25;
+      const bx = (1 - inn) * W * 1.05 - gone * W * 1.25;
+      pfLineA.style.transform = 'translate3d(' + ax.toFixed(1) + 'px,0,0)';
+      pfLineB.style.transform = 'translate3d(' + bx.toFixed(1) + 'px,0,0)';
       pfKicker.style.transform = 'translate3d(0,' + (20 * (1 - inn)).toFixed(2) + 'px,0)';
-      pfHead.style.opacity = (inn * out).toFixed(3);
+      pfKicker.style.opacity = (inn * (1 - gone)).toFixed(3);
+      pfHead.style.opacity = '1';
 
       if (pfBand) {
         /* 第二段與第三段是同一批卡片，交給它自己補間 */
@@ -4191,7 +4173,7 @@
       } else {
         /* 退路：CSS 3D 的緞帶 + DOM 的拼貼 */
         if (pfCss) { pfCss.set(p); }
-        const g = pfSpan(p, PF_GRID[0], PF_GRID[1]);
+        const g = pfSpan(p, PF_T.morphA, 1);
         pfCards.forEach((el, i) => {
           const sp = parseFloat(el.dataset.speed) || 1;
           const k = pfEase(clamp((g - i * .05) / .42, 0, 1));
@@ -4253,6 +4235,7 @@
         float shade = (1.0 - smoothstep(0.0, uCard.y * 0.14, ds)) * (0.26 + uLift * 0.12) * (1.0 - inside);
 
         vec2 uvCard = (vUv * uPlane - (uPlane - uCard) * 0.5) / uCard;
+        if (!gl_FrontFacing) { uvCard.x = 1.0 - uvCard.x; }
         vec4 tex = texture2D(uMap, clamp(uvCard, 0.0, 1.0));
         /* 遠端不是變透明，是往紙色融——在淺色底上那才像空氣 */
         vec3 col = mix(tex.rgb, uPaper, uFade);
@@ -4260,10 +4243,14 @@
       }
     `;
 
-    /* ── WebGL 版：卡片沿著一條 3D 曲線流動，末段補間成拼貼 ─────
-       關鍵在於「卡片自己沿路徑走」，而不是整個 Group 平移：
-       只有這樣，同一時間畫面上才會同時有近得撐滿半個畫面的卡片，
-       和遠得只剩一小格的卡片——透視感是從深度差來的，不是從位移。 */
+    /* ── WebGL 版：套在大標外面的封閉圓環 ─────────────────────
+       14 張卡片均分在一個圓柱面上，圓心落在大標中心，卡片面朝外、
+       沿圓柱面彎曲。圓環的軸心斜著，像斜套在文字上的呼拉圈。
+
+       三明治：同一個場景、同一台相機，每一幀畫兩次——
+       後半圈畫到 back 畫布（壓在大標下面），前半圈畫到 front 畫布
+       （疊在大標上面）。跨越分界的那一刻卡片正好側面朝鏡頭、
+       面積最小，再加一段交叉淡出，所以不會閃。 */
     function pfMakeBand() {
       if (pfBand || reduce) { return; }
 
@@ -4273,19 +4260,21 @@
         return;
       }
 
-      let renderer;
+      let rBack, rFront;
       try {
-        renderer = new THREE.WebGLRenderer({ canvas: pfCanvas, alpha: true, antialias: true });
+        rBack = new THREE.WebGLRenderer({ canvas: pfCanvasBack, alpha: true, antialias: true });
+        rFront = new THREE.WebGLRenderer({ canvas: pfCanvasFront, alpha: true, antialias: true });
       } catch (err) {
         console.warn('[chengyun] 活動成果：WebGL 建不起來（顯示卡被瀏覽器停用，或硬體加速關閉），' +
           '改用 CSS 3D 退路。原因：', err);
         return;
       }
-      renderer.setClearColor(0x000000, 0);
+      rBack.setClearColor(0x000000, 0);
+      rFront.setClearColor(0x000000, 0);
 
       const scene = new THREE.Scene();
-      /* 鏡頭擺在原點朝 -Z 看，路徑的 z 就直接等於「離鏡頭多遠」 */
-      const camera = new THREE.PerspectiveCamera(38, 1, .1, 500);
+      /* 鏡頭擺在原點朝 -Z 看，深度就直接是「離鏡頭多遠」 */
+      const camera = new THREE.PerspectiveCamera(38, 1, .1, 400);
 
       const paper = new THREE.Color(0xe8e8e6);
       const loader = new THREE.TextureLoader();
@@ -4296,62 +4285,37 @@
 
       let geo = null;
       let cards = [];
-      let curve = null, curveLen = 1;
+      let ringR = 6, cardW = 2, cardH = 1.2;
+      let halfH = 1, halfW = 1;            /* 圓環深度上的視錐半高半寬 */
       let gridH = 1, gridW = 1, gridBase = 3;
       let raf = 0, live = false, dead = false, p = 0;
-      let guide = null;                 /* ?debug 時把路徑畫出來 */
 
-      const vPos = new THREE.Vector3();
-      const vTan = new THREE.Vector3();
-      const vToCam = new THREE.Vector3();
-      const vX = new THREE.Vector3();
-      const vY = new THREE.Vector3();
-      const vZ = new THREE.Vector3();
-      const mBasis = new THREE.Matrix4();
-      const qPath = new THREE.Quaternion();
-      const eul = new THREE.Euler();
+      const AXIS_Y = new THREE.Vector3(0, 1, 0);
+      const qTilt = new THREE.Quaternion();
+      const qSpin = new THREE.Quaternion();
+      const qCard = new THREE.Quaternion();
+      const qGrid = new THREE.Quaternion();
+      const eTilt = new THREE.Euler();
+      const eGrid = new THREE.Euler();
+      const vLocal = new THREE.Vector3();
+      const vGrid = new THREE.Vector3();
       const raycaster = new THREE.Raycaster();
       const ndc = new THREE.Vector2();
-
-      /* 控制點是「畫面比例 + 深度」，這裡換算成世界座標。
-         同一組數字在任何螢幕比例下都指到畫面上的同一個位置 */
-      function buildCurve() {
-        const tanHalf = Math.tan(camera.fov * Math.PI / 360);
-        const pts = PF_PATH.map((q) => new THREE.Vector3(
-          q.sx * tanHalf * camera.aspect * (-q.z),
-          q.sy * tanHalf * (-q.z),
-          q.z
-        ));
-        curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
-        curveLen = Math.max(curve.getLength(), 1);
-        if (guide) { rebuildGuide(); }
-      }
-
-      function rebuildGuide() {
-        if (guide) { scene.remove(guide); guide.geometry.dispose(); guide.material.dispose(); guide = null; }
-        const g = new THREE.BufferGeometry().setFromPoints(curve.getPoints(240));
-        guide = new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0xd2402f, transparent: true, opacity: .85 }));
-        guide.frustumCulled = false;
-        scene.add(guide);
-      }
-
-      function showGuide(on) {
-        if (on && !guide) { rebuildGuide(); }
-        if (guide) { guide.visible = !!on; }
-      }
 
       function build() {
         cards.forEach((c) => { scene.remove(c.mesh); c.mat.dispose(); });
         if (geo) { geo.dispose(); }
         cards = [];
 
-        const cardH = PF.cardH;
-        const cardW = cardH * 1.6;                 /* 16:10 */
-        const planeW = cardW * 1.24;
-        const planeH = cardH * 1.34;
+        const N = PF.cards;
+        /* 圓周均分：卡片寬度由半徑與張數決定，gap = 1 就剛好繞滿一圈 */
+        cardW = (2 * Math.PI * ringR / N) * PF.gap;
+        cardH = (cardW / 1.6) * PF.cardScale;
+        const planeW = cardW * 1.18;
+        const planeH = cardH * 1.3;
         geo = new THREE.PlaneGeometry(planeW, planeH, 40, 1);
 
-        for (let i = 0; i < PF.cards; i++) {
+        for (let i = 0; i < N; i++) {
           const mat = new THREE.ShaderMaterial({
             vertexShader: PF_VERT,
             fragmentShader: PF_FRAG,
@@ -4360,11 +4324,11 @@
             side: THREE.DoubleSide,
             uniforms: {
               uMap: { value: textures[i % textures.length] },
-              uR: { value: PF.bendR },
+              uR: { value: ringR },
               uBend: { value: PF.bend },
               uPlane: { value: new THREE.Vector2(planeW, planeH) },
               uCard: { value: new THREE.Vector2(cardW, cardH) },
-              uRad: { value: cardH * .035 },
+              uRad: { value: cardH * .04 },
               uOpacity: { value: 0 },
               uFade: { value: 0 },
               uLift: { value: 0 },
@@ -4372,109 +4336,115 @@
             }
           });
           const mesh = new THREE.Mesh(geo, mat);
-          mesh.frustumCulled = false;              /* 著色器改過頂點，包圍盒不再準 */
+          mesh.frustumCulled = false;
           mesh.userData.i = i;
           scene.add(mesh);
-
           const spot = PF_SPOTS[i % PF_SPOTS.length];
           cards.push({
             mesh, mat, spot,
+            phi: (i / N) * Math.PI * 2,
             tilt: pfTilt(i), yaw: pfYaw(i), speed: pfSpeed(i),
-            grid: new THREE.Vector3(), qGrid: new THREE.Quaternion()
+            wFront: 1
           });
         }
-        placeGrid();
-      }
-
-      function placeGrid() {
-        cards.forEach((c) => { c.grid.set(c.spot[0] * gridW, c.spot[1] * gridH, -PF.gridDist); });
       }
 
       function resize() {
-        const w = pfCanvas.clientWidth || innerWidth;
-        const h = pfCanvas.clientHeight || innerHeight;
-        renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
-        renderer.setSize(w, h, false);
+        const w = pfCanvasFront.clientWidth || innerWidth;
+        const h = pfCanvasFront.clientHeight || innerHeight;
+        const dpr = Math.min(devicePixelRatio || 1, 2);
+        [rBack, rFront].forEach((r) => { r.setPixelRatio(dpr); r.setSize(w, h, false); });
         camera.aspect = w / h;
         camera.position.set(0, 0, 0);
         camera.updateProjectionMatrix();
         const tanHalf = Math.tan(camera.fov * Math.PI / 360);
+        halfH = tanHalf * PF.ringDist;
+        halfW = halfH * camera.aspect;
+        /* 半徑大於標題半寬，環才「包」得住文字 */
+        ringR = PF.radiusFrac * halfW;
         gridH = tanHalf * PF.gridDist;
         gridW = gridH * camera.aspect;
-        /* 一張卡片該佔畫面多少，由「橫向排得下幾張」回推，
-           直式螢幕的視錐很窄，固定倍率會讓一張卡片吃掉半個畫面 */
         const across = camera.aspect > 1 ? 7 : 3.4;
-        gridBase = (gridW * 2) / (PF.cardH * 1.6 * across);
-        buildCurve();
-        placeGrid();
+        gridBase = (gridW * 2) / ((2 * Math.PI * ringR / PF.cards) * PF.gap / 1.6 * PF.cardScale * 1.6 * across);
+        build();
       }
 
       function draw() {
-        if (dead || !curve) { return; }
+        if (dead) { return; }
 
-        const morph = pfEase(pfSpan(p, PF_MORPH[0], PF_MORPH[1]));
-        const flow = pfSpan(p, PF_FLOW[0], PF_FLOW[1]);
-        const alpha = pfSpan(p, .13, .19);
+        const rise = pfSmooth(pfSpan(p, PF_T.ringInA, PF_T.ringInB));
+        const out = pfSmooth(pfSpan(p, PF_T.ringOutA, PF_T.ringOutB));
+        /* 縮小與後退走得比位移快，離場中段才不會還是一個佔滿畫面的大圈 */
+        const outFast = pfSmooth(pfSpan(p, PF_T.ringOutA,
+          PF_T.ringOutA + (PF_T.ringOutB - PF_T.ringOutA) * .72));
+        const morph = pfEaseOut(pfSpan(p, PF_T.morphA, PF_T.morphB));
+        const alive = Math.max(rise, morph);
 
-        /* 輸送帶：所有卡片的 u 一起往前推，間隔固定＝卡片寬 x gap 的弧長 */
-        const step = (PF.cardH * 1.6 * PF.gap) / curveLen;
-        const head = flow * (1 + step * (cards.length - 1));
+        /* 圓環：從畫面下方升起 → 與標題同心 → 往右上縮小離場 */
+        const ringX = out * PF.outX * halfW;
+        const ringY = (rise - 1) * PF.riseFrac * halfH + out * PF.outY * halfH;
+        const ringZ = -PF.ringDist - outFast * PF.outZ;
+        const ringScale = lerp(1, PF.outScale, outFast);
+        eTilt.set(PF.tiltX + out * PF.outTilt, 0, PF.tiltZ - out * PF.outTiltZ);
+        qTilt.setFromEuler(eTilt);
 
-        /* 拼貼期還在捲的話，每張卡片用自己的速度漂移，才有前後 */
-        const drift = (1 - pfSpan(p, PF_MORPH[0], 1)) * gridH * .55;
+        /* 自轉由捲動推著走 */
+        const spin = PF.spin0 + PF.spinTurns * Math.PI * 2 *
+          pfSpan(p, PF_T.ringInA, PF_T.ringOutB);
+
+        const drift = (1 - pfSpan(p, PF_T.morphA, 1)) * gridH * .55;
+        const soft = Math.max(ringR * PF.splitSoft, 1e-4);
 
         for (let i = 0; i < cards.length; i++) {
           const c = cards[i];
-          const u = head - i * step;
-          const uu = clamp(u, 0, 1);
+          const a = c.phi + spin;
 
-          curve.getPointAt(uu, vPos);
+          /* 圓柱面上的位置，先套上軸心傾斜 —— 這就是「相對圓環中心」的座標 */
+          vLocal.set(Math.sin(a) * ringR, 0, Math.cos(a) * ringR).applyQuaternion(qTilt);
+          const zRel = vLocal.z;
+          vLocal.multiplyScalar(ringScale);
 
-          if (PF.faceCam) {
-            /* 定格：鏡頭在原點朝 -Z，卡片本來就正對鏡頭，不轉就是不轉。
-               沿路徑滑過去時只有位置和遠近在變，圖片本身像貼在玻璃上 */
-            qPath.identity();
-          } else {
-            /* 另一種做法：寬邊沿著切線走，彎曲著色器彎的方向就是路徑方向 */
-            curve.getTangentAt(uu, vTan).normalize();
-            vToCam.copy(vPos).negate().normalize();
-            vX.copy(vTan);
-            vY.crossVectors(vToCam, vX);
-            if (vY.lengthSq() < 1e-6) { vY.set(0, 1, 0); }
-            vY.normalize();
-            vZ.crossVectors(vX, vY).normalize();
-            mBasis.makeBasis(vX, vY, vZ);
-            qPath.setFromRotationMatrix(mBasis);
-          }
+          qSpin.setFromAxisAngle(AXIS_Y, a);
+          qCard.copy(qTilt).multiply(qSpin);
 
-          c.qGrid.setFromEuler(eul.set(
-            c.tilt * PF.gridTilt, c.yaw * PF.gridTilt, c.tilt * PF.gridTilt * .4));
+          vGrid.set(c.spot[0] * gridW, c.spot[1] * gridH + drift * c.speed, -PF.gridDist);
+          eGrid.set(c.tilt * PF.gridTilt, c.yaw * PF.gridTilt, c.tilt * PF.gridTilt * .4);
+          qGrid.setFromEuler(eGrid);
 
           c.mesh.position.set(
-            lerp(vPos.x, c.grid.x, morph),
-            lerp(vPos.y, c.grid.y + drift * c.speed, morph),
-            lerp(vPos.z, c.grid.z, morph)
+            lerp(vLocal.x + ringX, vGrid.x, morph),
+            lerp(vLocal.y + ringY, vGrid.y, morph),
+            lerp(vLocal.z + ringZ, vGrid.z, morph)
           );
-          c.mesh.quaternion.copy(qPath).slerp(c.qGrid, morph);
-
-          const sc = lerp(1, gridBase * PF.gridScale * c.spot[2], morph);
+          c.mesh.quaternion.copy(qCard).slerp(qGrid, morph);
+          const sc = lerp(ringScale, gridBase * PF.gridScale * c.spot[2], morph);
           c.mesh.scale.set(sc, sc, sc);
 
-          c.mat.uniforms.uBend.value = lerp(PF.bend, PF.bendGrid, morph);
-          c.mat.uniforms.uR.value = PF.bendR;
+          c.mat.uniforms.uR.value = ringR;
+          c.mat.uniforms.uBend.value = lerp(PF.bend, 0, morph);
           c.mat.uniforms.uLift.value = morph;
-
-          /* 還沒上路、或已經走完的卡片不畫；兩端各留一小段淡入淡出 */
-          const onPath = pfSpan(u, -.02, .05) * (1 - pfSpan(u, .95, 1.02));
-          const live2 = Math.max(onPath, morph);
-          c.mat.uniforms.uOpacity.value = alpha * live2;
-          /* 遠的往紙色融，近的維持原色——淺色底上這比單純變透明像空氣 */
+          /* 遠端往紙色融，近端維持原色 */
           const dist = -c.mesh.position.z;
-          c.mat.uniforms.uFade.value = lerp(clamp((dist - 22) / 55, 0, .72), 0, morph);
-          c.mesh.visible = alpha * live2 > .004;
+          c.mat.uniforms.uFade.value = lerp(clamp((dist - PF.ringDist) / 26, 0, .6), 0, morph);
+
+          /* 前半圈 / 後半圈。跨界時卡片正好側面朝鏡頭，再加柔邊交叉淡出 */
+          c.wFront = lerp(clamp((zRel - PF.splitZ) / soft * .5 + .5, 0, 1), 1, morph);
+          c.base = alive;
         }
 
-        pfCanvas.classList.toggle('is-live', morph > .6);
+        /* 一幀畫兩次：先後半圈，再前半圈 */
+        drawPass(rBack, false);
+        drawPass(rFront, true);
+        pfCanvasFront.classList.toggle('is-live', morph > .6);
+      }
+
+      function drawPass(renderer, front) {
+        for (let i = 0; i < cards.length; i++) {
+          const c = cards[i];
+          const w = c.base * (front ? c.wFront : 1 - c.wFront);
+          c.mat.uniforms.uOpacity.value = w;
+          c.mesh.visible = w > .004;
+        }
         renderer.render(scene, camera);
       }
 
@@ -4485,8 +4455,8 @@
       }
 
       function pick(ev) {
-        if (dead || !pfCanvas.classList.contains('is-live')) { return -1; }
-        const r = pfCanvas.getBoundingClientRect();
+        if (dead || !pfCanvasFront.classList.contains('is-live')) { return -1; }
+        const r = pfCanvasFront.getBoundingClientRect();
         ndc.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
         ndc.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
         raycaster.setFromCamera(ndc, camera);
@@ -4494,16 +4464,16 @@
         return hit ? hit.object.userData.i : -1;
       }
 
-      pfCanvas.addEventListener('pointermove', (ev) => {
+      pfCanvasFront.addEventListener('pointermove', (ev) => {
         const i = pick(ev);
-        pfCanvas.classList.toggle('hover-target', i >= 0);
+        pfCanvasFront.classList.toggle('hover-target', i >= 0);
         if (i !== pfHoverIndex) { pfShowHover(i); }
       });
-      pfCanvas.addEventListener('pointerleave', () => {
-        pfCanvas.classList.remove('hover-target');
+      pfCanvasFront.addEventListener('pointerleave', () => {
+        pfCanvasFront.classList.remove('hover-target');
         pfShowHover(-1);
       });
-      pfCanvas.addEventListener('click', (ev) => {
+      pfCanvasFront.addEventListener('click', (ev) => {
         const i = pick(ev);
         if (i >= 0) { openDetail('work', i % PF_SHOTS.length, pfCards[i % pfCards.length]); }
       });
@@ -4514,90 +4484,102 @@
         cards.forEach((c) => c.mat.dispose());
         textures.forEach((tex) => tex.dispose());
         if (geo) { geo.dispose(); }
-        if (guide) { guide.geometry.dispose(); guide.material.dispose(); }
-        renderer.dispose();
+        rBack.dispose(); rFront.dispose();
         pfBand = null;
         root.classList.remove('pf-gl-on');
-        pfCanvas.style.display = 'none';
+        pfCanvasBack.style.display = 'none';
+        pfCanvasFront.style.display = 'none';
         console.warn('[chengyun] 活動成果：WebGL 顯示卡內容被回收，改用 CSS 3D 退路。');
         pfMakeCss();
         pfRender(pfLast);
       }
 
-      pfCanvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); dispose(); });
+      [pfCanvasBack, pfCanvasFront].forEach((c) =>
+        c.addEventListener('webglcontextlost', (e) => { e.preventDefault(); dispose(); }));
 
       resize();
-      build();
       addEventListener('resize', resize);
       root.classList.add('pf-gl-on');
 
       pfBand = {
         set(v) { p = v; },
         resize,
-        rebuild() { resize(); build(); },
-        recurve() { buildCurve(); },
-        showGuide,
+        rebuild() { resize(); },
         start() { if (!live && !dead) { live = true; loop(); } },
         stop() { live = false; cancelAnimationFrame(raf); },
         dispose
       };
     }
 
-    /* ── CSS 3D 退路：沒有 WebGL 時的第二段 ─────────────────
-       走同一條路徑，只是用 2D 投影自己算近大遠小：
-       卡片在畫面上的位置直接用控制點的 sx / sy，
-       大小則用「參考深度 ÷ 實際深度」——那就是透視除法本身。 */
+    /* ── CSS 3D 退路：沒有 WebGL 時的圓環 ───────────────────
+       一樣是圓環、一樣分前後兩層，只是卡片本身彎不起來。
+       每張卡片依角度放進 back 或 front 那一層，大標照樣被套住。 */
     function pfMakeCss() {
       if (pfCss || reduce) { return; }
-      pfCssHost.hidden = false;
-      const cards = [];
-      pfCssInner.innerHTML = '';
+      pfCssBack.hidden = false;
+      pfCssFront.hidden = false;
+      pfCssBack.innerHTML = '';
+      pfCssFront.innerHTML = '';
 
+      const cards = [];
       for (let i = 0; i < PF.cards; i++) {
         const el = document.createElement('div');
         el.className = 'pf-bcard';
         el.style.backgroundImage = 'url(' + PF_SHOTS[i % PF_SHOTS.length] + ')';
-        pfCssInner.appendChild(el);
-        cards.push(el);
+        pfCssFront.appendChild(el);
+        cards.push({ el, phi: (i / PF.cards) * Math.PI * 2, side: 1 });
       }
 
-      const REF = 22;                 /* 參考深度：在這個深度上卡片是原寸 */
-      let baseW = 260, baseH = 162, halfW = 700, halfH = 450;
+      let halfW = 700, halfH = 450, R = 420, cw = 190, ch = 120;
 
       function resize() {
-        halfW = (pfCssHost.clientWidth || innerWidth) / 2;
-        halfH = (pfCssHost.clientHeight || innerHeight) / 2;
-        baseW = Math.max(150, halfW * .42);
-        baseH = baseW / 1.6;
+        halfW = (pfCssFront.clientWidth || innerWidth) / 2;
+        halfH = (pfCssFront.clientHeight || innerHeight) / 2;
+        R = PF.radiusFrac * halfW;
+        cw = (2 * Math.PI * R / PF.cards) * PF.gap;
+        ch = (cw / 1.6) * PF.cardScale;
+        cards.forEach((c) => {
+          c.el.style.width = cw + 'px';
+          c.el.style.height = ch + 'px';
+          c.el.style.marginLeft = (-cw / 2) + 'px';
+          c.el.style.marginTop = (-ch / 2) + 'px';
+        });
       }
 
       function set(p) {
-        const flow = pfSpan(p, PF_FLOW[0], PF_FLOW[1]);
-        const alpha = pfSpan(p, .13, .19) * (1 - pfSpan(p, PF_MORPH[0], PF_MORPH[0] + .08));
-        pfCssHost.style.opacity = alpha.toFixed(3);
-        pfCssHost.style.visibility = alpha < .004 ? 'hidden' : 'visible';
+        const rise = pfSmooth(pfSpan(p, PF_T.ringInA, PF_T.ringInB));
+        const out = pfSmooth(pfSpan(p, PF_T.ringOutA, PF_T.ringOutB));
+        const alpha = rise * (1 - pfSpan(p, PF_T.ringOutB - .04, PF_T.ringOutB + .04));
+        [pfCssBack, pfCssFront].forEach((h) => {
+          h.style.opacity = alpha.toFixed(3);
+          h.style.visibility = alpha < .004 ? 'hidden' : 'visible';
+        });
         if (alpha < .004) { return; }
 
-        /* 沿路徑的等距間隔在均勻參數下只是近似，退路夠用 */
-        const step = 0.058 * PF.gap;
-        const head = flow * (1 + step * (cards.length - 1));
+        const ringX = out * PF.outX * halfW;
+        const ringY = (rise - 1) * PF.riseFrac * halfH + out * PF.outY * halfH;
+        const sc = lerp(1, PF.outScale, out);
+        const tx = PF.tiltX + out * PF.outTilt;
+        const tz = PF.tiltZ - out * PF.outTiltZ;
+        const spin = PF.spin0 + PF.spinTurns * Math.PI * 2 *
+          pfSpan(p, PF_T.ringInA, PF_T.ringOutB);
 
         for (let i = 0; i < cards.length; i++) {
-          const u = head - i * step;
-          const el = cards[i];
-          if (u < -.02 || u > 1.02) { el.style.opacity = '0'; continue; }
-          const q = pfPathAt(clamp(u, 0, 1));
-          const k = REF / Math.max(-q.z, 1.2);          /* 透視除法：近大遠小 */
-          const on = pfSpan(u, -.02, .05) * (1 - pfSpan(u, .95, 1.02));
-          el.style.opacity = on.toFixed(3);
-          el.style.width = baseW + 'px';
-          el.style.height = baseH + 'px';
-          el.style.transform =
-            'translate3d(' + (q.sx * halfW - baseW / 2).toFixed(1) + 'px,' +
-            (-q.sy * halfH - baseH / 2).toFixed(1) + 'px,0) scale(' + k.toFixed(3) + ')';
-          el.style.zIndex = String(Math.round(1000 - (-q.z)));
-          /* 遠的往紙色融，和 WebGL 版同一個處理 */
-          el.style.filter = 'opacity(' + (1 - clamp((-q.z - 22) / 55, 0, .7)).toFixed(3) + ')';
+          const c = cards[i];
+          const a = c.phi + spin;
+          /* 只算「在圓環座標裡的深度」，決定放前層還是後層 */
+          const zRel = Math.cos(a) * Math.cos(tx) * R;
+          const side = zRel >= PF.splitZ ? 1 : 0;
+          if (side !== c.side) {
+            c.side = side;
+            (side ? pfCssFront : pfCssBack).appendChild(c.el);
+          }
+          c.el.style.transform =
+            'translate3d(' + (halfW + ringX).toFixed(1) + 'px,' + (halfH + ringY).toFixed(1) + 'px,0)' +
+            ' scale(' + sc.toFixed(3) + ')' +
+            ' rotateX(' + tx.toFixed(3) + 'rad) rotateZ(' + tz.toFixed(3) + 'rad)' +
+            ' rotateY(' + a.toFixed(3) + 'rad) translateZ(' + R.toFixed(1) + 'px)';
+          c.el.style.opacity = (0.35 + 0.65 * clamp(Math.cos(a) * .5 + .5, 0, 1)).toFixed(3);
         }
       }
 
@@ -4676,44 +4658,59 @@
     /* ── ?debug：lil-gui 調校面板 ─────────────────────────── */
     function pfDebugPanel() {
       if (!/(^|[?&])debug\b/.test(location.search) || window.__pfGui) { return; }
-      if (pfBand) { pfBand.showGuide(true); }
       const s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/lil-gui@0.19.2/dist/lil-gui.umd.min.js';
       s.onerror = () => console.warn('[chengyun] lil-gui 載不到，調校面板跳過。');
       s.onload = () => {
         if (!window.lil || !window.lil.GUI) { return; }
-        const gui = new lil.GUI({ title: '活動成果 · 卡片流' });
+        const gui = new lil.GUI({ title: '活動成果 · 圓環' });
         window.__pfGui = gui;
         const hard = () => { if (pfBand) { pfBand.rebuild(); } if (pfCss) { pfCss.rebuild(); } pfRender(pfLast); };
-        const curveChanged = () => { if (pfBand) { pfBand.recurve(); } pfRender(pfLast); };
         const soft = () => pfRender(pfLast);
 
-        const f1 = gui.addFolder('卡片與鏡頭');
+        const f1 = gui.addFolder('圓環');
         f1.add(PF, 'cards', 4, 30, 1).name('卡片數量').onFinishChange(hard);
-        f1.add(PF, 'cardH', .3, 4, .01).name('卡片尺寸').onChange(hard);
-        f1.add(PF, 'gap', .8, 2.4, .01).name('卡片間距').onChange(soft);
-        f1.add(PF, 'faceCam').name('卡片定格（不隨路徑旋轉）').onChange(soft);
-        f1.add(PF, 'bendR', 2, 40, .1).name('圓柱半徑（彎曲）').onChange(soft);
-        f1.add(PF, 'bend', 0, 2, .01).name('彎曲度（緞帶）').onChange(soft);
-        f1.add(PF, 'bendGrid', 0, 1, .01).name('彎曲度（拼貼）').onChange(soft);
-        f1.add(PF, 'gridTilt', 0, .3, .005).name('拼貼傾角（0 = 定格）').onChange(soft);
-        f1.add(PF, 'gridDist', 6, 80, .5).name('相機距離（拼貼牆）').onChange(hard);
-        f1.add(PF, 'gridScale', .3, 3, .02).name('拼貼放大（基準倍數）').onChange(soft);
+        f1.add(PF, 'radiusFrac', .2, 1.6, .01).name('圓環半徑（半寬倍數）').onChange(hard);
+        f1.add(PF, 'ringDist', 6, 60, .5).name('圓環深度').onChange(hard);
+        f1.add(PF, 'tiltX', -1.4, 1.4, .01).name('軸心傾斜 X').onChange(soft);
+        f1.add(PF, 'tiltZ', -1.4, 1.4, .01).name('軸心傾斜 Z').onChange(soft);
+        f1.add(PF, 'spinTurns', -3, 3, .01).name('自轉圈數').onChange(soft);
+        f1.add(PF, 'spin0', -Math.PI, Math.PI, .01).name('起始相位').onChange(soft);
 
-        const fp = gui.addFolder('路徑控制點');
-        fp.add({ show: true }, 'show').name('顯示路徑線').onChange((v) => { if (pfBand) { pfBand.showGuide(v); } });
-        PF_PATH.forEach((q, i) => {
-          const f = fp.addFolder('P' + i + (i === 0 ? '（起點）' : i === PF_PATH.length - 1 ? '（終點）' : ''));
-          f.add(q, 'sx', -3, 3, .01).name('畫面 X（半寬倍數）').onChange(curveChanged);
-          f.add(q, 'sy', -3, 3, .01).name('畫面 Y（半高倍數）').onChange(curveChanged);
-          f.add(q, 'z', -140, -1.5, .1).name('深度 Z（負＝遠）').onChange(curveChanged);
-          if (i !== 3) { f.close(); }
-        });
+        const f2 = gui.addFolder('卡片');
+        f2.add(PF, 'cardScale', .3, 3, .01).name('卡片尺寸').onChange(hard);
+        f2.add(PF, 'gap', .5, 1.4, .01).name('卡片間距').onChange(hard);
+        f2.add(PF, 'bend', 0, 2, .01).name('沿圓柱彎曲度').onChange(soft);
+        f2.add(PF, 'splitZ', -20, 20, .1).name('前後分界位置').onChange(soft);
+        f2.add(PF, 'splitSoft', .01, .8, .01).name('分界柔邊').onChange(soft);
+
+        const f3 = gui.addFolder('升起與離場');
+        f3.add(PF, 'riseFrac', 0, 3, .01).name('升起前藏多低').onChange(soft);
+        f3.add(PF, 'outX', -2, 3, .01).name('離場往右').onChange(soft);
+        f3.add(PF, 'outY', -2, 3, .01).name('離場往上').onChange(soft);
+        f3.add(PF, 'outScale', .05, 1.5, .01).name('離場縮到').onChange(soft);
+        f3.add(PF, 'outZ', 0, 80, .5).name('離場往後退').onChange(soft);
+        f3.add(PF, 'outTilt', -1.5, 2, .01).name('離場軸心倒向').onChange(soft);
+        f3.add(PF, 'outTiltZ', -1.5, 1.5, .01).name('離場 Z 軸再轉').onChange(soft);
+
+        const f4 = gui.addFolder('拼貼牆');
+        f4.add(PF, 'gridDist', 6, 80, .5).name('拼貼牆深度').onChange(hard);
+        f4.add(PF, 'gridScale', .3, 3, .02).name('拼貼放大').onChange(soft);
+        f4.add(PF, 'gridTilt', 0, .3, .005).name('拼貼傾角（0 = 定格）').onChange(soft);
+
+        const f5 = gui.addFolder('時間軸 progress');
+        [['titleInA', '標題進場 起'], ['titleInB', '標題進場 訖'],
+         ['ringInA', '圓環升起 起'], ['ringInB', '圓環升起 訖'],
+         ['showA', '環繞主秀 起'], ['showB', '環繞主秀 訖'],
+         ['ringOutA', '圓環離場 起'], ['ringOutB', '圓環離場 訖'],
+         ['titleOutA', '標題離場 起'], ['titleOutB', '標題離場 訖'],
+         ['morphA', '接拼貼牆 起'], ['morphB', '接拼貼牆 訖']
+        ].forEach(([k, label]) => f5.add(PF_T, k, 0, 1, .01).name(label).onChange(soft));
 
         gui.add({
           dump() {
             console.log('PF =', JSON.stringify(PF, null, 2));
-            console.log('PF_PATH =', JSON.stringify(PF_PATH));
+            console.log('PF_T =', JSON.stringify(PF_T, null, 2));
           }
         }, 'dump').name('把目前數值印到 console');
       };

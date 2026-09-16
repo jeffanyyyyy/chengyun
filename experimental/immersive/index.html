@@ -1183,6 +1183,12 @@
      所以它不需要 autoplay，也不會有行動裝置擋自動播放的問題。 */
   .scene-intro { background: #05060a; touch-action: none; }
 
+  /* 滑動進入由我們接管：不設 touch-action 的話，
+     手指一移動瀏覽器就把手勢收走，只會收到一次 pointercancel。
+     命中的是 .scene-inner，設在外層的 section 上不夠，要設在它身上 */
+  .scene[data-scene="hero"],
+  .scene[data-scene="hero"] .scene-inner { touch-action: none; }
+
   .intro-video {
     position: absolute;
     inset: 0;
@@ -1615,7 +1621,7 @@
     <p class="hero-lede" data-i18n="hero.lede">Founded in 2026, Chengyun Event Studio works across high-end event integration, brand visual design and ESG-minded exhibitions. We run on the discipline of corporate management and a modular, transparent pricing system — costs and specifications broken down scientifically, so every line of the budget can be seen and checked. From concept to delivery, end to end.</p>
 
     <p class="absolute bottom-[14svh] left-1/2 -translate-x-1/2 text-[.6rem] md:text-[.7rem] tracking-[.35em] uppercase text-white breathe whitespace-nowrap hero-hint">
-      <span class="relative inline-block"><span data-i18n="hero.hold">Click &amp; Hold</span><i class="hold-line" id="holdLine"></i></span>
+      <span class="relative inline-block"><span data-i18n="hero.hold">Hold or Scroll</span><i class="hold-line" id="holdLine"></i></span>
     </p>
   </div>
 </section>
@@ -2122,7 +2128,7 @@
        事實性內容（日期、費用、規範）三語一致，只換語言不換條件。 */
     const I18N = {
       en: {
-        'hero.top': 'View All Projects', 'hero.hold': 'Click & Hold',
+        'hero.top': 'View All Projects', 'hero.hold': 'Hold or Scroll',
         'label.intro': '— Entering', 'hint.intro': 'Scroll to run the film · Esc to go back',
         'intro.hint': 'Scroll to continue', 'intro.skip': 'Skip →',
         'teams.b1': 'Theme, schedule and overall pacing; speaks for the organiser.',
@@ -2175,7 +2181,7 @@
         'detail.body': '<p class="scene-body">A curated market built on one rule: silence. No loudspeakers, no PA, no microphones — hand-held signs, boards and purpose-built props carry the exchange instead, so attention stays on the work and the person who made it.</p><dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-7 mt-10"><div><dt class="term">Schedule</dt><dd class="desc">6 sessions on alternate weekends: 3–4 Oct, 17–18 Oct, 31 Oct–1 Nov, 14–15 Nov, 28–29 Nov, 12–13 Dec.</dd></div><div><dt class="term">Place &amp; hours</dt><dd class="desc">Shuangshi Plaza, Banqiao, New Taipei (next to Jiangzicui MRT).<br />Market 15:00–20:30, check-in 14:00–15:00.</dd></div><div><dt class="term">Site setup</dt><dd class="desc">Tent (3 x 1.5 m, shared by two stalls), table 120 x 60 cm, chair, custom brand sign and string lights. Brands bring nothing.</dd></div><div><dt class="term">Interaction</dt><dd class="desc">Silent props including the "let me haggle" sign and a 15-second lot-drawing intro. Join three sessions and receive a custom brand puzzle, redeemable against future stall fees.</dd></div></dl>'
       },
       zh: {
-        'hero.top': '瀏覽所有章節', 'hero.hold': '長按進入',
+        'hero.top': '瀏覽所有章節', 'hero.hold': '長按或捲動進入',
         'label.intro': '— 進場', 'hint.intro': '捲動推進影片 · Esc 返回',
         'intro.hint': '捲動繼續', 'intro.skip': '跳過 →',
         'contact.t0': '澄耘活動工作室 有限公司',
@@ -2331,7 +2337,7 @@
         'detail.body': '<p class="scene-body">以「沉浸式無聲風格聚落」為核心的策展型市集。現場不使用擴音器、喇叭與麥克風，改以手拿牌、看板與大會設計的互動道具溝通，把注意力留給桌上的作品與創作者本人。</p><dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-7 mt-10"><div><dt class="term">檔期</dt><dd class="desc">全期 6 場（隔週六日）：10/03–10/04、10/17–10/18、10/31–11/01、11/14–11/15、11/28–11/29、12/12–12/13</dd></div><div><dt class="term">地點與時間</dt><dd class="desc">新北市板橋區雙十廣場（捷運江子翠站旁）<br />擺攤 15:00 – 20:30，報到 14:00 – 15:00</dd></div><div><dt class="term">場域配置</dt><dd class="desc">阿里山帳（兩攤共用一帳，3x1.5m）、桌 120x60cm、靠背椅、客製品牌招牌與氣氛燈串，品牌不需自備硬體。</dd></div><div><dt class="term">互動機制</dt><dd class="desc">「老闆我要殺價」手舉牌、「籤筒 15 秒介紹」等無聲道具；參展滿 3 場贈客製品牌拼圖，可折抵未來檔期攤租。</dd></div></dl>'
       },
       ja: {
-        'hero.top': 'すべての章を見る', 'hero.hold': '長押しで開く',
+        'hero.top': 'すべての章を見る', 'hero.hold': '長押し／スクロール',
         'label.intro': '— 入場', 'hint.intro': 'スクロールで進む · Esc で戻る',
         'intro.hint': 'スクロールで進む', 'intro.skip': 'スキップ →',
         'contact.t0': '澄耘活動工作室 有限公司',
@@ -2697,6 +2703,8 @@
 
     function startHold() {
       if (current !== 'hero' || busy) { return; }
+      heroPush = 0;
+      clearTimeout(heroDecay);
       holding = true;
       holdStart = performance.now();
       ring.classList.add('is-hold');
@@ -2724,6 +2732,66 @@
     holdZone.addEventListener('pointerdown', (e) => { e.preventDefault(); introPreload(); startHold(); });
     addEventListener('pointerup', () => { if (holding) { endHold(false); } });
     addEventListener('pointercancel', () => { if (holding) { endHold(false); } });
+
+    /* ── 捲動／滑動進入 ──
+       和長按共用同一條進度線：捲多少、線就走多少，走滿就進場。
+       停手沒走滿會自己退回去，所以誤觸不會把人帶走。 */
+    const HERO_SPAN = 620;                             /* 要捲多少 px 才走滿 */
+    const heroScene = scenes.get('hero');
+    let heroPush = 0;
+    let heroDecay = 0;
+
+    function heroAdd(dy) {
+      if (current !== 'hero' || busy || holding) { return; }
+      heroPush = clamp(heroPush + dy, 0, HERO_SPAN);
+      setProgress(heroPush / HERO_SPAN);
+      if (heroPush >= HERO_SPAN) {
+        heroPush = 0;
+        introPreload();
+        release();
+        return;
+      }
+      /* 停手 320ms 後往回收 */
+      clearTimeout(heroDecay);
+      heroDecay = setTimeout(() => {
+        const back = setInterval(() => {
+          heroPush = Math.max(0, heroPush - HERO_SPAN * .07);
+          setProgress(heroPush / HERO_SPAN);
+          if (heroPush <= 0) { clearInterval(back); }
+        }, 16);
+      }, 320);
+    }
+
+    heroScene.addEventListener('wheel', (e) => {
+      if (current !== 'hero') { return; }
+      e.preventDefault();
+      introPreload();
+      heroAdd(e.deltaY);
+    }, { passive: false });
+
+    /* 觸控：往上滑＝前進。位移超過門檻就不算長按，改當成滑動 */
+    const heroSwipe = { on: false, id: null, y: 0, moved: 0 };
+    heroScene.addEventListener('pointerdown', (e) => {
+      heroSwipe.on = true;
+      heroSwipe.y = e.clientY;
+      heroSwipe.moved = 0;
+      heroSwipe.id = e.pointerId;
+      /* 一定要捕獲指標：不捕獲的話，手指一移動就會收到 pointercancel，
+         touch-action 設在祖先上擋不住 */
+      try { heroScene.setPointerCapture(e.pointerId); } catch (err) { /* 不支援就算了 */ }
+    });
+    heroScene.addEventListener('pointermove', (e) => {
+      if (!heroSwipe.on || e.pointerId !== heroSwipe.id) { return; }
+      const dy = heroSwipe.y - e.clientY;
+      heroSwipe.y = e.clientY;
+      heroSwipe.moved += Math.abs(dy);
+      if (heroSwipe.moved < 14) { return; }
+      if (holding) { endHold(false); }                 /* 手指開始移動，那不是長按 */
+      heroAdd(dy * 1.5);
+    });
+    const heroSwipeEnd = () => { heroSwipe.on = false; };
+    addEventListener('pointerup', heroSwipeEnd);
+    addEventListener('pointercancel', heroSwipeEnd);
 
     /* 鍵盤同樣能展開：長按對鍵盤與輔助技術並不友善，按下即視同完成 */
     holdZone.addEventListener('keydown', (e) => {

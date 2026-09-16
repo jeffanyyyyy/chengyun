@@ -1564,11 +1564,275 @@
     50%      { opacity: 1; }
   }
 
+
+  /* ── 05 客戶故事：Trionn 式的見證版型 ────
+     象牙白的紙、左側次要導覽、右側大字引言與現場劇照。
+     背景壓著澄耘的英文，當作這一頁的地。
+     頁首頁尾與游標都是 mix-blend-difference，白底會自己翻成黑字。 */
+  .scene[data-scene="stories"] .scene-inner {
+    display: block;
+    padding: 0;
+    background: var(--ivory);
+    color: var(--ink);
+    text-align: left;
+    --cs-mute: rgba(20, 19, 15, .45);
+    --cs-faint: rgba(20, 19, 15, .26);
+    --cs-line: rgba(20, 19, 15, .16);
+  }
+
+  .cs-ghost-clip {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .cs-ghost {
+    position: absolute;
+    left: 50%; bottom: -4.5vh;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: clamp(56px, 15.6vw, 268px);
+    font-weight: 500;
+    letter-spacing: -.04em;
+    line-height: .8;
+    color: rgba(20, 19, 15, .05);
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .cs-ghost small {
+    order: -1;
+    font-size: .085em;
+    font-weight: 400;
+    letter-spacing: .42em;
+    color: rgba(20, 19, 15, .075);
+    margin-bottom: .3em;
+  }
+
+  /* 三列兩欄：標題 / 內容 / 頁腳，次要導覽 / 主視覺 */
+  /* box-sizing 自己寫死：Tailwind 的 preflight 載不到時，
+     content-box 會讓 min-height 再加上內距，整塊多出一段捲動 */
+  .cs, .cs *, .cs-ghost, .cs-ghost * { box-sizing: border-box; }
+
+  .cs {
+    position: relative;
+    z-index: 1;
+    min-height: 100svh;
+    padding: clamp(60px, 9vh, 104px) clamp(20px, 5vw, 92px) clamp(52px, 8vh, 80px);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: minmax(150px, 20%) 1fr;
+    column-gap: clamp(24px, 5vw, 96px);
+    row-gap: clamp(18px, 3vh, 40px);
+  }
+
+  .cs-head {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+  }
+
+  .cs-title {
+    margin: 0;
+    font-size: clamp(40px, 8.2vw, 126px);
+    font-weight: 500;
+    letter-spacing: -.045em;
+    line-height: .86;
+    /* 參考畫面的標題不是純黑，上淺下深，像有厚度 */
+    background: linear-gradient(175deg, #9a968c 0%, #2e2d28 78%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* 日文標題有十一個全形字，用英文的字級會撞到副標並且換行 */
+  :root[lang="ja"] .cs-title { font-size: clamp(26px, 4.6vw, 70px); letter-spacing: -.02em; }
+
+  .cs-sub {
+    margin: .7em 0 0;
+    max-width: 24ch;
+    font-size: clamp(11px, 1.02vw, 13px);
+    line-height: 1.62;
+    color: var(--cs-mute);
+    flex: 0 0 auto;
+  }
+
+  /* 左欄：大寫、寬字距，滑過去是顏色與位移一起走 */
+  .cs-nav {
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(9px, 1.5vh, 15px);
+    align-items: flex-start;
+  }
+
+  .cs-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .7em;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--cs-faint);
+    font: inherit;
+    font-size: clamp(9.5px, .78vw, 11px);
+    font-weight: 400;
+    letter-spacing: .175em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: color .5s var(--ease), transform .5s var(--ease);
+  }
+
+  .cs-link .arw {
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity .5s var(--ease), transform .5s var(--ease);
+  }
+
+  .cs-link:hover { color: rgba(20, 19, 15, .8); transform: translateX(7px); }
+  .cs-link.is-on { color: var(--ink); transform: translateX(7px); }
+  .cs-link.is-on .arw { opacity: 1; transform: translateX(0); }
+
+  /* 右欄：引言、劇照、署名 */
+  .cs-body {
+    align-self: center;
+    max-width: min(48ch, 48vw);
+    margin-left: clamp(0px, 5.5vw, 104px);
+  }
+
+  .cs-quote {
+    margin: 0;
+    font-size: clamp(17px, 2.02vw, 29px);
+    font-weight: 300;
+    line-height: 1.44;
+    letter-spacing: -.012em;
+    color: rgba(20, 19, 15, .88);
+  }
+
+  .cs-by {
+    margin-top: clamp(22px, 3.4vh, 42px);
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 1.4vw, 20px);
+  }
+
+  /* 參考畫面是小方頭像；這裡放的是活動現場，所以裁成寬一點的劇照 */
+  .cs-shot {
+    flex: 0 0 auto;
+    width: clamp(88px, 11.5vw, 168px);
+    aspect-ratio: 3 / 2;
+    background: rgba(20, 19, 15, .08) center / cover no-repeat;
+    filter: saturate(.92);
+  }
+
+  .cs-name { font-size: clamp(12px, 1.02vw, 14px); line-height: 1.5; }
+  .cs-role { font-size: clamp(10.5px, .88vw, 12px); color: var(--cs-mute); line-height: 1.5; }
+
+  /* 客戶說的話要客戶自己說，這一行在收到見證之前都留著 */
+  .cs-pending {
+    margin-top: 1.1em;
+    font-size: 9.5px;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+    color: var(--cs-faint);
+  }
+
+  /* 換一則的時候整塊往上提一點再回來，不是硬切 */
+  .cs-fade { transition: opacity .34s var(--ease), transform .34s var(--ease); }
+  .cs-body.is-out .cs-fade { opacity: 0; transform: translateY(-10px); }
+
+  .cs-foot { grid-column: 1 / -1; display: flex; align-items: flex-end; }
+  .cs-arrows { display: flex; gap: 10px; flex: 0 0 auto; }
+
+  .cs-arrow {
+    width: clamp(46px, 4vw, 62px);
+    height: clamp(30px, 2.6vw, 38px);
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--cs-line);
+    background: none;
+    color: var(--cs-mute);
+    transition: color .45s var(--ease), border-color .45s var(--ease), background-color .45s var(--ease);
+  }
+
+  .cs-arrow svg { width: 15px; height: 15px; }
+  .cs-arrow:hover { color: var(--ink); border-color: var(--ink); background: rgba(20, 19, 15, .04); }
+
+  .cs-cta { flex: 1 1 auto; display: flex; justify-content: center; }
+
+  .cs-cta a {
+    display: inline-flex;
+    align-items: center;
+    gap: 3.4em;
+    padding-bottom: .7em;
+    border-bottom: 1px solid var(--cs-line);
+    font-size: clamp(9.5px, .78vw, 11px);
+    letter-spacing: .215em;
+    text-transform: uppercase;
+    color: rgba(20, 19, 15, .78);
+    text-decoration: none;
+    transition: color .45s var(--ease), border-color .45s var(--ease);
+  }
+
+  .cs-cta a:hover { color: var(--ink); border-color: var(--ink); }
+  .cs-cta i { font-style: normal; transition: transform .45s var(--ease); }
+  .cs-cta a:hover i { transform: translateX(6px); }
+
+  .cs-count {
+    flex: 0 0 auto;
+    align-self: flex-end;
+    padding-bottom: .2em;
+    font-size: clamp(9.5px, .78vw, 11px);
+    letter-spacing: .17em;
+    color: var(--cs-faint);
+  }
+
+  .cs-count b { font-weight: 400; color: rgba(20, 19, 15, .78); }
+
+  /* 進場：由下往上依序淡入，delay 由 --d 決定，
+     觸發交給 IntersectionObserver，進到這一章才開始數 */
+  .cs [data-cs-reveal] {
+    opacity: 0;
+    transform: translateY(26px);
+    transition: opacity .95s var(--ease), transform .95s var(--ease);
+    transition-delay: var(--d, 0s);
+  }
+
+  .cs [data-cs-reveal].is-in { opacity: 1; transform: none; }
+
+  @media (max-width: 860px) {
+    .cs {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto 1fr auto;
+      row-gap: clamp(14px, 2.4vh, 26px);
+      padding-top: clamp(64px, 11vh, 96px);
+      padding-bottom: clamp(60px, 10vh, 92px);
+    }
+    .cs-head { flex-direction: column; gap: 14px; }
+    .cs-sub { margin-top: 0; max-width: 34ch; }
+    .cs-nav { gap: clamp(7px, 1.2vh, 12px); align-self: start; }
+    .cs-link:hover, .cs-link.is-on { transform: none; }
+    .cs-link .arw { display: none; }
+    .cs-body { margin-left: 0; max-width: none; align-self: center; }
+    .cs-foot { flex-wrap: wrap; gap: 18px; align-items: center; }
+    .cs-cta { justify-content: flex-start; flex: 1 1 100%; order: 3; }
+    .cs-ghost { font-size: 27vw; bottom: -7vh; }
+    .cs-ghost small { display: none; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .grain, .breathe { animation: none; }
     .scene, .detail { transition-duration: .2s; }
     .stage, .bloom, .hero-top, .hero-lede, .hero-hint { transition: none; filter: none; }
     .scene.is-active .stagger > * { animation: none; }
+    .cs [data-cs-reveal] { opacity: 1; transform: none; transition: none; }
+    .cs-fade, .cs-link, .cs-arrow, .cs-cta a, .cs-cta i { transition: none; }
   }
 </style>
 </head>
@@ -1650,11 +1914,14 @@
     <a class="menu-row hover-target" href="#portfolio" data-go="portfolio">
       <span class="idx">04</span><span class="label" data-i18n="menu.portfolio">Portfolio</span>
     </a>
+    <a class="menu-row hover-target" href="#stories" data-go="stories">
+      <span class="idx">05</span><span class="label" data-i18n="menu.stories">Client Stories</span>
+    </a>
     <a class="menu-row hover-target" href="#faq" data-go="faq">
-      <span class="idx">05</span><span class="label" data-i18n="menu.faq">Q&amp;A</span>
+      <span class="idx">06</span><span class="label" data-i18n="menu.faq">Q&amp;A</span>
     </a>
     <a class="menu-row hover-target" href="#contact" data-go="contact">
-      <span class="idx">06</span><span class="label" data-i18n="menu.contact">Contact Us</span>
+      <span class="idx">07</span><span class="label" data-i18n="menu.contact">Contact Us</span>
     </a>
   </nav>
 </div>
@@ -1896,10 +2163,57 @@
   </div>
 </section>
 
+<!-- ── 05 Client Stories：Trionn 式客戶故事 ─── -->
+<section class="scene" data-scene="stories" aria-hidden="true">
+  <div class="scene-inner">
+
+    <div class="cs-ghost-clip" aria-hidden="true">
+      <div class="cs-ghost"><small>EVENT STUDIO</small>CHENGYUN</div>
+    </div>
+
+    <div class="cs">
+      <header class="cs-head">
+        <h2 class="cs-title" data-cs-reveal style="--d:.05s" data-i18n="stories.title">Client stories</h2>
+        <p class="cs-sub" data-cs-reveal style="--d:.18s" data-i18n="stories.sub">Great work is built through partnership. Here is what we have built, and who we built it with.</p>
+      </header>
+
+      <!-- 左：次要導覽，點名稱就換一則 -->
+      <nav class="cs-nav" id="csNav" aria-label="Client stories"></nav>
+
+      <!-- 右：引言、劇照、署名 -->
+      <div class="cs-body" id="csBody" data-cs-reveal style="--d:.42s">
+        <blockquote class="cs-quote cs-fade" id="csQuote"></blockquote>
+        <div class="cs-by cs-fade">
+          <div class="cs-shot" id="csShot" role="img" aria-label=""></div>
+          <div>
+            <div class="cs-name" id="csName"></div>
+            <div class="cs-role" id="csRole"></div>
+          </div>
+        </div>
+        <p class="cs-pending cs-fade" id="csPending"></p>
+      </div>
+
+      <footer class="cs-foot" data-cs-reveal style="--d:.56s">
+        <div class="cs-arrows">
+          <button class="cs-arrow hover-target" type="button" id="csPrev" aria-label="Previous story">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="cs-arrow hover-target" type="button" id="csNext" aria-label="Next story">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="cs-cta"><a class="hover-target" href="#contact" id="csCta"><span data-i18n="stories.cta">Become a client</span><i>&#8594;</i></a></div>
+        <div class="cs-count"><b id="csNum">01</b> / <span id="csTotal">05</span></div>
+      </footer>
+    </div>
+
+  </div>
+</section>
+
 <section class="scene" data-scene="faq" aria-hidden="true">
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-3xl text-left">
-      <span class="eyebrow" data-i18n="faq.eyebrow">05 — Q&amp;A</span>
+      <span class="eyebrow" data-i18n="faq.eyebrow">06 — Q&amp;A</span>
       <h2 class="scene-title" data-i18n="faq.title">The questions we are asked most.</h2>
 
       <div class="mt-12">
@@ -1985,7 +2299,7 @@
 <section class="scene" data-scene="contact" aria-hidden="true">
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-5xl text-left">
-      <span class="eyebrow" data-i18n="contact.eyebrow">06 — Contact Us</span>
+      <span class="eyebrow" data-i18n="contact.eyebrow">07 — Contact Us</span>
       <h2 class="scene-title" data-i18n-html="contact.title">Ready to set up a stall<br />in the quiet?</h2>
 
       <div class="contact-split">
@@ -2171,14 +2485,33 @@
         'ui.back': '← Index', 'ui.close': 'Close',
         'label.hero': 'Index', 'label.menu': 'Menu', 'label.about': '01 — About Us',
         'label.services': '02 — Services', 'label.teams': '03 — Teams',
-        'label.portfolio': '04 — Portfolio', 'label.faq': '05 — Q&A', 'label.contact': '06 — Contact Us',
+        'label.portfolio': '04 — Portfolio', 'label.stories': '05 — Client Stories',
+        'label.faq': '06 — Q&A', 'label.contact': '07 — Contact Us',
         'hint.hero': 'Chengyun Event Studio — Silent Market', 'hint.menu': 'Choose a chapter',
         'hint.portfolio': 'Click the event to expand', 'hint.faq': 'Click a question to expand',
+        'hint.stories': 'Pick a story, or use the arrows',
         'hint.default': 'Esc to go back',
         'menu.about': 'About Us',
         'menu.services': 'Services',
         'menu.teams': 'Teams',
+        'stories.title': 'Client stories',
+        'stories.sub': 'Great work is built through partnership. Here is what we have built, and who we built it with.',
+        'stories.cta': 'Become a client',
+        'stories.pending': 'Client testimonial — to be provided',
+        'st.n1': 'Year-end gala', 'st.n2': 'Welcome act', 'st.n3': 'Awards stage',
+        'st.n4': 'Brand film', 'st.n5': 'Founder interview',
+        'st.q1': 'A black-and-gold backdrop wall, geometric side panels, a sequin column and gilded florals turn a hotel lobby into an entrance sequence — so the first thing a guest sees is already the brand.',
+        'st.q2': 'A five-piece African drum troupe met guests at the door and carried the room from the lift lobby into the hall. The act at the door is cast, rehearsed and cued the same way the stage inside is.',
+        'st.q3': 'An LED main stage, a host\u2019s route across it, and an awards run-down timed to the minute. Trophy, microphone, cue — the three things that have to arrive in the right hand at the right second.',
+        'st.q4': 'A studio day for a brand film: lectern build, lighting set, a shotgun mic on the camera, and direction given from behind the monitor rather than shouted from the back of the room.',
+        'st.q5': 'A two-camera founder interview against a full-height window — daylight as the key, a script loose enough to let the answer wander, and a second angle so the cut has somewhere to go.',
+        'st.m1': '2025 Year-End Thanksgiving Gala', 'st.m2': 'Welcome performance', 'st.m3': 'Awards ceremony',
+        'st.m4': 'Brand film production', 'st.m5': 'Founder interview',
+        'st.r1': 'GREAT HONOR \u00d7 JYUAN.AN \u00b7 2025', 'st.r2': 'GREAT HONOR \u00d7 JYUAN.AN \u00b7 2025',
+        'st.r3': 'GREAT HONOR \u00d7 JYUAN.AN \u00b7 2025',
+        'st.r4': 'Client to be confirmed', 'st.r5': 'Client to be confirmed',
         'menu.portfolio': 'Portfolio',
+        'menu.stories': 'Client Stories',
         'menu.faq': 'Q&A',
         'menu.contact': 'Contact Us',
         'detail.meta': 'Curation · Brand Selection · Production',
@@ -2212,9 +2545,11 @@
         'ui.back': '← 首頁', 'ui.close': '關閉',
         'label.hero': '首頁', 'label.menu': '選單', 'label.about': '01 — 關於我們',
         'label.services': '02 — 服務內容', 'label.teams': '03 — 我們的團隊',
-        'label.portfolio': '04 — 活動成果', 'label.faq': '05 — 常見問題', 'label.contact': '06 — 聯繫我們',
+        'label.portfolio': '04 — 活動成果', 'label.stories': '05 — 客戶故事',
+        'label.faq': '06 — 常見問題', 'label.contact': '07 — 聯繫我們',
         'hint.hero': '澄耘活動工作室 — 默者文畫 無聲風格聚落', 'hint.menu': '選擇章節',
         'hint.portfolio': '點擊活動可展開細節', 'hint.faq': '點擊問題可展開回答',
+        'hint.stories': '點左側名稱，或用箭頭換一則',
         'hint.default': '按 Esc 返回',
         'hero.lede': '澄耘活動工作室創立於 2026 年，專注高質感活動整合、品牌視覺設計與 ESG 永續會展。我們以企業管理的嚴謹架構為核心，推行「模組化透明報價」，把成本與規格科學化拆解，讓每一筆預算都看得見、算得清。從企劃設計到現場執行，一站到位。',
         'about.eyebrow': '01 — 關於澄耘',
@@ -2231,7 +2566,25 @@
         'menu.about': '關於我們',
         'menu.services': '服務內容',
         'menu.teams': '我們的團隊',
+        'stories.title': '客戶故事',
+        'stories.sub': '好的活動是一起長出來的。這裡是我們做過的事，以及和誰一起做的。',
+        'stories.cta': '成為我們的客戶',
+        'stories.pending': '客戶見證待補',
+        'st.n1': '年終晚會', 'st.n2': '迎賓演出', 'st.n3': '頒獎舞台',
+        'st.n4': '品牌影片', 'st.n5': '人物專訪',
+        'st.q1': '黑金主視覺背板、兩側幾何立牌、亮片柱與金色花藝，把飯店大廳圍成一段入場序列——賓客第一眼看見的，已經是品牌本身。',
+        'st.q2': '五人非洲鼓團在門口迎賓，把場子從電梯口一路帶進會場。門口這一段，和場內的舞台一樣要選角、排練、下 cue。',
+        'st.q3': 'LED 主舞台、主持人在台上的動線，以及分鐘為單位的頒獎流程。獎座、麥克風、提示——三件事要在對的那一秒進到對的那隻手。',
+        'st.q4': '品牌形象影片的棚拍日：講台搭設、燈光佈置、機頂槍型麥克風，導演在監看器後面說話，而不是在場邊喊。',
+        'st.q5': '落地窗前的雙機人物專訪——自然光當主燈，腳本留白讓回答可以走遠一點，第二顆機位則讓剪接有地方去。',
+        'st.m1': '2025 年終感恩晚會', 'st.m2': '迎賓演出', 'st.m3': '頒獎典禮',
+        'st.m4': '品牌形象影片拍攝', 'st.m5': '人物專訪拍攝',
+        'st.r1': '山榮資產 GREAT HONOR × 昭安國際 JYUAN.AN · 2025',
+        'st.r2': '山榮資產 GREAT HONOR × 昭安國際 JYUAN.AN · 2025',
+        'st.r3': '山榮資產 GREAT HONOR × 昭安國際 JYUAN.AN · 2025',
+        'st.r4': '客戶待補', 'st.r5': '客戶待補',
         'menu.portfolio': '活動成果',
+        'menu.stories': '客戶故事',
         'menu.faq': '常見問題',
         'menu.contact': '聯繫我們',
         'about.eyebrow': '01 — 關於我們',
@@ -2301,7 +2654,7 @@
         'portfolio.f1': '檔期場次（隔週六日）', 'portfolio.f2': '活動天數',
         'portfolio.f3': '每日開攤，至 20:30', 'portfolio.f4': '首屆舉辦年度',
         'portfolio.note': '更多活動成果陸續更新。',
-        'faq.eyebrow': '05 — 常見問題',
+        'faq.eyebrow': '06 — 常見問題',
         'faq.title': '客戶最常問的問題。',
         'faq.g1': '01　服務與規劃流程',
         'faq.q1': '貴公司承辦活動如何計費？',
@@ -2332,7 +2685,7 @@
         'faq.q12': '一開始提出的兩款設計都不喜歡，可以額外設計一款嗎？',
         'faq.a12': '一開始會針對想法設計兩款視覺供參考；若客戶都不喜歡，從第三款設計開始將會酌收設計費用。',
         'faq.note': '其他問題歡迎透過官方 IG／FB／LINE 來訊詢問。',
-        'contact.eyebrow': '06 — 聯繫我們', 'contact.title': '準備好一起<br />安靜地擺攤了嗎？',
+        'contact.eyebrow': '07 — 聯繫我們', 'contact.title': '準備好一起<br />安靜地擺攤了嗎？',
         'contact.t1': '官方 LINE', 'contact.d1': '報名、審核與行前問題請由官方帳號來訊。',
         'contact.t2': 'Email', 'contact.d2': '合作提案與媒體聯繫。',
         'contact.t3': '聯絡電話',
@@ -2368,9 +2721,11 @@
         'ui.back': '← トップ', 'ui.close': '閉じる',
         'label.hero': 'トップ', 'label.menu': 'メニュー', 'label.about': '01 — 私たちについて',
         'label.services': '02 — サービス内容', 'label.teams': '03 — チーム',
-        'label.portfolio': '04 — 実績', 'label.faq': '05 — よくある質問', 'label.contact': '06 — お問い合わせ',
+        'label.portfolio': '04 — 実績', 'label.stories': '05 — クライアントストーリー',
+        'label.faq': '06 — よくある質問', 'label.contact': '07 — お問い合わせ',
         'hint.hero': '澄耘イベントスタジオ — サイレントマーケット', 'hint.menu': '章を選んでください',
         'hint.portfolio': 'イベントをクリックで詳細', 'hint.faq': '質問をクリックで回答',
+        'hint.stories': '左の名前をクリック、または矢印で切り替え',
         'hint.default': 'Esc で戻る',
         'hero.lede': '澄耘活動工作室は2026年設立。上質なイベント統合、ブランドビジュアルデザイン、ESGを踏まえたMICEを手がけます。企業経営の厳密な枠組みを軸に「モジュール型の透明な見積」を採用し、コストと仕様を科学的に分解。予算の一つひとつが見え、確かめられる状態にします。企画から当日の運営まで、ワンストップで。',
         'about.eyebrow': '01 — 澄耘について',
@@ -2387,7 +2742,25 @@
         'menu.about': '私たちについて',
         'menu.services': 'サービス内容',
         'menu.teams': 'チーム',
+        'stories.title': 'クライアントストーリー',
+        'stories.sub': 'よい仕事は、ともに築くものです。これまでに何をつくり、誰とつくったのかを。',
+        'stories.cta': 'お客様になる',
+        'stories.pending': 'お客様の声は掲載準備中',
+        'st.n1': '年末式典', 'st.n2': 'ウェルカム演出', 'st.n3': '表彰ステージ',
+        'st.n4': 'ブランドムービー', 'st.n5': '創業者インタビュー',
+        'st.q1': '黒と金のメインバックパネル、両脇の幾何学スタンド、スパンコールの柱、金色のフラワー。ホテルのロビーが入場のシークエンスになり、来場者が最初に目にするものがすでにブランドになります。',
+        'st.q2': '5人編成のアフリカン・ドラム隊が入口で出迎え、エレベーターホールから会場まで空気を運びます。入口の演出も、場内の舞台と同じようにキャスティングし、リハーサルし、キューを出します。',
+        'st.q3': 'LEDメインステージ、ステージ上の動線、そして分単位で組んだ表彰の進行。トロフィー、マイク、きっかけ——この三つが、正しい瞬間に正しい手に届くこと。',
+        'st.q4': 'ブランドムービーのスタジオ撮影。演台の製作、ライティング、カメラ上のガンマイク。ディレクションはモニターの後ろから、部屋の隅から叫ぶのではなく。',
+        'st.q5': '大きな窓を背にした2カメラの創業者インタビュー。自然光をキーに、答えが少し遠くまで歩ける程度に緩い台本、そして編集に逃げ場をつくる2台目。',
+        'st.m1': '2025 年末感謝パーティー', 'st.m2': 'ウェルカム演出', 'st.m3': '表彰式',
+        'st.m4': 'ブランドムービー撮影', 'st.m5': '創業者インタビュー撮影',
+        'st.r1': 'GREAT HONOR × JYUAN.AN · 2025',
+        'st.r2': 'GREAT HONOR × JYUAN.AN · 2025',
+        'st.r3': 'GREAT HONOR × JYUAN.AN · 2025',
+        'st.r4': 'クライアント未定', 'st.r5': 'クライアント未定',
         'menu.portfolio': '実績',
+        'menu.stories': 'クライアントストーリー',
         'menu.faq': 'よくある質問',
         'menu.contact': 'お問い合わせ',
         'about.eyebrow': '01 — 私たちについて',
@@ -2457,7 +2830,7 @@
         'portfolio.f1': '開催回（隔週の土日）', 'portfolio.f2': '開催日数',
         'portfolio.f3': '毎日15:00開場、20:30まで', 'portfolio.f4': '初開催の年',
         'portfolio.note': '実績は順次追加します。',
-        'faq.eyebrow': '05 — よくある質問',
+        'faq.eyebrow': '06 — よくある質問',
         'faq.title': 'お客様からよくいただく質問。',
         'faq.g1': '01　サービスと進め方',
         'faq.q1': 'イベントの費用はどのように決まりますか？',
@@ -2488,7 +2861,7 @@
         'faq.q12': '最初の2案がどちらも好みでない場合、追加で作ってもらえますか？',
         'faq.a12': '最初にご要望をもとに2案をご提案します。どちらもご希望に沿わない場合、3案目からはデザイン費を申し受けます。',
         'faq.note': 'その他のご質問は公式 IG／FB／LINE までお気軽にどうぞ。',
-        'contact.eyebrow': '06 — お問い合わせ', 'contact.title': '静けさのなかで、<br />出店してみませんか？',
+        'contact.eyebrow': '07 — お問い合わせ', 'contact.title': '静けさのなかで、<br />出店してみませんか？',
         'contact.t1': '公式 LINE', 'contact.d1': '申し込み・審査・事前のご質問はこちらから。',
         'contact.t2': 'Email', 'contact.d2': '協業のご提案と取材のお問い合わせ。',
         'contact.t3': '電話',
@@ -2513,6 +2886,7 @@
     let lang = 'en';
     let filmSync = () => { /* 膠卷初始化前先當作沒事 */ };
     let obysSync = () => { /* 作品索引初始化前先當作沒事 */ };
+    let storiesSync = () => { /* 客戶故事初始化前先當作沒事 */ };
     const t = (key) => (I18N[lang] && I18N[lang][key]) || I18N.en[key] || '';
 
     function applyLang(next) {
@@ -2540,6 +2914,7 @@
       try { localStorage.setItem('cy-lang', next); } catch (err) { /* 無痕視窗寫不進去，忽略即可 */ }
       filmSync();
       obysSync();
+      storiesSync();
       syncChrome();
       if (detail.classList.contains('is-on')) { renderDetail(); }
       requestAnimationFrame(updateCue);
@@ -3567,7 +3942,7 @@
        章節內容比畫面高時，滾輪先在章節裡捲（交給瀏覽器原生捲動）；
        捲到底再繼續往同方向推，才換到下一章。
        首頁與過場自己處理滾輪，膠卷與作品索引則是走到頭才交棒。 */
-    const ORDER = ['hero', 'intro', 'about', 'services', 'teams', 'portfolio', 'faq', 'contact'];
+    const ORDER = ['hero', 'intro', 'about', 'services', 'teams', 'portfolio', 'stories', 'faq', 'contact'];
     let navEdge = 0;                                   /* 在邊界持續推的累積量 */
     let navLock = 0;                                   /* 換場冷卻，一次手勢只走一章 */
     let navDir = 0;                                    /* 這次換場的方向：往下從頭進、往上從尾巴進 */
@@ -3604,6 +3979,8 @@
         if (!filmAtEdge(dir)) { navEdge = 0; return; }
       } else if (current === 'portfolio') {
         if (!obysAtEdge(dir)) { navEdge = 0; return; }
+      } else if (current === 'stories') {
+        if (!storiesAtEdge(dir)) { navEdge = 0; return; }
       } else if (navRoom(dir) > 2) {
         navEdge = 0;                                 /* 章節裡還捲得動就讓它自己捲 */
         return;
@@ -3638,6 +4015,7 @@
       if (!wasEdge) { return; }
       if (current === 'teams' && !filmAtEdge(dir)) { return; }
       if (current === 'portfolio' && !obysAtEdge(dir)) { return; }
+      if (current === 'stories' && !storiesAtEdge(dir)) { csShow(csIndex + dir); return; }
       if (performance.now() < navLock) { return; }
       sceneStep(dir);
     }, { passive: true });
@@ -4101,6 +4479,133 @@
     /* 邊填邊清掉錯誤提示，不用等到再次送出 */
     form.addEventListener('input', (e) => {
       if (e.target.closest('.field')) { setError(e.target, ''); }
+    });
+
+
+    /* ══ 05 客戶故事 ═══════════════════════════════════════════
+       五則故事共用一個版位，換的是內容不是版面。
+       文字全部走 t()，所以換語言時整塊會自己重畫；
+       照片與檔名寫在這裡，因為它們不隨語言變。 */
+    const CS_SHOTS = [
+      '../../assets/stories/01.jpg',
+      '../../assets/stories/02.jpg',
+      '../../assets/stories/03.jpg',
+      '../../assets/stories/04.jpg',
+      '../../assets/stories/05.jpg'
+    ];
+
+    const csNav = document.getElementById('csNav');
+    const csBody = document.getElementById('csBody');
+    const csQuote = document.getElementById('csQuote');
+    const csShot = document.getElementById('csShot');
+    const csName = document.getElementById('csName');
+    const csRole = document.getElementById('csRole');
+    const csPending = document.getElementById('csPending');
+    const csNum = document.getElementById('csNum');
+
+    let csIndex = 0;
+    let csSwap = 0;
+    let csEdge = 0;
+    let csLock = 0;
+
+    document.getElementById('csTotal').textContent = String(CS_SHOTS.length).padStart(2, '0');
+
+    /* 左欄一則一顆按鈕，進場時依序淡入 */
+    CS_SHOTS.forEach((src, i) => {
+      const b = document.createElement('button');
+      b.className = 'cs-link hover-target';
+      b.type = 'button';
+      b.dataset.i = String(i);
+      b.setAttribute('data-cs-reveal', '');
+      b.style.setProperty('--d', (0.22 + i * 0.055).toFixed(3) + 's');
+      b.innerHTML = '<span class="nm"></span><span class="arw">&#8594;</span>';
+      csNav.appendChild(b);
+    });
+
+    const csLinks = [...csNav.querySelectorAll('.cs-link')];
+
+    /* 目前這一則的文字，跟著語言與選取狀態走 */
+    storiesSync = function () {
+      const n = csIndex + 1;
+      csQuote.textContent = t('st.q' + n);
+      csName.textContent = t('st.m' + n);
+      csRole.textContent = t('st.r' + n);
+      csPending.textContent = t('stories.pending');
+      csShot.setAttribute('aria-label', t('st.m' + n));
+      csNum.textContent = String(n).padStart(2, '0');
+      csLinks.forEach((l, k) => {
+        l.querySelector('.nm').textContent = t('st.n' + (k + 1));
+        l.classList.toggle('is-on', k === csIndex);
+        l.setAttribute('aria-current', k === csIndex ? 'true' : 'false');
+      });
+    };
+
+    function csPaint() {
+      csShot.style.backgroundImage = 'url(' + CS_SHOTS[csIndex] + ')';
+      storiesSync();
+    }
+
+    function csShow(i) {
+      i = (i + CS_SHOTS.length) % CS_SHOTS.length;
+      if (i === csIndex) { return; }
+      if (reduce) { csIndex = i; csPaint(); return; }
+      csIndex = i;
+      /* 先把舊的推走，換完內容再放回來。切換有重量，才不像換投影片 */
+      csBody.classList.add('is-out');
+      clearTimeout(csSwap);
+      csSwap = setTimeout(() => {
+        csPaint();
+        requestAnimationFrame(() => csBody.classList.remove('is-out'));
+      }, 340);
+    }
+
+    /* 走到第一則／最後一則，滾輪與滑動才交棒給章節切換 */
+    function storiesAtEdge(dir) {
+      return dir > 0 ? csIndex >= CS_SHOTS.length - 1 : csIndex <= 0;
+    }
+
+    csPaint();
+
+    csNav.addEventListener('click', (e) => {
+      const b = e.target.closest('.cs-link');
+      if (b) { csShow(+b.dataset.i); }
+    });
+    document.getElementById('csPrev').addEventListener('click', () => csShow(csIndex - 1));
+    document.getElementById('csNext').addEventListener('click', () => csShow(csIndex + 1));
+    document.getElementById('csCta').addEventListener('click', (e) => { e.preventDefault(); goTo('contact'); });
+
+    addEventListener('keydown', (e) => {
+      if (current !== 'stories' || navBusy()) { return; }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { csShow(csIndex - 1); }
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { csShow(csIndex + 1); }
+    });
+
+    /* 滾輪先走完五則，到頭了才讓章節切換接手 */
+    addEventListener('wheel', (e) => {
+      if (current !== 'stories' || navBusy()) { return; }
+      const dir = e.deltaY > 0 ? 1 : -1;
+      if (storiesAtEdge(dir)) { return; }
+      if (performance.now() < csLock) { return; }
+      csEdge += Math.abs(e.deltaY);
+      if (csEdge > 90) { csEdge = 0; csLock = performance.now() + 620; csShow(csIndex + dir); }
+    }, { passive: true });
+
+    /* ══ 進場動畫 ══════════════════════════════════════════════
+       分鏡在非作用中時是 visibility: hidden，幾何上仍然「在畫面裡」，
+       所以不能一開始就觀察——那樣進場動畫在首頁就播完了。
+       進到這一章才開始觀察，離開時歸零，每次進來都重播一次。 */
+    const csIO = new IntersectionObserver((entries) => {
+      entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add('is-in'); } });
+    }, { threshold: 0, rootMargin: '0px 0px -24px 0px' });
+
+    const csReveals = [...document.querySelectorAll('.cs [data-cs-reveal]')];
+
+    addEventListener('cy:scene', (e) => {
+      if (e.detail === 'stories') {
+        csReveals.forEach((el) => { el.classList.remove('is-in'); csIO.observe(el); });
+      } else {
+        csReveals.forEach((el) => csIO.unobserve(el));
+      }
     });
 
     /* ══ 單一 rAF ══════════════════════════════════════════════ */

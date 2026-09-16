@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Client Stories — CHENGYUN</title>
+<meta name="description" content="Client stories from Chengyun Event Studio Co., Ltd. — year-end galas, stage production and brand film." />
+<meta name="theme-color" content="#efeeec" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ══ 色票與節奏 ══════════════════════════════════════════
+     取自參考畫面：暖調淺灰的紙、近黑的墨、兩階灰的次要字。
+     全站只有這五個顏色，克制是這個版型唯一的裝飾。 */
+  :root {
+    --paper: #efeeec;
+    --ink: #17171a;
+    --ink-soft: #33333a;
+    --mute: #8d8b85;
+    --faint: #c7c5bf;
+    --line: rgba(23, 23, 26, .14);
+    --font: 'Inter', 'Noto Sans TC', sans-serif;
+    --ease: cubic-bezier(.22, 1, .36, 1);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font);
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    /* 自訂游標接手，系統游標全程隱藏 */
+    cursor: none;
+  }
+  a, button { cursor: none; }
+  ::selection { background: var(--ink); color: var(--paper); }
+  :focus-visible { outline: 1px solid var(--ink); outline-offset: 6px; }
+
+  /* ── 背景：澄耘的英文 ─────────────────
+     不是裝飾字，是這一頁的地。壓得很淡，
+     只有在大面留白裡才隱約看得出來。 */
+  .cs-ghost-clip {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .cs-ghost {
+    position: absolute;
+    left: 50%; bottom: -4.5vh;
+    transform: translateX(-50%);
+    font-size: clamp(56px, 15.6vw, 268px);
+    font-weight: 500;
+    letter-spacing: -.04em;
+    line-height: .8;
+    color: rgba(23, 23, 26, .038);
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+  }
+  .cs-ghost { display: flex; flex-direction: column; align-items: center; }
+
+  .cs-ghost small {
+    order: -1;
+    font-size: .085em;
+    font-weight: 400;
+    letter-spacing: .42em;
+    color: rgba(23, 23, 26, .06);
+    text-align: center;
+    margin-bottom: .3em;
+  }
+
+  /* ── 版面骨架 ─────────────────────────
+     三列：標題 / 內容 / 頁腳，兩欄：次要導覽 / 主視覺。 */
+  .cs {
+    position: relative;
+    z-index: 1;
+    height: 100svh;
+    padding: clamp(28px, 4.2vh, 56px) clamp(20px, 5vw, 92px) clamp(22px, 3.4vh, 44px);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    grid-template-columns: minmax(150px, 20%) 1fr;
+    column-gap: clamp(24px, 5vw, 96px);
+    row-gap: clamp(18px, 3vh, 40px);
+  }
+
+  /* ── 頂部：大標題與副標 ───────────────── */
+  .cs-head {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+  }
+
+  .cs-title {
+    margin: 0;
+    font-size: clamp(42px, 8.6vw, 132px);
+    font-weight: 500;
+    letter-spacing: -.045em;
+    line-height: .86;
+    /* 參考畫面的標題不是純黑，上淺下深，像有厚度 */
+    background: linear-gradient(175deg, #9b9993 0%, #3d3d42 78%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .cs-sub {
+    margin: .7em 0 0;
+    max-width: 22ch;
+    font-size: clamp(11px, 1.02vw, 13px);
+    line-height: 1.62;
+    color: var(--mute);
+    text-align: left;
+    flex: 0 0 auto;
+  }
+
+  /* ── 左欄：次要導覽 ───────────────────
+     大寫、寬字距、細瘦，滑過去是顏色與位移一起走。 */
+  .cs-nav {
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(9px, 1.5vh, 15px);
+    align-items: flex-start;
+  }
+
+  .cs-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: .7em;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: clamp(9.5px, .78vw, 11px);
+    font-weight: 400;
+    letter-spacing: .175em;
+    text-transform: uppercase;
+    color: var(--faint);
+    white-space: nowrap;
+    transition: color .5s var(--ease), transform .5s var(--ease);
+  }
+  .cs-link .arw {
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity .5s var(--ease), transform .5s var(--ease);
+  }
+  .cs-link:hover { color: var(--ink-soft); transform: translateX(7px); }
+  .cs-link.is-on { color: var(--ink); transform: translateX(7px); }
+  .cs-link.is-on .arw { opacity: 1; transform: translateX(0); }
+
+  /* ── 右欄：引言、照片、署名 ─────────── */
+  .cs-body {
+    align-self: center;
+    max-width: min(48ch, 48vw);
+    margin-left: clamp(0px, 5.5vw, 104px);
+  }
+
+  .cs-quote {
+    margin: 0;
+    font-size: clamp(17px, 2.02vw, 29px);
+    font-weight: 300;
+    line-height: 1.44;
+    letter-spacing: -.012em;
+    color: var(--ink-soft);
+  }
+
+  .cs-by {
+    margin-top: clamp(22px, 3.4vh, 42px);
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 1.4vw, 20px);
+  }
+
+  /* 參考畫面是小方頭像；這裡放的是活動現場，所以裁成寬一點的劇照 */
+  .cs-shot {
+    flex: 0 0 auto;
+    width: clamp(88px, 11.5vw, 168px);
+    aspect-ratio: 3 / 2;
+    background: #dedcd6 center / cover no-repeat;
+    filter: saturate(.92);
+  }
+
+  .cs-name { font-size: clamp(12px, 1.02vw, 14px); color: var(--ink); line-height: 1.5; }
+  .cs-role { font-size: clamp(10.5px, .88vw, 12px); color: var(--mute); line-height: 1.5; }
+  .cs-pending {
+    margin-top: 1.1em;
+    font-size: 9.5px;
+    letter-spacing: .17em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  /* 換一則的時候整塊往上提一點再回來，不是硬切 */
+  .cs-fade { transition: opacity .34s var(--ease), transform .34s var(--ease); }
+  .cs-body.is-out .cs-fade { opacity: 0; transform: translateY(-10px); }
+
+  /* ── 頁腳：左箭頭組、置中的行動呼籲 ─── */
+  .cs-foot { grid-column: 1 / -1; display: flex; align-items: flex-end; }
+
+  .cs-arrows { display: flex; gap: 10px; flex: 0 0 auto; }
+  .cs-arrow {
+    width: clamp(46px, 4vw, 62px);
+    height: clamp(30px, 2.6vw, 38px);
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    background: none;
+    color: var(--mute);
+    transition: color .45s var(--ease), border-color .45s var(--ease), background-color .45s var(--ease);
+  }
+  .cs-arrow svg { width: 15px; height: 15px; }
+  .cs-arrow:hover { color: var(--ink); border-color: var(--ink); background: rgba(23, 23, 26, .04); }
+
+  .cs-cta {
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: center;
+  }
+  .cs-cta a {
+    display: inline-flex;
+    align-items: center;
+    gap: 3.4em;
+    padding-bottom: .7em;
+    border-bottom: 1px solid var(--line);
+    font-size: clamp(9.5px, .78vw, 11px);
+    letter-spacing: .215em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    text-decoration: none;
+    transition: color .45s var(--ease), border-color .45s var(--ease);
+  }
+  .cs-cta a:hover { color: var(--ink); border-color: var(--ink); }
+  .cs-cta i { font-style: normal; transition: transform .45s var(--ease); }
+  .cs-cta a:hover i { transform: translateX(6px); }
+
+  .cs-count {
+    flex: 0 0 auto;
+    font-size: clamp(9.5px, .78vw, 11px);
+    letter-spacing: .17em;
+    color: var(--faint);
+    align-self: flex-end;
+    padding-bottom: .2em;
+  }
+  .cs-count b { font-weight: 400; color: var(--ink-soft); }
+
+  /* ── 進場：由下往上，依序淡入 ─────────
+     用 IntersectionObserver 觸發，delay 由 --d 決定。 */
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(26px);
+    transition: opacity .95s var(--ease), transform .95s var(--ease);
+    transition-delay: var(--d, 0s);
+  }
+  [data-reveal].is-in { opacity: 1; transform: none; }
+
+  /* ── 自訂游標 ─────────────────────────
+     兩層：實心小點跟得緊，外環慢半拍，
+     碰到可點的東西外環放大、小點縮起來。 */
+  .cs-cursor, .cs-ring {
+    position: fixed;
+    top: 0; left: 0;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 99;
+    will-change: transform;
+  }
+  .cs-cursor {
+    width: 6px; height: 6px;
+    margin: -3px 0 0 -3px;
+    background: var(--ink);
+    transition: opacity .3s var(--ease), transform .3s var(--ease);
+  }
+  .cs-ring {
+    width: 34px; height: 34px;
+    margin: -17px 0 0 -17px;
+    border: 1px solid rgba(23, 23, 26, .34);
+    transition: width .4s var(--ease), height .4s var(--ease), margin .4s var(--ease),
+                border-color .4s var(--ease), background-color .4s var(--ease);
+  }
+  body.is-hover .cs-cursor { opacity: 0; transform: scale(.3); }
+  body.is-hover .cs-ring {
+    width: 74px; height: 74px;
+    margin: -37px 0 0 -37px;
+    border-color: rgba(23, 23, 26, .5);
+    background: rgba(23, 23, 26, .04);
+  }
+  body.is-down .cs-ring { width: 26px; height: 26px; margin: -13px 0 0 -13px; }
+
+  /* 觸控裝置沒有游標可藏，還原系統行為 */
+  @media (hover: none), (pointer: coarse) {
+    body, a, button { cursor: auto; }
+    .cs-cursor, .cs-ring { display: none; }
+  }
+
+  /* ── 窄螢幕：兩欄疊成一欄，導覽改成橫向 ─ */
+  @media (max-width: 860px) {
+    .cs {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto 1fr auto;
+      row-gap: clamp(14px, 2.4vh, 26px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: none;
+    }
+    .cs::-webkit-scrollbar { width: 0; }
+    .cs-head { flex-direction: column; gap: 14px; }
+    .cs-sub { margin-top: 0; max-width: 34ch; }
+    .cs-nav { gap: clamp(7px, 1.2vh, 12px); align-self: start; }
+    .cs-link:hover, .cs-link.is-on { transform: none; }
+    .cs-link .arw { display: none; }
+    .cs-body { margin-left: 0; max-width: none; align-self: center; }
+    .cs-foot { flex-wrap: wrap; gap: 18px; align-items: center; }
+    .cs-cta { justify-content: flex-start; flex: 1 1 100%; order: 3; }
+
+    .cs-ghost { font-size: 25vw; bottom: -3vh; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal] { opacity: 1; transform: none; transition: none; }
+    .cs-fade, .cs-link, .cs-arrow, .cs-cta a, .cs-cta i { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cs-ghost-clip" aria-hidden="true"><div class="cs-ghost"><small>EVENT STUDIO</small>CHENGYUN</div></div>
+
+<main class="cs">
+
+  <header class="cs-head">
+    <h1 class="cs-title" data-reveal style="--d:.05s">Client stories</h1>
+    <p class="cs-sub" data-reveal style="--d:.18s">Great work is built through partnership. Here is what we have built, and who we built it with.</p>
+  </header>
+
+  <!-- 左：次要導覽。點名稱就換一則 -->
+  <nav class="cs-nav" id="csNav" aria-label="Client stories"></nav>
+
+  <!-- 右：引言、劇照、署名 -->
+  <div class="cs-body" id="csBody" data-reveal style="--d:.42s">
+    <blockquote class="cs-quote cs-fade" id="csQuote"></blockquote>
+    <div class="cs-by cs-fade">
+      <div class="cs-shot" id="csShot" role="img" aria-label=""></div>
+      <div>
+        <div class="cs-name" id="csName"></div>
+        <div class="cs-role" id="csRole"></div>
+      </div>
+    </div>
+    <p class="cs-pending cs-fade" id="csPending"></p>
+  </div>
+
+  <footer class="cs-foot" data-reveal style="--d:.56s">
+    <div class="cs-arrows">
+      <button class="cs-arrow" type="button" id="csPrev" aria-label="Previous story">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="cs-arrow" type="button" id="csNext" aria-label="Next story">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="cs-cta"><a href="#contact">Become a client <i>&#8594;</i></a></div>
+    <div class="cs-count"><b id="csNum">01</b> / <span id="csTotal">05</span></div>
+  </footer>
+
+</main>
+
+<div class="cs-ring" id="csRing" aria-hidden="true"></div>
+<div class="cs-cursor" id="csDot" aria-hidden="true"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ══ 內容 ═══════════════════════════════════════════════
+     只寫得出照片裡看得到的事。客戶說的話要客戶自己說，
+     所以見證那一行留白，標明待補，不代筆。 */
+  const STORIES = [
+    {
+      key: 'gala',
+      nav: 'Year-end gala',
+      shot: '../../assets/stories/01.jpg',
+      quote: 'A black-and-gold backdrop wall, geometric side panels, a sequin column and gilded florals turn a hotel lobby into an entrance sequence — so the first thing a guest sees is already the brand.',
+      name: '2025 Year-End Thanksgiving Gala',
+      role: 'GREAT HONOR × JYUAN.AN · 2025'
+    },
+    {
+      key: 'welcome',
+      nav: 'Welcome act',
+      shot: '../../assets/stories/02.jpg',
+      quote: 'A five-piece African drum troupe met guests at the door and carried the room from the lift lobby into the hall. The act at the door is cast, rehearsed and cued the same way the stage inside is.',
+      name: 'Welcome performance',
+      role: 'GREAT HONOR × JYUAN.AN · 2025'
+    },
+    {
+      key: 'awards',
+      nav: 'Awards stage',
+      shot: '../../assets/stories/03.jpg',
+      quote: 'An LED main stage, a host’s route across it, and an awards run-down timed to the minute. Trophy, microphone, cue — the three things that have to arrive in the right hand at the right second.',
+      name: 'Awards ceremony',
+      role: 'GREAT HONOR × JYUAN.AN · 2025'
+    },
+    {
+      key: 'film',
+      nav: 'Brand film',
+      shot: '../../assets/stories/04.jpg',
+      quote: 'A studio day for a brand film: lectern build, lighting set, a shotgun mic on the camera, and direction given from behind the monitor rather than shouted from the back of the room.',
+      name: 'Brand film production',
+      role: 'Client to be confirmed'
+    },
+    {
+      key: 'interview',
+      nav: 'Founder interview',
+      shot: '../../assets/stories/05.jpg',
+      quote: 'A two-camera founder interview against a full-height window — daylight as the key, a script loose enough to let the answer wander, and a second angle so the cut has somewhere to go.',
+      name: 'Founder interview',
+      role: 'Client to be confirmed'
+    }
+  ];
+
+  const PENDING = 'Client testimonial — to be provided';
+
+  const nav = document.getElementById('csNav');
+  const body = document.getElementById('csBody');
+  const elQuote = document.getElementById('csQuote');
+  const elShot = document.getElementById('csShot');
+  const elName = document.getElementById('csName');
+  const elRole = document.getElementById('csRole');
+  const elPending = document.getElementById('csPending');
+  const elNum = document.getElementById('csNum');
+
+  document.getElementById('csTotal').textContent = String(STORIES.length).padStart(2, '0');
+
+  /* ── 左欄按鈕：一則一顆，進場時依序淡入 ── */
+  STORIES.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.className = 'cs-link';
+    b.type = 'button';
+    b.dataset.i = String(i);
+    b.setAttribute('data-reveal', '');
+    b.style.setProperty('--d', (.22 + i * .055).toFixed(3) + 's');
+    b.innerHTML = '<span>' + s.nav + '</span><span class="arw">&#8594;</span>';
+    nav.appendChild(b);
+  });
+
+  const links = [...nav.querySelectorAll('.cs-link')];
+
+  let index = -1;
+  let swapping = 0;
+
+  function paint(i) {
+    const s = STORIES[i];
+    elQuote.textContent = s.quote;
+    elShot.style.backgroundImage = 'url(' + s.shot + ')';
+    elShot.setAttribute('aria-label', s.name);
+    elName.textContent = s.name;
+    elRole.textContent = s.role;
+    elPending.textContent = PENDING;
+    elNum.textContent = String(i + 1).padStart(2, '0');
+    links.forEach((l, k) => {
+      l.classList.toggle('is-on', k === i);
+      l.setAttribute('aria-current', k === i ? 'true' : 'false');
+    });
+  }
+
+  function show(i) {
+    i = (i + STORIES.length) % STORIES.length;
+    if (i === index) { return; }
+    if (index < 0 || reduce) { index = i; paint(i); return; }
+    index = i;
+    /* 先把舊的推走，換完內容再放回來。切換有重量，才不像換投影片 */
+    body.classList.add('is-out');
+    clearTimeout(swapping);
+    swapping = setTimeout(() => {
+      paint(i);
+      requestAnimationFrame(() => body.classList.remove('is-out'));
+    }, 340);
+  }
+
+  show(0);
+
+  nav.addEventListener('click', (e) => {
+    const b = e.target.closest('.cs-link');
+    if (b) { show(+b.dataset.i); }
+  });
+  document.getElementById('csPrev').addEventListener('click', () => show(index - 1));
+  document.getElementById('csNext').addEventListener('click', () => show(index + 1));
+
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') { show(index - 1); }
+    if (e.key === 'ArrowRight') { show(index + 1); }
+  });
+
+  /* ══ 進場動畫 ═══════════════════════════════════════════
+     捲到才播，而且只播一次。 */
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (!en.isIntersecting) { return; }
+      en.target.classList.add('is-in');
+      io.unobserve(en.target);
+    });
+  }, { threshold: 0, rootMargin: '0px 0px -24px 0px' });
+
+  document.querySelectorAll('[data-reveal]').forEach((el) => io.observe(el));
+
+  /* ══ 自訂游標 ═══════════════════════════════════════════
+     小點每一格都追到位，外環用 lerp 落後一點點，
+     那半拍的差距就是「跟手」的感覺來源。 */
+  const dot = document.getElementById('csDot');
+  const ring = document.getElementById('csRing');
+  const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  if (fine) {
+    let mx = innerWidth / 2, my = innerHeight / 2;
+    let rx = mx, ry = my;
+    let seen = false;
+
+    addEventListener('pointermove', (e) => {
+      mx = e.clientX; my = e.clientY;
+      if (!seen) { seen = true; rx = mx; ry = my; }
+      dot.style.transform = 'translate3d(' + mx + 'px,' + my + 'px,0)';
+      const hit = e.target.closest('a, button, [data-hover]');
+      document.body.classList.toggle('is-hover', !!hit);
+    }, { passive: true });
+
+    addEventListener('pointerdown', () => document.body.classList.add('is-down'));
+    addEventListener('pointerup', () => document.body.classList.remove('is-down'));
+    addEventListener('pointerleave', () => { dot.style.opacity = '0'; ring.style.opacity = '0'; });
+    addEventListener('pointerenter', () => { dot.style.opacity = ''; ring.style.opacity = ''; });
+
+    const tick = () => {
+      rx += (mx - rx) * .16;
+      ry += (my - ry) * .16;
+      ring.style.transform = 'translate3d(' + rx + 'px,' + ry + 'px,0)';
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+})();
+</script>
+</body>
+</html>

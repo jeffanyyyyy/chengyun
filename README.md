@@ -28,11 +28,13 @@ assets/bg-loop.mp4             直式背景影片（分鏡式頁面 — 品牌�
 assets/bg-obsidian.mp4         直式背景影片（分鏡式頁面 — 黑色版）
 assets/team/01–04.jpg          團隊照片（分鏡式頁面「我們的團隊」膠卷片格）
 assets/work/01.jpg             作品海報（分鏡式頁面「活動成果」預覽圖）
+assets/stories/01–05.jpg       活動現場劇照（分鏡式頁面「客戶故事」）
 assets/deer-720.mp4            長按進入後的過場影片（捲動控制播放進度）
 assets/deer-480.mp4            同上，窄螢幕／省流量模式使用
 experimental/index.html        實驗性作品頁：捲動式（獨立頁面，不影響主站）
 experimental/immersive/        實驗性作品頁：分鏡式，滿版影片背景
 experimental/immersive-navy/   同上，改用品牌色（深藍寶石＋金）
+experimental/client-stories/   單檔獨立版的「客戶故事」版型（Trionn 風格參考實作）
 ```
 
 ## 實驗性作品頁

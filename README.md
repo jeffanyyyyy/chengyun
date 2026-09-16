@@ -35,6 +35,7 @@ experimental/immersive/        實驗性作品頁：分鏡式，滿版影片背�
                                （網址加 ?debug 會開啟「活動成果」緞帶的調校面板）
 experimental/immersive-navy/   同上，改用品牌色（深藍寶石＋金）
 experimental/work-index/       清單式「活動成果」版型的單檔參考實作（站上已改用捲動式）
+reference/                     trionn.com 捲動段落的參考畫格（設計比對用，非網站資產）
 ```
 
 ## 實驗性作品頁

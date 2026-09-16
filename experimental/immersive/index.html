@@ -4054,27 +4054,35 @@
     /* 三段的區間 */
     const PF_HEAD = [0, .20];
     const PF_GRID = [.70, 1];           /* 只有退路的 DOM 拼貼用得到 */
-    const PF_MORPH = [.60, .90];        /* 緞帶補間成拼貼的區間 */
+    const PF_FLOW  = [.17, .56];        /* 卡片沿路徑流過的區間 */
+    const PF_MORPH = [.48, .86];        /* 由路徑補間成拼貼的區間（和路徑重疊一段，接得起來）*/
 
     /* 可調參數。?debug 會開一個 lil-gui 面板接到這裡 */
     const PF = {
       cards: 14,
-      cardH: 0.92,        /* 卡片高（世界單位），寬 = 高 x 1.6 */
-      gap: 1.06,          /* 卡片間距倍率 */
-      radius: 11,         /* 圓柱半徑 */
+      cardH: 1.8,         /* 卡片高（世界單位），寬 = 高 x 1.6 */
+      gap: 0.88,          /* 卡片間距倍率：沿路徑的弧長間隔 = 卡片寬 x 這個值。
+                             小於 1 代表相鄰卡片微微重疊，帶子才連得起來 */
+      bendR: 11,          /* 彎曲半徑：越小彎得越厲害 */
       bend: 1,            /* 緞帶期的彎曲度 */
       bendGrid: 0.15,     /* 拼貼期的彎曲度 */
-      dist: 20,           /* 相機到圓柱前緣的距離 */
+      gridDist: 26,       /* 拼貼牆離鏡頭多遠（＝相機距離） */
       gridScale: 1.0      /* 拼貼期的卡片放大倍率（1 = 自動算出來的基準） */
     };
 
-    /* 緞帶的四個關鍵影格。px/py 是視錐半寬半高的倍數（跟著解析度走），
-       pz 是世界單位，rx/ry/rz 是度 */
-    const PF_KEYS = [
-      { p: .15, px: -1.30, py: -1.05, pz: -10, rx: 0, ry: -77, rz: -20 },
-      { p: .35, px: -0.55, py: -0.40, pz:  -2, rx: 0, ry: -34, rz: -20 },
-      { p: .50, px:  0.05, py:  0.02, pz:   5, rx: 0, ry:   3, rz: -20 },
-      { p: .65, px:  0.62, py:  0.56, pz:  -1, rx: 0, ry:  42, rz: -20 }
+    /* 卡片流過的那條路徑的控制點。
+       sx / sy 是「在自己那個深度上，畫面半寬（半高）的倍數」——
+       所以 sx = -1 永遠代表畫面左緣，不管那一點有多遠。
+       鏡頭在原點朝 -Z 看，z 越負代表越深。
+       起點在左下的深處，中段幾乎擦過鏡頭，終點回到右上的深處。 */
+    const PF_PATH = [
+      { sx: -1.06, sy: -0.46, z: -22 },
+      { sx: -0.74, sy: -0.30, z: -16 },
+      { sx: -0.42, sy: -0.14, z: -11 },
+      { sx:  0.05, sy:  0.00, z:  -7 },
+      { sx:  0.50, sy:  0.16, z: -11 },
+      { sx:  0.80, sy:  0.34, z: -16 },
+      { sx:  1.10, sy:  0.50, z: -22 }
     ];
 
     /* 拼貼的落點：x、y 是視錐半寬半高的倍數，第三個是相對大小 */
@@ -4087,24 +4095,25 @@
 
     const pfSpan = (v, a, b) => clamp((v - a) / (b - a), 0, 1);
     const pfEase = (x) => 1 - Math.pow(1 - x, 3);
-    const PF_RAD = Math.PI / 180;
 
-    /* 關鍵影格之間線性內插，兩端夾住 */
-    function pfKeyAt(p) {
-      const K = PF_KEYS;
-      if (p <= K[0].p) { return K[0]; }
-      if (p >= K[K.length - 1].p) { return K[K.length - 1]; }
-      for (let i = 0; i < K.length - 1; i++) {
-        if (p <= K[i + 1].p) {
-          const u = (p - K[i].p) / (K[i + 1].p - K[i].p);
-          const a = K[i], b = K[i + 1];
-          return {
-            px: lerp(a.px, b.px, u), py: lerp(a.py, b.py, u), pz: lerp(a.pz, b.pz, u),
-            rx: lerp(a.rx, b.rx, u), ry: lerp(a.ry, b.ry, u), rz: lerp(a.rz, b.rz, u)
-          };
-        }
-      }
-      return K[K.length - 1];
+    /* 沒有 Three.js 時也要能沿著同一條路徑走，所以自己寫一份
+       Catmull-Rom 取樣（均勻參數就夠了，退路不需要弧長等距） */
+    function pfPathAt(u) {
+      const P = PF_PATH;
+      const n = P.length;
+      const s = clamp(u, 0, 1) * (n - 1);
+      const i = Math.min(Math.floor(s), n - 2);
+      const f = s - i;
+      const p0 = P[Math.max(i - 1, 0)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(i + 2, n - 1)];
+      const cr = (a, b, c, d) => {
+        const t2 = f * f, t3 = t2 * f;
+        return 0.5 * ((2 * b) + (-a + c) * f + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3);
+      };
+      return {
+        sx: cr(p0.sx, p1.sx, p2.sx, p3.sx),
+        sy: cr(p0.sy, p1.sy, p2.sy, p3.sy),
+        z: cr(p0.z, p1.z, p2.z, p3.z)
+      };
     }
 
     /* 每張卡片固定的小傾角與視差速度：用編號算，重新整理也不會變 */
@@ -4250,7 +4259,10 @@
       }
     `;
 
-    /* ── WebGL 版：第二段的緞帶會補間成第三段的拼貼 ───────── */
+    /* ── WebGL 版：卡片沿著一條 3D 曲線流動，末段補間成拼貼 ─────
+       關鍵在於「卡片自己沿路徑走」，而不是整個 Group 平移：
+       只有這樣，同一時間畫面上才會同時有近得撐滿半個畫面的卡片，
+       和遠得只剩一小格的卡片——透視感是從深度差來的，不是從位移。 */
     function pfMakeBand() {
       if (pfBand || reduce) { return; }
 
@@ -4271,48 +4283,74 @@
       renderer.setClearColor(0x000000, 0);
 
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(38, 1, .1, 400);
-      const group = new THREE.Group();
-      scene.add(group);
+      /* 鏡頭擺在原點朝 -Z 看，路徑的 z 就直接等於「離鏡頭多遠」 */
+      const camera = new THREE.PerspectiveCamera(38, 1, .1, 500);
 
       const paper = new THREE.Color(0xe8e8e6);
       const loader = new THREE.TextureLoader();
-      let loaded = 0;
       const textures = PF_SHOTS.map((src) => loader.load(src,
-        (tex) => { tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false; loaded++; draw(); },
+        (tex) => { tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false; },
         undefined,
         () => console.warn('[chengyun] 活動成果：貼圖載不到 —', src)));
 
       let geo = null;
       let cards = [];
-      let halfH = 1, halfW = 1;      /* 緞帶所在深度的視錐半高半寬 */
-      let gridH = 1, gridW = 1;      /* 拼貼所在深度（z=0）的視錐半高半寬 */
-      let gridBase = 3;              /* 由視錐回推的基準放大率 */
-      let raf = 0, live = false, dead = false, p = 0, needsDraw = true;
+      let curve = null, curveLen = 1;
+      let gridH = 1, gridW = 1, gridBase = 3;
+      let raf = 0, live = false, dead = false, p = 0;
+      let guide = null;                 /* ?debug 時把路徑畫出來 */
 
-      const ZERO = new THREE.Vector3();
+      const vPos = new THREE.Vector3();
+      const vTan = new THREE.Vector3();
+      const vToCam = new THREE.Vector3();
+      const vX = new THREE.Vector3();
+      const vY = new THREE.Vector3();
+      const vZ = new THREE.Vector3();
+      const mBasis = new THREE.Matrix4();
+      const qPath = new THREE.Quaternion();
       const eul = new THREE.Euler();
-      const qA = new THREE.Quaternion();
-      const qB = new THREE.Quaternion();
       const raycaster = new THREE.Raycaster();
       const ndc = new THREE.Vector2();
 
+      /* 控制點是「畫面比例 + 深度」，這裡換算成世界座標。
+         同一組數字在任何螢幕比例下都指到畫面上的同一個位置 */
+      function buildCurve() {
+        const tanHalf = Math.tan(camera.fov * Math.PI / 360);
+        const pts = PF_PATH.map((q) => new THREE.Vector3(
+          q.sx * tanHalf * camera.aspect * (-q.z),
+          q.sy * tanHalf * (-q.z),
+          q.z
+        ));
+        curve = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0.5);
+        curveLen = Math.max(curve.getLength(), 1);
+        if (guide) { rebuildGuide(); }
+      }
+
+      function rebuildGuide() {
+        if (guide) { scene.remove(guide); guide.geometry.dispose(); guide.material.dispose(); guide = null; }
+        const g = new THREE.BufferGeometry().setFromPoints(curve.getPoints(240));
+        guide = new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0xd2402f, transparent: true, opacity: .85 }));
+        guide.frustumCulled = false;
+        scene.add(guide);
+      }
+
+      function showGuide(on) {
+        if (on && !guide) { rebuildGuide(); }
+        if (guide) { guide.visible = !!on; }
+      }
+
       function build() {
-        cards.forEach((c) => { group.remove(c.mesh); c.mat.dispose(); });
+        cards.forEach((c) => { scene.remove(c.mesh); c.mat.dispose(); });
         if (geo) { geo.dispose(); }
         cards = [];
 
-        const N = PF.cards;
         const cardH = PF.cardH;
         const cardW = cardH * 1.6;                 /* 16:10 */
         const planeW = cardW * 1.24;
         const planeH = cardH * 1.34;
-        const step = (cardW * PF.gap) / PF.radius;
+        geo = new THREE.PlaneGeometry(planeW, planeH, 40, 1);
 
-        geo = new THREE.PlaneGeometry(planeW, planeH, 32, 1);
-
-        for (let i = 0; i < N; i++) {
-          const theta = (i - (N - 1) / 2) * step;
+        for (let i = 0; i < PF.cards; i++) {
           const mat = new THREE.ShaderMaterial({
             vertexShader: PF_VERT,
             fragmentShader: PF_FRAG,
@@ -4321,7 +4359,7 @@
             side: THREE.DoubleSide,
             uniforms: {
               uMap: { value: textures[i % textures.length] },
-              uR: { value: PF.radius },
+              uR: { value: PF.bendR },
               uBend: { value: PF.bend },
               uPlane: { value: new THREE.Vector2(planeW, planeH) },
               uCard: { value: new THREE.Vector2(cardW, cardH) },
@@ -4335,25 +4373,21 @@
           const mesh = new THREE.Mesh(geo, mat);
           mesh.frustumCulled = false;              /* 著色器改過頂點，包圍盒不再準 */
           mesh.userData.i = i;
-          group.add(mesh);
+          scene.add(mesh);
 
           const spot = PF_SPOTS[i % PF_SPOTS.length];
           cards.push({
-            mesh, mat, theta,
-            spot, tilt: pfTilt(i), yaw: pfYaw(i), speed: pfSpeed(i),
-            cyl: new THREE.Vector3(), grid: new THREE.Vector3(),
-            qCyl: new THREE.Quaternion(), qGrid: new THREE.Quaternion()
+            mesh, mat, spot,
+            tilt: pfTilt(i), yaw: pfYaw(i), speed: pfSpeed(i),
+            grid: new THREE.Vector3(), qGrid: new THREE.Quaternion()
           });
         }
-        placeStatic();
+        placeGrid();
       }
 
-      /* 圓柱上的座標與拼貼落點：只跟參數與視窗有關，不必每格重算 */
-      function placeStatic() {
+      function placeGrid() {
         cards.forEach((c) => {
-          c.cyl.set(Math.sin(c.theta) * PF.radius, 0, Math.cos(c.theta) * PF.radius);
-          c.qCyl.setFromEuler(eul.set(0, c.theta, 0));
-          c.grid.set(c.spot[0] * gridW, c.spot[1] * gridH, 0);
+          c.grid.set(c.spot[0] * gridW, c.spot[1] * gridH, -PF.gridDist);
           c.qGrid.setFromEuler(eul.set(c.tilt, c.yaw, c.tilt * .4));
         });
       }
@@ -4364,64 +4398,74 @@
         renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
         renderer.setSize(w, h, false);
         camera.aspect = w / h;
-        camera.position.set(0, 0, PF.radius + PF.dist);
+        camera.position.set(0, 0, 0);
         camera.updateProjectionMatrix();
-        const tan = Math.tan(camera.fov * Math.PI / 360);
-        halfH = tan * PF.dist;                       /* 緞帶在圓柱前緣，距離 dist */
-        halfW = halfH * camera.aspect;
-        gridH = tan * (PF.radius + PF.dist);         /* 拼貼落在 z=0 的平面上 */
+        const tanHalf = Math.tan(camera.fov * Math.PI / 360);
+        gridH = tanHalf * PF.gridDist;
         gridW = gridH * camera.aspect;
         /* 一張卡片該佔畫面多少，由「橫向排得下幾張」回推，
            直式螢幕的視錐很窄，固定倍率會讓一張卡片吃掉半個畫面 */
         const across = camera.aspect > 1 ? 7 : 3.4;
         gridBase = (gridW * 2) / (PF.cardH * 1.6 * across);
-        placeStatic();
-        needsDraw = true;
+        buildCurve();
+        placeGrid();
       }
 
       function draw() {
-        if (dead) { return; }
+        if (dead || !curve) { return; }
 
-        const key = pfKeyAt(p);
         const morph = pfEase(pfSpan(p, PF_MORPH[0], PF_MORPH[1]));
-        const alpha = pfSpan(p, .13, .20);
+        const flow = pfSpan(p, PF_FLOW[0], PF_FLOW[1]);
+        const alpha = pfSpan(p, .13, .19);
 
-        /* 群組載著緞帶飛；補間到拼貼時它回到原點，卡片的座標就等於世界座標 */
-        group.position.set(
-          lerp(key.px * halfW, 0, morph),
-          lerp(key.py * halfH, 0, morph),
-          lerp(key.pz, 0, morph)
-        );
-        group.rotation.set(
-          lerp(key.rx * PF_RAD, 0, morph),
-          lerp(key.ry * PF_RAD, 0, morph),
-          lerp(key.rz * PF_RAD, 0, morph)
-        );
+        /* 輸送帶：所有卡片的 u 一起往前推，間隔固定＝卡片寬 x gap 的弧長 */
+        const step = (PF.cardH * 1.6 * PF.gap) / curveLen;
+        const head = flow * (1 + step * (cards.length - 1));
 
         /* 拼貼期還在捲的話，每張卡片用自己的速度漂移，才有前後 */
         const drift = (1 - pfSpan(p, PF_MORPH[0], 1)) * gridH * .55;
 
         for (let i = 0; i < cards.length; i++) {
           const c = cards[i];
+          const u = head - i * step;
+          const uu = clamp(u, 0, 1);
+
+          curve.getPointAt(uu, vPos);
+          curve.getTangentAt(uu, vTan).normalize();
+
+          /* 卡片的寬邊沿著切線走，正面朝鏡頭：
+             這樣彎曲著色器彎的方向就是路徑方向 */
+          vToCam.copy(vPos).negate().normalize();
+          vX.copy(vTan);
+          vY.crossVectors(vToCam, vX);
+          if (vY.lengthSq() < 1e-6) { vY.set(0, 1, 0); }
+          vY.normalize();
+          vZ.crossVectors(vX, vY).normalize();
+          mBasis.makeBasis(vX, vY, vZ);
+          qPath.setFromRotationMatrix(mBasis);
+
           c.mesh.position.set(
-            lerp(c.cyl.x, c.grid.x, morph),
-            lerp(c.cyl.y, c.grid.y + drift * c.speed, morph),
-            lerp(c.cyl.z, c.grid.z, morph)
+            lerp(vPos.x, c.grid.x, morph),
+            lerp(vPos.y, c.grid.y + drift * c.speed, morph),
+            lerp(vPos.z, c.grid.z, morph)
           );
-          qA.copy(c.qCyl); qB.copy(c.qGrid);
-          c.mesh.quaternion.copy(qA).slerp(qB, morph);
+          c.mesh.quaternion.copy(qPath).slerp(c.qGrid, morph);
+
           const sc = lerp(1, gridBase * PF.gridScale * c.spot[2], morph);
           c.mesh.scale.set(sc, sc, sc);
+
           c.mat.uniforms.uBend.value = lerp(PF.bend, PF.bendGrid, morph);
-          c.mat.uniforms.uR.value = PF.radius;
+          c.mat.uniforms.uR.value = PF.bendR;
           c.mat.uniforms.uLift.value = morph;
 
-          /* 緞帶期轉到背面的卡片先融掉；補間到拼貼時全部面向鏡頭 */
-          const face = Math.cos(c.theta + group.rotation.y);
-          const vis = lerp(clamp((face - .02) / .34, 0, 1), 1, morph);
-          c.mat.uniforms.uOpacity.value = alpha * vis;
-          c.mat.uniforms.uFade.value = lerp((1 - face) * .5, 0, morph);
-          c.mesh.visible = alpha * vis > .004;
+          /* 還沒上路、或已經走完的卡片不畫；兩端各留一小段淡入淡出 */
+          const onPath = pfSpan(u, -.02, .05) * (1 - pfSpan(u, .95, 1.02));
+          const live2 = Math.max(onPath, morph);
+          c.mat.uniforms.uOpacity.value = alpha * live2;
+          /* 遠的往紙色融，近的維持原色——淺色底上這比單純變透明像空氣 */
+          const dist = -c.mesh.position.z;
+          c.mat.uniforms.uFade.value = lerp(clamp((dist - 22) / 55, 0, .72), 0, morph);
+          c.mesh.visible = alpha * live2 > .004;
         }
 
         pfCanvas.classList.toggle('is-live', morph > .6);
@@ -4464,6 +4508,7 @@
         cards.forEach((c) => c.mat.dispose());
         textures.forEach((tex) => tex.dispose());
         if (geo) { geo.dispose(); }
+        if (guide) { guide.geometry.dispose(); guide.material.dispose(); }
         renderer.dispose();
         pfBand = null;
         root.classList.remove('pf-gl-on');
@@ -4475,74 +4520,84 @@
 
       pfCanvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); dispose(); });
 
-      build();
       resize();
+      build();
       addEventListener('resize', resize);
       root.classList.add('pf-gl-on');
 
       pfBand = {
         set(v) { p = v; },
         resize,
-        rebuild() { build(); resize(); },
+        rebuild() { resize(); build(); },
+        recurve() { buildCurve(); },
+        showGuide,
         start() { if (!live && !dead) { live = true; loop(); } },
         stop() { live = false; cancelAnimationFrame(raf); },
-        dispose,
-        PF, PF_KEYS
+        dispose
       };
     }
 
     /* ── CSS 3D 退路：沒有 WebGL 時的第二段 ─────────────────
-       卡片本身彎不起來（CSS 做不到），但整條弧是真的 3D：
-       每張卡片 rotateY 之後往外推一個半徑，就排在圓柱面上。 */
+       走同一條路徑，只是用 2D 投影自己算近大遠小：
+       卡片在畫面上的位置直接用控制點的 sx / sy，
+       大小則用「參考深度 ÷ 實際深度」——那就是透視除法本身。 */
     function pfMakeCss() {
       if (pfCss || reduce) { return; }
       pfCssHost.hidden = false;
-      const N = PF.cards;
       const cards = [];
       pfCssInner.innerHTML = '';
 
-      for (let i = 0; i < N; i++) {
+      for (let i = 0; i < PF.cards; i++) {
         const el = document.createElement('div');
         el.className = 'pf-bcard';
         el.style.backgroundImage = 'url(' + PF_SHOTS[i % PF_SHOTS.length] + ')';
         pfCssInner.appendChild(el);
-        cards.push({ el, theta: (i - (N - 1) / 2) });
+        cards.push(el);
       }
 
-      let cw = 120, ch = 75, rad = 900;
+      const REF = 22;                 /* 參考深度：在這個深度上卡片是原寸 */
+      let baseW = 260, baseH = 162, halfW = 700, halfH = 450;
 
       function resize() {
-        const w = pfCssHost.clientWidth || innerWidth;
-        cw = Math.max(74, Math.min(190, w * .085));
-        ch = cw / 1.6;
-        rad = cw * PF.gap * N / (2 * Math.PI) * 3.2;   /* 弧度和 WebGL 版接近 */
-        cards.forEach((c) => {
-          c.el.style.width = cw + 'px';
-          c.el.style.height = ch + 'px';
-          c.el.style.marginLeft = (-cw / 2) + 'px';
-          c.el.style.marginTop = (-ch / 2) + 'px';
-          const a = c.theta * (cw * PF.gap) / rad;
-          c.el.style.transform = 'rotateY(' + a + 'rad) translateZ(' + rad + 'px)';
-        });
+        halfW = (pfCssHost.clientWidth || innerWidth) / 2;
+        halfH = (pfCssHost.clientHeight || innerHeight) / 2;
+        baseW = Math.max(150, halfW * .42);
+        baseH = baseW / 1.6;
       }
 
       function set(p) {
-        const key = pfKeyAt(p);
-        const alpha = pfSpan(p, .13, .20) * (1 - pfSpan(p, .62, .72));
+        const flow = pfSpan(p, PF_FLOW[0], PF_FLOW[1]);
+        const alpha = pfSpan(p, .13, .19) * (1 - pfSpan(p, PF_MORPH[0], PF_MORPH[0] + .08));
         pfCssHost.style.opacity = alpha.toFixed(3);
         pfCssHost.style.visibility = alpha < .004 ? 'hidden' : 'visible';
         if (alpha < .004) { return; }
-        const w = pfCssHost.clientWidth || innerWidth;
-        const h = pfCssHost.clientHeight || innerHeight;
-        /* pz 是世界單位，這裡換算成一個看起來相當的 px 位移 */
-        pfCssInner.style.transform =
-          'translate3d(' + (key.px * w * .5).toFixed(1) + 'px,' + (key.py * h * .5).toFixed(1) + 'px,' +
-          (key.pz * 26 - rad).toFixed(1) + 'px) rotate(' + key.rz.toFixed(2) + 'deg) rotateY(' + key.ry.toFixed(2) + 'deg)';
+
+        /* 沿路徑的等距間隔在均勻參數下只是近似，退路夠用 */
+        const step = 0.058 * PF.gap;
+        const head = flow * (1 + step * (cards.length - 1));
+
+        for (let i = 0; i < cards.length; i++) {
+          const u = head - i * step;
+          const el = cards[i];
+          if (u < -.02 || u > 1.02) { el.style.opacity = '0'; continue; }
+          const q = pfPathAt(clamp(u, 0, 1));
+          const k = REF / Math.max(-q.z, 1.2);          /* 透視除法：近大遠小 */
+          const on = pfSpan(u, -.02, .05) * (1 - pfSpan(u, .95, 1.02));
+          el.style.opacity = on.toFixed(3);
+          el.style.width = baseW + 'px';
+          el.style.height = baseH + 'px';
+          el.style.transform =
+            'translate3d(' + (q.sx * halfW - baseW / 2).toFixed(1) + 'px,' +
+            (-q.sy * halfH - baseH / 2).toFixed(1) + 'px,0) scale(' + k.toFixed(3) + ')';
+          el.style.zIndex = String(Math.round(1000 - (-q.z)));
+          /* 遠的往紙色融，和 WebGL 版同一個處理 */
+          el.style.filter = 'opacity(' + (1 - clamp((-q.z - 22) / 55, 0, .7)).toFixed(3) + ')';
+        }
       }
 
       resize();
       addEventListener('resize', resize);
-      pfCss = { set, resize };
+      pfCss = { set, resize, rebuild() { resize(); } };
     }
 
     /* ── 進度來源：Lenis + ScrollTrigger，兩者都缺就讀 scrollTop ── */
@@ -4615,41 +4670,42 @@
     /* ── ?debug：lil-gui 調校面板 ─────────────────────────── */
     function pfDebugPanel() {
       if (!/(^|[?&])debug\b/.test(location.search) || window.__pfGui) { return; }
+      if (pfBand) { pfBand.showGuide(true); }
       const s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/npm/lil-gui@0.19.2/dist/lil-gui.umd.min.js';
       s.onerror = () => console.warn('[chengyun] lil-gui 載不到，調校面板跳過。');
       s.onload = () => {
         if (!window.lil || !window.lil.GUI) { return; }
-        const gui = new lil.GUI({ title: '活動成果 · 緞帶' });
+        const gui = new lil.GUI({ title: '活動成果 · 卡片流' });
         window.__pfGui = gui;
-        const redraw = () => { if (pfBand) { pfBand.rebuild(); } if (pfCss) { pfCss.resize(); } pfRender(pfLast); };
+        const hard = () => { if (pfBand) { pfBand.rebuild(); } if (pfCss) { pfCss.rebuild(); } pfRender(pfLast); };
+        const curveChanged = () => { if (pfBand) { pfBand.recurve(); } pfRender(pfLast); };
         const soft = () => pfRender(pfLast);
 
         const f1 = gui.addFolder('卡片與鏡頭');
-        f1.add(PF, 'cards', 4, 30, 1).name('卡片數量').onFinishChange(redraw);
-        f1.add(PF, 'cardH', .3, 3, .01).name('卡片尺寸').onChange(redraw);
-        f1.add(PF, 'gap', .8, 2.4, .01).name('卡片間距').onChange(redraw);
-        f1.add(PF, 'radius', 3, 40, .1).name('圓柱半徑').onChange(redraw);
+        f1.add(PF, 'cards', 4, 30, 1).name('卡片數量').onFinishChange(hard);
+        f1.add(PF, 'cardH', .3, 4, .01).name('卡片尺寸').onChange(hard);
+        f1.add(PF, 'gap', .8, 2.4, .01).name('卡片間距').onChange(soft);
+        f1.add(PF, 'bendR', 2, 40, .1).name('圓柱半徑（彎曲）').onChange(soft);
         f1.add(PF, 'bend', 0, 2, .01).name('彎曲度（緞帶）').onChange(soft);
         f1.add(PF, 'bendGrid', 0, 1, .01).name('彎曲度（拼貼）').onChange(soft);
-        f1.add(PF, 'dist', 4, 80, .5).name('相機距離').onChange(redraw);
+        f1.add(PF, 'gridDist', 6, 80, .5).name('相機距離（拼貼牆）').onChange(hard);
         f1.add(PF, 'gridScale', .3, 3, .02).name('拼貼放大（基準倍數）').onChange(soft);
 
-        PF_KEYS.forEach((k, i) => {
-          const f = gui.addFolder('關鍵影格 ' + k.p.toFixed(2));
-          f.add(k, 'px', -3, 3, .01).name('位置 X（半寬倍數）').onChange(soft);
-          f.add(k, 'py', -3, 3, .01).name('位置 Y（半高倍數）').onChange(soft);
-          f.add(k, 'pz', -40, 20, .1).name('位置 Z（世界）').onChange(soft);
-          f.add(k, 'rx', -180, 180, .5).name('旋轉 X（度）').onChange(soft);
-          f.add(k, 'ry', -180, 180, .5).name('旋轉 Y（度）').onChange(soft);
-          f.add(k, 'rz', -180, 180, .5).name('旋轉 Z（度）').onChange(soft);
-          if (i > 0) { f.close(); }
+        const fp = gui.addFolder('路徑控制點');
+        fp.add({ show: true }, 'show').name('顯示路徑線').onChange((v) => { if (pfBand) { pfBand.showGuide(v); } });
+        PF_PATH.forEach((q, i) => {
+          const f = fp.addFolder('P' + i + (i === 0 ? '（起點）' : i === PF_PATH.length - 1 ? '（終點）' : ''));
+          f.add(q, 'sx', -3, 3, .01).name('畫面 X（半寬倍數）').onChange(curveChanged);
+          f.add(q, 'sy', -3, 3, .01).name('畫面 Y（半高倍數）').onChange(curveChanged);
+          f.add(q, 'z', -140, -1.5, .1).name('深度 Z（負＝遠）').onChange(curveChanged);
+          if (i !== 3) { f.close(); }
         });
 
         gui.add({
           dump() {
             console.log('PF =', JSON.stringify(PF, null, 2));
-            console.log('PF_KEYS =', JSON.stringify(PF_KEYS, null, 2));
+            console.log('PF_PATH =', JSON.stringify(PF_PATH));
           }
         }, 'dump').name('把目前數值印到 console');
       };

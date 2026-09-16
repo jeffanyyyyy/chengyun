@@ -99,6 +99,8 @@
 
   .scene.is-active { visibility: visible; }
 
+
+
   /* 沒有 GSAP 時用 CSS 補間；有 GSAP 就交給它，免得兩邊搶同一個屬性 */
   :root:not(.has-gsap) .scene {
     transform: scale(1.03);
@@ -127,7 +129,10 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
+
+  .scene-inner::-webkit-scrollbar { width: 0; height: 0; }
 
   /* ── 自訂游標 ───────────────────────── */
   .cursor { display: none; }
@@ -2593,6 +2598,9 @@
       /* 新分鏡先就位，再與舊分鏡交叉溶接、彼此重疊約 0.2 秒。
          「舊的退完才換新的」會有一個空拍，那正是頓挫感的來源 */
       to.classList.add('is-active');
+      /* 往下換章從頂端看起，往上換章從底部進來，視線才是連續的 */
+      const toInner = to.querySelector('.scene-inner');
+      if (toInner) { toInner.scrollTop = navDir < 0 ? toInner.scrollHeight : 0; }
       to.removeAttribute('aria-hidden');
       from.setAttribute('aria-hidden', 'true');
 
@@ -3088,6 +3096,11 @@
       filmStart();
     }
 
+    /* 走到第一格／最後一格了嗎：到頭之後滾輪就交給換頁 */
+    function filmAtEdge(dir) {
+      return dir > 0 ? filmTarget >= filmMax - .01 : filmTarget <= .01;
+    }
+
     /* ══ Three.js 膠卷 ═════════════════════════════════════════
        片格不是平面板子轉角度，而是把頂點直接壓到圓柱面上，
        所以整條底片是一個連續彎曲的曲面，齒孔也跟著彎 —— 這是 CSS 做不到的地方。
@@ -3518,7 +3531,13 @@
     /* rAF 只在這個分鏡開著、分頁又在前景時跑，其餘時間不佔資源 */
     addEventListener('cy:scene', (e) => {
       if (e.detail === 'teams') {
-        requestAnimationFrame(() => { filmMetrics(); if (filmGL) { filmGL.resize(); } filmStart(); });
+        const dir = navDir;
+        requestAnimationFrame(() => {
+          filmMetrics();
+          if (filmGL) { filmGL.resize(); }
+          if (dir) { filmTarget = dir > 0 ? 0 : filmMax; filmPos = filmTarget; }
+          filmStart();
+        });
       }
       else { filmStop(); }
     });
@@ -3543,6 +3562,85 @@
     filmSync();
     filmMetrics();
     filmRender(performance.now());
+
+    /* ══ 滾輪換頁 ═══════════════════════════════════════════════
+       章節內容比畫面高時，滾輪先在章節裡捲（交給瀏覽器原生捲動）；
+       捲到底再繼續往同方向推，才換到下一章。
+       首頁與過場自己處理滾輪，膠卷與作品索引則是走到頭才交棒。 */
+    const ORDER = ['hero', 'intro', 'about', 'services', 'teams', 'portfolio', 'faq', 'contact'];
+    let navEdge = 0;                                   /* 在邊界持續推的累積量 */
+    let navLock = 0;                                   /* 換場冷卻，一次手勢只走一章 */
+    let navDir = 0;                                    /* 這次換場的方向：往下從頭進、往上從尾巴進 */
+
+    function sceneStep(dir) {
+      const next = ORDER[ORDER.indexOf(current) + dir];
+      if (!next || !scenes.has(next)) { return; }
+      navEdge = 0;
+      navLock = performance.now() + 900;
+      navDir = dir;
+      goTo(next);
+      navDir = 0;
+    }
+
+    /* 這個章節在這個方向還捲得動嗎 */
+    function navRoom(dir) {
+      const sc = scenes.get(current);
+      const el = sc && sc.querySelector('.scene-inner');
+      if (!el) { return 0; }
+      return dir > 0 ? el.scrollHeight - el.clientHeight - el.scrollTop : el.scrollTop;
+    }
+
+    function navBusy() {
+      return busy || menuOverlay.classList.contains('is-open') || detail.classList.contains('is-on');
+    }
+
+    addEventListener('wheel', (e) => {
+      if (navBusy() || current === 'hero' || current === 'intro') { return; }
+      const dir = e.deltaY > 0 ? 1 : -1;
+
+      /* 膠卷與作品索引自己吃滾輪，走到頭才交棒；
+         這兩個分鏡的容器是 overflow: hidden，捲動空間的判斷對它們沒有意義 */
+      if (current === 'teams') {
+        if (!filmAtEdge(dir)) { navEdge = 0; return; }
+      } else if (current === 'portfolio') {
+        if (!obysAtEdge(dir)) { navEdge = 0; return; }
+      } else if (navRoom(dir) > 2) {
+        navEdge = 0;                                 /* 章節裡還捲得動就讓它自己捲 */
+        return;
+      }
+
+      if (performance.now() < navLock) { return; }
+      navEdge += Math.abs(e.deltaY);
+      if (navEdge > 90) { sceneStep(dir); }
+    }, { passive: false });
+
+    /* 觸控：手指放開時，如果一開始就已經在邊界、而且滑得夠遠，就換章節 */
+    const navTouch = { y: 0, top: 0, edge: false };
+    addEventListener('touchstart', (e) => {
+      if (navBusy() || current === 'hero' || current === 'intro') { return; }
+      const el = scenes.get(current).querySelector('.scene-inner');
+      navTouch.y = e.touches[0].clientY;
+      navTouch.top = el ? el.scrollTop : 0;
+      navTouch.edge = true;
+    }, { passive: true });
+
+    addEventListener('touchend', (e) => {
+      if (!navTouch.edge || navBusy() || current === 'hero' || current === 'intro') { return; }
+      navTouch.edge = false;
+      const dy = navTouch.y - (e.changedTouches[0] ? e.changedTouches[0].clientY : navTouch.y);
+      if (Math.abs(dy) < 70) { return; }
+      const dir = dy > 0 ? 1 : -1;
+      const el = scenes.get(current).querySelector('.scene-inner');
+      /* 手指按下時就已經到底／到頂，才算是要換章節 */
+      const wasEdge = !el || (dir > 0
+        ? navTouch.top >= el.scrollHeight - el.clientHeight - 2
+        : navTouch.top <= 2);
+      if (!wasEdge) { return; }
+      if (current === 'teams' && !filmAtEdge(dir)) { return; }
+      if (current === 'portfolio' && !obysAtEdge(dir)) { return; }
+      if (performance.now() < navLock) { return; }
+      sceneStep(dir);
+    }, { passive: true });
 
     /* ══ 過場影片：捲動控制播放進度 ═══════════════════════════
        影片不自動播放，currentTime 由捲動量推著走 —— 往下前進、往上倒退。
@@ -3777,11 +3875,17 @@
       cancelAnimationFrame(obysRaf);
     }
 
+    /* 位置有界（0 到最後一件），但擺放仍然是環繞的，
+       所以看起來還是一條連續的帶子，只是捲到頭就會停 */
+    function obysMax() { return obysPitch * (obysN - 1); }
+
     function obysGo(i) {
-      /* 走最短的一邊，不會為了到隔壁而繞一整圈 */
-      const span = obysPitch * obysN;
-      obysT += obysWrap(i * obysPitch - obysT, span);
+      obysT = clamp(i, 0, obysN - 1) * obysPitch;
       obysStart();
+    }
+
+    function obysAtEdge(dir) {
+      return dir > 0 ? obysT >= obysMax() - .5 : obysT <= .5;
     }
 
     /* ── 滾輪 ── */
@@ -3789,11 +3893,13 @@
     obysReel.addEventListener('wheel', (e) => {
       if (current !== 'portfolio') { return; }
       e.preventDefault();
-      obysT += e.deltaY;
+      obysT = clamp(obysT + e.deltaY, 0, obysMax());
       obysStart();
-      /* 停手後吸附到最近一件，括號才框得正 */
+      /* 停手後吸附到最近一件，取景框才框得正 */
       clearTimeout(obysWheelT);
-      obysWheelT = setTimeout(() => { obysT = Math.round(obysT / obysPitch) * obysPitch; }, 140);
+      obysWheelT = setTimeout(() => {
+        obysT = clamp(Math.round(obysT / obysPitch) * obysPitch, 0, obysMax());
+      }, 140);
     }, { passive: false });
 
     /* ── 拖曳／滑動 ── */
@@ -3814,15 +3920,15 @@
       const dy = e.clientY - obysDrag.y;
       obysDrag.y = e.clientY;
       obysDrag.moved += Math.abs(dy);
-      obysT -= dy;
-      obysY -= dy;                                   /* 拖曳時直接跟手，不用等 lerp */
+      obysT = clamp(obysT - dy, 0, obysMax());
+      obysY = clamp(obysY - dy, 0, obysMax());       /* 拖曳時直接跟手，不用等 lerp */
     });
 
     function obysRelease() {
       if (!obysDrag.on) { return; }
       obysDrag.on = false;
       obysReel.classList.remove('is-dragging');
-      obysT = Math.round(obysT / obysPitch) * obysPitch;   /* 放手吸附到最近一件 */
+      obysT = clamp(Math.round(obysT / obysPitch) * obysPitch, 0, obysMax());   /* 放手吸附到最近一件 */
     }
 
     obysReel.addEventListener('pointerup', obysRelease);
@@ -3860,7 +3966,14 @@
     }
 
     addEventListener('cy:scene', (e) => {
-      if (e.detail === 'portfolio') { requestAnimationFrame(() => { obysStart(); obysIntro(); }); }
+      if (e.detail === 'portfolio') {
+        const dir = navDir;
+        requestAnimationFrame(() => {
+          obysStart();
+          if (dir) { obysT = dir > 0 ? 0 : obysMax(); obysY = obysT; }
+          obysIntro();
+        });
+      }
       else { obysStop(); }
     });
 

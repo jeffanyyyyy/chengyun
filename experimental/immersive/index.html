@@ -17,8 +17,16 @@
 <!-- 活動成果那一章用：捲動推進的三段式 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.14/dist/lenis.min.js"></script>
-<!-- 膠卷轉盤用：載不到或沒有 WebGL 時，下面的 CSS 3D 版本會接手 -->
+<!-- 膠卷與活動成果都靠它；載不到或沒有 WebGL 時，CSS 3D 版本會接手 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- cdnjs 沒回來就換一家再試一次。document.write 只在解析階段有效，
+     這正是這裡需要的：後面的程式碼假設 THREE 已經同步就位 -->
+<script>
+  if (!window.THREE) {
+    console.warn('[chengyun] cdnjs 的 three.js 沒載到，改用 jsdelivr');
+    document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>');
+  }
+</script>
 <script>
   if (window.tailwind) {
     tailwind.config = {
@@ -1360,7 +1368,7 @@
     --pf-font: 'Inter Tight', 'Inter', 'Noto Sans TC', sans-serif;
   }
 
-  .pf-track { position: relative; height: 300svh; }
+  .pf-track { position: relative; height: 500svh; }
 
   .pf-stage {
     position: sticky;
@@ -1377,8 +1385,63 @@
     width: 100%;
     height: 100%;
     display: block;
+    /* 拼貼期要點得到卡片，所以畫布收事件；緞帶期由 JS 讓它放行 */
     pointer-events: none;
   }
+
+  .pf-gl.is-live { pointer-events: auto; }
+
+  /* ── 第二段的 CSS 3D 退路 ─────────────
+     沒有 WebGL 時用 CSS transform 把卡片排在圓柱面上。
+     卡片本身不會彎（CSS 做不到），但整條弧是真的 3D。 */
+  .pf-band-css {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    perspective: 1500px;
+    perspective-origin: 50% 50%;
+    pointer-events: none;
+    will-change: opacity;
+  }
+
+  .pf-band-inner {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .pf-bcard {
+    position: absolute;
+    left: 0;
+    top: 0;
+    border-radius: 3px;
+    background: #d6d5d0 center / cover no-repeat;
+    box-shadow: 0 14px 34px rgba(26, 26, 26, .18);
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+  }
+
+  /* 滑到某一張卡片時，左下角報出它是哪一件 */
+  .pf-hover {
+    position: absolute;
+    z-index: 5;
+    left: clamp(18px, 5vw, 92px);
+    bottom: calc(clamp(52px, 8vh, 80px) + 1.8em);
+    margin: 0;
+    max-width: 40ch;
+    font-size: clamp(9px, .72vw, 10.5px);
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--pf-dim);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .35s var(--ease);
+  }
+
+  .pf-hover.is-on { opacity: 1; }
+  .pf-hover b { font-weight: 400; color: var(--pf-ink); letter-spacing: .1em; }
 
   /* ── 第一段：錯開的兩行大標 ────────── */
   .pf-head {
@@ -1442,6 +1505,35 @@
   }
 
   .pf-card.is-live { pointer-events: auto; }
+
+  /* 第三段改由 WebGL 畫時，DOM 這一份留在無障礙樹裡：
+     看不見，但仍在 Tab 順序上，聚焦時會現身，按下去一樣開細節 */
+  :root.pf-gl-on .pf-collage {
+    inset: auto auto clamp(52px, 8vh, 80px) clamp(18px, 5vw, 92px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  :root.pf-gl-on .pf-card {
+    position: static !important;
+    width: auto !important;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0 !important;
+    transform: none !important;
+    pointer-events: auto;
+  }
+
+  :root.pf-gl-on .pf-card:focus-visible {
+    height: auto;
+    opacity: 1 !important;
+    padding: .5em .8em;
+    background: var(--pf-bg);
+  }
+
+  :root.pf-gl-on .pf-shot { display: none; }
 
   .pf-shot {
     display: block;
@@ -1532,7 +1624,7 @@
   @media (prefers-reduced-motion: reduce) {
     .pf-track { height: auto; }
     .pf-stage { position: static; height: auto; overflow: visible; padding: clamp(78px, 12vh, 120px) clamp(18px, 5vw, 92px) clamp(70px, 10vh, 110px); }
-    .pf-gl { display: none; }
+    .pf-gl, .pf-band-css, .pf-hover { display: none; }
     .pf-head { position: static; padding: 0; }
     .pf-collage {
       position: static;
@@ -1542,7 +1634,8 @@
       margin-top: clamp(40px, 7vh, 80px);
       pointer-events: auto;
     }
-    .pf-card { position: static !important; width: auto !important; opacity: 1 !important; transform: none !important; pointer-events: auto; }
+    .pf-card { position: static !important; width: auto !important; height: auto; overflow: visible; opacity: 1 !important; transform: none !important; pointer-events: auto; }
+    :root.pf-gl-on .pf-shot { display: block; }
     .pf-meter, .pf-eyebrow { position: static; margin-top: 2.5rem; }
     .pf-meter { display: none; }
   }
@@ -1836,8 +1929,11 @@
     <div class="pf-track" id="pfTrack">
       <div class="pf-stage" id="pfStage">
 
-        <!-- 第二段：弧形卡片帶。沒有 WebGL 就整個不出現，拼貼自己成立 -->
+        <!-- 第二段：弧形卡片帶。WebGL 起不來就換下面那條 CSS 3D 的退路 -->
         <canvas class="pf-gl" id="pfGL" aria-hidden="true"></canvas>
+        <div class="pf-band-css" id="pfBandCss" hidden aria-hidden="true">
+          <div class="pf-band-inner" id="pfBandInner"></div>
+        </div>
 
         <!-- 第一段：錯開的兩行大標 -->
         <div class="pf-head" id="pfHead">
@@ -1880,6 +1976,7 @@
         </button>
         </div>
 
+        <p class="pf-hover" id="pfHover" aria-hidden="true"></p>
         <span class="pf-eyebrow" data-i18n="pf.eyebrow">04 — Portfolio</span>
         <div class="pf-meter" aria-hidden="true"><i id="pfMeter"></i></div>
 
@@ -3928,11 +4025,14 @@
 
 
     /* ══ 04 活動成果：捲動推進的三段式 ═══════════════════════
-       這一章有自己的 300svh 行程，舞台用 CSS sticky 釘住。
-       畫面完全由 pfRender(p) 這一個純函式決定，p 是 0→1 的進度：
-       往回捲就是把 p 倒著餵進去，所以可逆是結構上的，不是補出來的。
-       p 的來源有兩個：有 ScrollTrigger 就用它的 scrub（慣性比較好），
-       沒有就直接讀 scrollTop——兩條路餵的是同一個函式。 */
+       整章有自己的 500svh 行程，舞台用 CSS sticky 釘住。
+       畫面完全由 pfRender(p) 這一個純函式決定，p 是 0→1 的捲動進度，
+       往回捲就是把 p 倒著餵進去，所以可逆是結構上的。
+
+       第二段與第三段是同一批卡片：緞帶飛完不會消失，而是把位置、
+       旋轉、彎曲度一起補間到拼貼的位置上。卡片的擺位交給 JS
+       （mesh.position / quaternion），著色器只負責把平面繞著
+       自己的中心彎起來——兩件事分開，補間才寫得乾淨。 */
     const pfWrap = document.getElementById('pfWrap');
     const pfTrack = document.getElementById('pfTrack');
     const pfHead = document.getElementById('pfHead');
@@ -3941,6 +4041,9 @@
     const pfKicker = document.getElementById('pfKicker');
     const pfMeter = document.getElementById('pfMeter');
     const pfCanvas = document.getElementById('pfGL');
+    const pfCssHost = document.getElementById('pfBandCss');
+    const pfCssInner = document.getElementById('pfBandInner');
+    const pfHover = document.getElementById('pfHover');
     const pfCards = [...document.querySelectorAll('.pf-card')];
 
     const PF_SHOTS = [
@@ -3950,11 +4053,64 @@
 
     /* 三段的區間 */
     const PF_HEAD = [0, .20];
-    const PF_BAND = [.15, .70];
-    const PF_GRID = [.70, 1];
+    const PF_GRID = [.70, 1];           /* 只有退路的 DOM 拼貼用得到 */
+    const PF_MORPH = [.60, .90];        /* 緞帶補間成拼貼的區間 */
+
+    /* 可調參數。?debug 會開一個 lil-gui 面板接到這裡 */
+    const PF = {
+      cards: 14,
+      cardH: 0.92,        /* 卡片高（世界單位），寬 = 高 x 1.6 */
+      gap: 1.06,          /* 卡片間距倍率 */
+      radius: 11,         /* 圓柱半徑 */
+      bend: 1,            /* 緞帶期的彎曲度 */
+      bendGrid: 0.15,     /* 拼貼期的彎曲度 */
+      dist: 20,           /* 相機到圓柱前緣的距離 */
+      gridScale: 1.0      /* 拼貼期的卡片放大倍率（1 = 自動算出來的基準） */
+    };
+
+    /* 緞帶的四個關鍵影格。px/py 是視錐半寬半高的倍數（跟著解析度走），
+       pz 是世界單位，rx/ry/rz 是度 */
+    const PF_KEYS = [
+      { p: .15, px: -1.30, py: -1.05, pz: -10, rx: 0, ry: -77, rz: -20 },
+      { p: .35, px: -0.55, py: -0.40, pz:  -2, rx: 0, ry: -34, rz: -20 },
+      { p: .50, px:  0.05, py:  0.02, pz:   5, rx: 0, ry:   3, rz: -20 },
+      { p: .65, px:  0.62, py:  0.56, pz:  -1, rx: 0, ry:  42, rz: -20 }
+    ];
+
+    /* 拼貼的落點：x、y 是視錐半寬半高的倍數，第三個是相對大小 */
+    const PF_SPOTS = [
+      [-0.76,  0.58, 1.05], [-0.30,  0.74, 0.62], [ 0.16,  0.54, 1.52], [ 0.66,  0.70, 0.70],
+      [-0.64,  0.14, 1.58], [-0.12,  0.22, 0.66], [ 0.38,  0.10, 1.12], [ 0.82,  0.26, 0.60],
+      [-0.82, -0.34, 0.74], [-0.34, -0.24, 1.46], [ 0.06, -0.38, 0.86], [ 0.58, -0.26, 1.34],
+      [-0.24, -0.76, 1.00], [ 0.48, -0.74, 0.68]
+    ];
 
     const pfSpan = (v, a, b) => clamp((v - a) / (b - a), 0, 1);
     const pfEase = (x) => 1 - Math.pow(1 - x, 3);
+    const PF_RAD = Math.PI / 180;
+
+    /* 關鍵影格之間線性內插，兩端夾住 */
+    function pfKeyAt(p) {
+      const K = PF_KEYS;
+      if (p <= K[0].p) { return K[0]; }
+      if (p >= K[K.length - 1].p) { return K[K.length - 1]; }
+      for (let i = 0; i < K.length - 1; i++) {
+        if (p <= K[i + 1].p) {
+          const u = (p - K[i].p) / (K[i + 1].p - K[i].p);
+          const a = K[i], b = K[i + 1];
+          return {
+            px: lerp(a.px, b.px, u), py: lerp(a.py, b.py, u), pz: lerp(a.pz, b.pz, u),
+            rx: lerp(a.rx, b.rx, u), ry: lerp(a.ry, b.ry, u), rz: lerp(a.rz, b.rz, u)
+          };
+        }
+      }
+      return K[K.length - 1];
+    }
+
+    /* 每張卡片固定的小傾角與視差速度：用編號算，重新整理也不會變 */
+    function pfTilt(i) { return ((i * 37 % 25) / 12 - 1) * 0.12; }
+    function pfYaw(i) { return ((i * 53 % 25) / 12 - 1) * 0.12; }
+    function pfSpeed(i) { return 0.8 + (i * 29 % 11) / 10 * 0.5; }
 
     /* 拼貼卡片的說明跟著語言走 */
     pfSync = function () {
@@ -3962,12 +4118,15 @@
         const i = +el.dataset.i;
         el.setAttribute('aria-label', t('pf.t' + (i + 1)));
       });
+      if (pfHoverIndex >= 0) { pfShowHover(pfHoverIndex); }
     };
 
-    let pfBand = null;          /* 弧形卡片帶，WebGL 起得來才有 */
-    let pfNoBand = false;       /* 沒有卡片帶時整段行程縮短，不要空捲一大段 */
-    let pfIntro = 0;            /* 進到這一章時大標自己的亮相，和捲動進度取大值 */
+    let pfBand = null;          /* WebGL 版的卡片帶（第二段 + 第三段） */
+    let pfCss = null;           /* 沒有 WebGL 時的 CSS 3D 退路（只有第二段） */
+    let pfIntro = 0;
     let pfIntroRaf = 0;
+    let pfLast = 0;
+    let pfHoverIndex = -1;
 
     /* 停在 p=0 時大標本來是全透明的，那樣進章節會先看到一片空白。
        所以進場先跑一次同樣的位移淡入，之後捲動接手 */
@@ -3984,7 +4143,16 @@
       pfIntroRaf = requestAnimationFrame(step);
     }
 
-    let pfLast = 0;
+    function pfShowHover(i) {
+      pfHoverIndex = i;
+      if (i < 0) { pfHover.classList.remove('is-on'); return; }
+      const n = (i % PF_SHOTS.length) + 1;
+      pfHover.innerHTML = '';
+      const b = document.createElement('b');
+      b.textContent = t('pf.t' + n);
+      pfHover.append(b, document.createTextNode('　' + t('pf.m' + n)));
+      pfHover.classList.add('is-on');
+    }
 
     function pfRender(p) {
       p = clamp(p, 0, 1);
@@ -4001,39 +4169,47 @@
 
       /* 第一段：兩行大標從相反方向滑進來，卡片帶掃過去之後再淡出 */
       const inn = Math.max(pfIntro, pfEase(pfSpan(p, PF_HEAD[0], PF_HEAD[1])));
-      const out = 1 - (pfNoBand ? pfSpan(p, .20, .34) : pfSpan(p, .62, .76));
+      const out = 1 - pfSpan(p, .62, .76);
       pfLineA.style.transform = 'translate3d(' + (-80 * (1 - inn)).toFixed(2) + 'px,0,0)';
       pfLineB.style.transform = 'translate3d(' + (80 * (1 - inn)).toFixed(2) + 'px,0,0)';
       pfKicker.style.transform = 'translate3d(0,' + (20 * (1 - inn)).toFixed(2) + 'px,0)';
       pfHead.style.opacity = (inn * out).toFixed(3);
 
-      /* 第三段：散落的拼貼，一張一個速度，所以有前後 */
-      const g = pfSpan(p, pfNoBand ? .28 : PF_GRID[0], PF_GRID[1]);
-      pfCards.forEach((el, i) => {
-        const sp = parseFloat(el.dataset.speed) || 1;
-        const k = pfEase(clamp((g - i * .05) / .42, 0, 1));
-        el.style.opacity = k.toFixed(3);
-        el.style.transform = 'translate3d(0,' + ((1 - g) * 170 * sp).toFixed(2) + 'px,0) scale(' + (.9 + .1 * k).toFixed(3) + ')';
-        el.classList.toggle('is-live', k > .6);
-      });
+      if (pfBand) {
+        /* 第二段與第三段是同一批卡片，交給它自己補間 */
+        pfBand.set(p);
+      } else {
+        /* 退路：CSS 3D 的緞帶 + DOM 的拼貼 */
+        if (pfCss) { pfCss.set(p); }
+        const g = pfSpan(p, PF_GRID[0], PF_GRID[1]);
+        pfCards.forEach((el, i) => {
+          const sp = parseFloat(el.dataset.speed) || 1;
+          const k = pfEase(clamp((g - i * .05) / .42, 0, 1));
+          el.style.opacity = k.toFixed(3);
+          el.style.transform = 'translate3d(0,' + ((1 - g) * 170 * sp).toFixed(2) + 'px,0) scale(' + (.9 + .1 * k).toFixed(3) + ')';
+          el.classList.toggle('is-live', k > .6);
+        });
+      }
 
       pfMeter.style.transform = 'scaleX(' + p.toFixed(4) + ')';
-      if (pfBand) { pfBand.set(pfSpan(p, PF_BAND[0], PF_BAND[1])); }
     }
 
-    /* ── 弧形卡片帶（Three.js）─────────────────────────────
-       每一張卡片都是一片 32x1 的平面，頂點著色器把它的 x 當成弧長，
-       換算成同一個圓柱面上的座標，所以卡片本身是真的彎的，
-       而不是一堆平面排成弧形。整條帶子再整體傾斜、旋轉、推近拉遠。 */
+    /* ── 著色器 ────────────────────────────────────────────
+       頂點：把平面繞著自己的中心彎起來。uBend 是彎曲度，
+       1 代表完全貼合半徑 uR 的圓柱，0.15 幾乎是平的。
+       卡片擺在哪裡由 JS 的 mesh.position / quaternion 決定。 */
     const PF_VERT = `
       uniform float uR;
-      uniform float uTheta;
-      uniform vec2 uPlane;
+      uniform float uBend;
       varying vec2 vUv;
       void main() {
         vUv = uv;
-        float a = uTheta + (position.x / uR);
-        vec3 p = vec3(sin(a) * uR, position.y, cos(a) * uR);
+        vec3 p = position;
+        if (uBend > 0.0005) {
+          float rEff = uR / uBend;
+          float a = p.x / rEff;
+          p = vec3(sin(a) * rEff, p.y, cos(a) * rEff - rEff);
+        }
         gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
       }
     `;
@@ -4047,6 +4223,7 @@
       uniform float uRad;
       uniform float uOpacity;
       uniform float uFade;
+      uniform float uLift;
       uniform vec3 uPaper;
       varying vec2 vUv;
 
@@ -4063,7 +4240,7 @@
 
         /* 影子往下偏一點，光源才像是從上面來的 */
         float ds = roundBox(pos + vec2(0.0, uCard.y * 0.05), uCard * 0.5, uRad);
-        float shade = (1.0 - smoothstep(0.0, uCard.y * 0.14, ds)) * 0.26 * (1.0 - inside);
+        float shade = (1.0 - smoothstep(0.0, uCard.y * 0.14, ds)) * (0.26 + uLift * 0.12) * (1.0 - inside);
 
         vec2 uvCard = (vUv * uPlane - (uPlane - uCard) * 0.5) / uCard;
         vec4 tex = texture2D(uMap, clamp(uvCard, 0.0, 1.0));
@@ -4073,76 +4250,113 @@
       }
     `;
 
+    /* ── WebGL 版：第二段的緞帶會補間成第三段的拼貼 ───────── */
     function pfMakeBand() {
-      if (pfBand || reduce || !window.THREE) { return; }
+      if (pfBand || reduce) { return; }
+
+      if (!window.THREE) {
+        console.warn('[chengyun] 活動成果：找不到 Three.js（cdnjs 與 jsdelivr 都沒回來），' +
+          '第二段改用 CSS 3D 退路，第三段用 DOM 拼貼。');
+        return;
+      }
 
       let renderer;
       try {
         renderer = new THREE.WebGLRenderer({ canvas: pfCanvas, alpha: true, antialias: true });
       } catch (err) {
-        return;                                   /* 沒有 WebGL：拼貼自己成立，不補救 */
+        console.warn('[chengyun] 活動成果：WebGL 建不起來（顯示卡被瀏覽器停用，或硬體加速關閉），' +
+          '改用 CSS 3D 退路。原因：', err);
+        return;
       }
       renderer.setClearColor(0x000000, 0);
 
-      const narrow = innerWidth < 768;
-      const N = narrow ? 8 : 14;
-      const CARD_H = 1.5;
-      const CARD_W = CARD_H * 1.6;                /* 16:10 */
-      const R = narrow ? 15 : 9;                  /* 窄螢幕半徑放大，弧度就淺 */
-      const STEP = (CARD_W * 1.06) / R;
-      const PLANE_W = CARD_W * 1.24;
-      const PLANE_H = CARD_H * 1.34;
-      const DIST = 16;
-
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(38, 1, .1, 200);
-      camera.position.set(0, 0, R + DIST);
-
+      const camera = new THREE.PerspectiveCamera(38, 1, .1, 400);
       const group = new THREE.Group();
-      group.rotation.z = -20 * Math.PI / 180;     /* 整條帶子斜著走 */
       scene.add(group);
 
       const paper = new THREE.Color(0xe8e8e6);
       const loader = new THREE.TextureLoader();
-      const textures = PF_SHOTS.map((src) => {
-        const tex = loader.load(src);
-        tex.minFilter = THREE.LinearFilter;
-        tex.generateMipmaps = false;
-        return tex;
-      });
+      let loaded = 0;
+      const textures = PF_SHOTS.map((src) => loader.load(src,
+        (tex) => { tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false; loaded++; draw(); },
+        undefined,
+        () => console.warn('[chengyun] 活動成果：貼圖載不到 —', src)));
 
-      const geo = new THREE.PlaneGeometry(PLANE_W, PLANE_H, 32, 1);
-      const cards = [];
+      let geo = null;
+      let cards = [];
+      let halfH = 1, halfW = 1;      /* 緞帶所在深度的視錐半高半寬 */
+      let gridH = 1, gridW = 1;      /* 拼貼所在深度（z=0）的視錐半高半寬 */
+      let gridBase = 3;              /* 由視錐回推的基準放大率 */
+      let raf = 0, live = false, dead = false, p = 0, needsDraw = true;
 
-      for (let i = 0; i < N; i++) {
-        const theta = (i - (N - 1) / 2) * STEP;
-        const mat = new THREE.ShaderMaterial({
-          vertexShader: PF_VERT,
-          fragmentShader: PF_FRAG,
-          transparent: true,
-          depthWrite: false,
-          side: THREE.DoubleSide,
-          uniforms: {
-            uMap: { value: textures[i % textures.length] },
-            uR: { value: R },
-            uTheta: { value: theta },
-            uPlane: { value: new THREE.Vector2(PLANE_W, PLANE_H) },
-            uCard: { value: new THREE.Vector2(CARD_W, CARD_H) },
-            uRad: { value: CARD_H * .035 },
-            uOpacity: { value: 0 },
-            uFade: { value: 0 },
-            uPaper: { value: new THREE.Vector3(paper.r, paper.g, paper.b) }
-          }
-        });
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.frustumCulled = false;               /* 頂點著色器改過位置，包圍盒不再準 */
-        group.add(mesh);
-        cards.push({ mesh, mat, theta });
+      const ZERO = new THREE.Vector3();
+      const eul = new THREE.Euler();
+      const qA = new THREE.Quaternion();
+      const qB = new THREE.Quaternion();
+      const raycaster = new THREE.Raycaster();
+      const ndc = new THREE.Vector2();
+
+      function build() {
+        cards.forEach((c) => { group.remove(c.mesh); c.mat.dispose(); });
+        if (geo) { geo.dispose(); }
+        cards = [];
+
+        const N = PF.cards;
+        const cardH = PF.cardH;
+        const cardW = cardH * 1.6;                 /* 16:10 */
+        const planeW = cardW * 1.24;
+        const planeH = cardH * 1.34;
+        const step = (cardW * PF.gap) / PF.radius;
+
+        geo = new THREE.PlaneGeometry(planeW, planeH, 32, 1);
+
+        for (let i = 0; i < N; i++) {
+          const theta = (i - (N - 1) / 2) * step;
+          const mat = new THREE.ShaderMaterial({
+            vertexShader: PF_VERT,
+            fragmentShader: PF_FRAG,
+            transparent: true,
+            depthWrite: false,
+            side: THREE.DoubleSide,
+            uniforms: {
+              uMap: { value: textures[i % textures.length] },
+              uR: { value: PF.radius },
+              uBend: { value: PF.bend },
+              uPlane: { value: new THREE.Vector2(planeW, planeH) },
+              uCard: { value: new THREE.Vector2(cardW, cardH) },
+              uRad: { value: cardH * .035 },
+              uOpacity: { value: 0 },
+              uFade: { value: 0 },
+              uLift: { value: 0 },
+              uPaper: { value: new THREE.Vector3(paper.r, paper.g, paper.b) }
+            }
+          });
+          const mesh = new THREE.Mesh(geo, mat);
+          mesh.frustumCulled = false;              /* 著色器改過頂點，包圍盒不再準 */
+          mesh.userData.i = i;
+          group.add(mesh);
+
+          const spot = PF_SPOTS[i % PF_SPOTS.length];
+          cards.push({
+            mesh, mat, theta,
+            spot, tilt: pfTilt(i), yaw: pfYaw(i), speed: pfSpeed(i),
+            cyl: new THREE.Vector3(), grid: new THREE.Vector3(),
+            qCyl: new THREE.Quaternion(), qGrid: new THREE.Quaternion()
+          });
+        }
+        placeStatic();
       }
 
-      const WANT = narrow ? 3 : 7.5;        /* 想在畫面上同時看到幾張 */
-      let halfH = 1, halfW = 1, base = 1;
-      let raf = 0, live = false, t = 0, dead = false, wasBlank = false;
+      /* 圓柱上的座標與拼貼落點：只跟參數與視窗有關，不必每格重算 */
+      function placeStatic() {
+        cards.forEach((c) => {
+          c.cyl.set(Math.sin(c.theta) * PF.radius, 0, Math.cos(c.theta) * PF.radius);
+          c.qCyl.setFromEuler(eul.set(0, c.theta, 0));
+          c.grid.set(c.spot[0] * gridW, c.spot[1] * gridH, 0);
+          c.qGrid.setFromEuler(eul.set(c.tilt, c.yaw, c.tilt * .4));
+        });
+      }
 
       function resize() {
         const w = pfCanvas.clientWidth || innerWidth;
@@ -4150,73 +4364,185 @@
         renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
         renderer.setSize(w, h, false);
         camera.aspect = w / h;
+        camera.position.set(0, 0, PF.radius + PF.dist);
         camera.updateProjectionMatrix();
-        halfH = Math.tan(camera.fov * Math.PI / 360) * DIST;
+        const tan = Math.tan(camera.fov * Math.PI / 360);
+        halfH = tan * PF.dist;                       /* 緞帶在圓柱前緣，距離 dist */
         halfW = halfH * camera.aspect;
-        /* 直式螢幕的視錐很窄，固定縮放會讓一張卡片就吃掉整個畫面 */
-        base = (halfW * 2) / (WANT * CARD_W);
+        gridH = tan * (PF.radius + PF.dist);         /* 拼貼落在 z=0 的平面上 */
+        gridW = gridH * camera.aspect;
+        /* 一張卡片該佔畫面多少，由「橫向排得下幾張」回推，
+           直式螢幕的視錐很窄，固定倍率會讓一張卡片吃掉半個畫面 */
+        const across = camera.aspect > 1 ? 7 : 3.4;
+        gridBase = (gridW * 2) / (PF.cardH * 1.6 * across);
+        placeStatic();
+        needsDraw = true;
       }
 
-      function frame() {
-        /* 進場：左下角、遠、轉過去。出場：右上角、遠、轉過來。
-           中間那一段最靠近鏡頭，剛好掃過大標前面 */
-        const bell = Math.sin(Math.PI * clamp(t, 0, 1));
-        group.rotation.y = lerp(-1.35, 1.35, t);
-        group.position.set(
-          lerp(-halfW * .95, halfW * .95, t),
-          lerp(-halfH * 1.15, halfH * 1.15, t) - halfH * .2,
-          lerp(-9, 5, bell)
-        );
-        const sc = base * (.88 + bell * .22);
-        group.scale.set(sc, sc, sc);
+      function draw() {
+        if (dead) { return; }
 
-        const alpha = pfSpan(t, 0, .08) * (1 - pfSpan(t, .90, 1));
-        if (alpha < .002 && wasBlank) { return; }         /* 整條看不見就不重畫 */
-        wasBlank = alpha < .002;
+        const key = pfKeyAt(p);
+        const morph = pfEase(pfSpan(p, PF_MORPH[0], PF_MORPH[1]));
+        const alpha = pfSpan(p, .13, .20);
+
+        /* 群組載著緞帶飛；補間到拼貼時它回到原點，卡片的座標就等於世界座標 */
+        group.position.set(
+          lerp(key.px * halfW, 0, morph),
+          lerp(key.py * halfH, 0, morph),
+          lerp(key.pz, 0, morph)
+        );
+        group.rotation.set(
+          lerp(key.rx * PF_RAD, 0, morph),
+          lerp(key.ry * PF_RAD, 0, morph),
+          lerp(key.rz * PF_RAD, 0, morph)
+        );
+
+        /* 拼貼期還在捲的話，每張卡片用自己的速度漂移，才有前後 */
+        const drift = (1 - pfSpan(p, PF_MORPH[0], 1)) * gridH * .55;
 
         for (let i = 0; i < cards.length; i++) {
           const c = cards[i];
-          /* 轉到背面的卡片不畫；接近側面的先往紙色融掉 */
+          c.mesh.position.set(
+            lerp(c.cyl.x, c.grid.x, morph),
+            lerp(c.cyl.y, c.grid.y + drift * c.speed, morph),
+            lerp(c.cyl.z, c.grid.z, morph)
+          );
+          qA.copy(c.qCyl); qB.copy(c.qGrid);
+          c.mesh.quaternion.copy(qA).slerp(qB, morph);
+          const sc = lerp(1, gridBase * PF.gridScale * c.spot[2], morph);
+          c.mesh.scale.set(sc, sc, sc);
+          c.mat.uniforms.uBend.value = lerp(PF.bend, PF.bendGrid, morph);
+          c.mat.uniforms.uR.value = PF.radius;
+          c.mat.uniforms.uLift.value = morph;
+
+          /* 緞帶期轉到背面的卡片先融掉；補間到拼貼時全部面向鏡頭 */
           const face = Math.cos(c.theta + group.rotation.y);
-          const vis = clamp((face - .02) / .34, 0, 1);
+          const vis = lerp(clamp((face - .02) / .34, 0, 1), 1, morph);
           c.mat.uniforms.uOpacity.value = alpha * vis;
-          c.mat.uniforms.uFade.value = (1 - face) * .5;
+          c.mat.uniforms.uFade.value = lerp((1 - face) * .5, 0, morph);
           c.mesh.visible = alpha * vis > .004;
         }
 
+        pfCanvas.classList.toggle('is-live', morph > .6);
         renderer.render(scene, camera);
       }
 
       function loop() {
         if (dead) { return; }
-        frame();
+        draw();
         raf = requestAnimationFrame(loop);
       }
+
+      function pick(ev) {
+        if (dead || !pfCanvas.classList.contains('is-live')) { return -1; }
+        const r = pfCanvas.getBoundingClientRect();
+        ndc.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
+        ndc.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
+        raycaster.setFromCamera(ndc, camera);
+        const hit = raycaster.intersectObjects(cards.map((c) => c.mesh), false)[0];
+        return hit ? hit.object.userData.i : -1;
+      }
+
+      pfCanvas.addEventListener('pointermove', (ev) => {
+        const i = pick(ev);
+        pfCanvas.classList.toggle('hover-target', i >= 0);
+        if (i !== pfHoverIndex) { pfShowHover(i); }
+      });
+      pfCanvas.addEventListener('pointerleave', () => {
+        pfCanvas.classList.remove('hover-target');
+        pfShowHover(-1);
+      });
+      pfCanvas.addEventListener('click', (ev) => {
+        const i = pick(ev);
+        if (i >= 0) { openDetail('work', i % PF_SHOTS.length, pfCards[i % pfCards.length]); }
+      });
 
       function dispose() {
         dead = true;
         cancelAnimationFrame(raf);
         cards.forEach((c) => c.mat.dispose());
         textures.forEach((tex) => tex.dispose());
-        geo.dispose();
+        if (geo) { geo.dispose(); }
         renderer.dispose();
         pfBand = null;
+        root.classList.remove('pf-gl-on');
         pfCanvas.style.display = 'none';
+        console.warn('[chengyun] 活動成果：WebGL 顯示卡內容被回收，改用 CSS 3D 退路。');
+        pfMakeCss();
+        pfRender(pfLast);
       }
 
-      /* 顯示卡被回收時 Three.js 會整個失效，收乾淨、讓拼貼接手 */
       pfCanvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); dispose(); });
+
+      build();
+      resize();
+      addEventListener('resize', resize);
+      root.classList.add('pf-gl-on');
+
+      pfBand = {
+        set(v) { p = v; },
+        resize,
+        rebuild() { build(); resize(); },
+        start() { if (!live && !dead) { live = true; loop(); } },
+        stop() { live = false; cancelAnimationFrame(raf); },
+        dispose,
+        PF, PF_KEYS
+      };
+    }
+
+    /* ── CSS 3D 退路：沒有 WebGL 時的第二段 ─────────────────
+       卡片本身彎不起來（CSS 做不到），但整條弧是真的 3D：
+       每張卡片 rotateY 之後往外推一個半徑，就排在圓柱面上。 */
+    function pfMakeCss() {
+      if (pfCss || reduce) { return; }
+      pfCssHost.hidden = false;
+      const N = PF.cards;
+      const cards = [];
+      pfCssInner.innerHTML = '';
+
+      for (let i = 0; i < N; i++) {
+        const el = document.createElement('div');
+        el.className = 'pf-bcard';
+        el.style.backgroundImage = 'url(' + PF_SHOTS[i % PF_SHOTS.length] + ')';
+        pfCssInner.appendChild(el);
+        cards.push({ el, theta: (i - (N - 1) / 2) });
+      }
+
+      let cw = 120, ch = 75, rad = 900;
+
+      function resize() {
+        const w = pfCssHost.clientWidth || innerWidth;
+        cw = Math.max(74, Math.min(190, w * .085));
+        ch = cw / 1.6;
+        rad = cw * PF.gap * N / (2 * Math.PI) * 3.2;   /* 弧度和 WebGL 版接近 */
+        cards.forEach((c) => {
+          c.el.style.width = cw + 'px';
+          c.el.style.height = ch + 'px';
+          c.el.style.marginLeft = (-cw / 2) + 'px';
+          c.el.style.marginTop = (-ch / 2) + 'px';
+          const a = c.theta * (cw * PF.gap) / rad;
+          c.el.style.transform = 'rotateY(' + a + 'rad) translateZ(' + rad + 'px)';
+        });
+      }
+
+      function set(p) {
+        const key = pfKeyAt(p);
+        const alpha = pfSpan(p, .13, .20) * (1 - pfSpan(p, .62, .72));
+        pfCssHost.style.opacity = alpha.toFixed(3);
+        pfCssHost.style.visibility = alpha < .004 ? 'hidden' : 'visible';
+        if (alpha < .004) { return; }
+        const w = pfCssHost.clientWidth || innerWidth;
+        const h = pfCssHost.clientHeight || innerHeight;
+        /* pz 是世界單位，這裡換算成一個看起來相當的 px 位移 */
+        pfCssInner.style.transform =
+          'translate3d(' + (key.px * w * .5).toFixed(1) + 'px,' + (key.py * h * .5).toFixed(1) + 'px,' +
+          (key.pz * 26 - rad).toFixed(1) + 'px) rotate(' + key.rz.toFixed(2) + 'deg) rotateY(' + key.ry.toFixed(2) + 'deg)';
+      }
 
       resize();
       addEventListener('resize', resize);
-
-      pfBand = {
-        set(v) { t = v; },
-        resize,
-        start() { if (!live && !dead) { live = true; loop(); } },
-        stop() { live = false; cancelAnimationFrame(raf); },
-        dispose
-      };
+      pfCss = { set, resize };
     }
 
     /* ── 進度來源：Lenis + ScrollTrigger，兩者都缺就讀 scrollTop ── */
@@ -4236,13 +4562,15 @@
         try {
           pfLenis = new Lenis({ wrapper: pfWrap, content: pfTrack, lerp: .1, smoothWheel: true });
         } catch (err) {
-          pfLenis = null;                          /* 版本對不上就用原生捲動 */
+          pfLenis = null;
+          console.warn('[chengyun] 活動成果：Lenis 起不來，改用原生捲動。', err);
         }
+      } else if (!window.Lenis && !pfLenis) {
+        console.warn('[chengyun] 活動成果：找不到 Lenis，改用原生捲動（少一層慣性，其餘照常）。');
       }
 
       if (pfLenis) {
         if (hasGsap) {
-          /* 把 Lenis 掛到 GSAP 的 ticker 上，兩邊共用同一個時間軸 */
           gsap.ticker.add(pfTick);
           gsap.ticker.lagSmoothing(0);
         } else {
@@ -4267,6 +4595,8 @@
             scrub: 1
           }
         });
+      } else if (!window.ScrollTrigger) {
+        console.warn('[chengyun] 活動成果：找不到 ScrollTrigger，改用原生捲動位置驅動（少一層 scrub 平滑）。');
       }
     }
 
@@ -4277,10 +4607,54 @@
       if (!pfScrub) { pfRender(pfProgress()); }
     }, { passive: true });
 
-    /* 拼貼點進去看這一件的細節 */
+    /* DOM 拼貼：WebGL 版接手時它只留在無障礙樹裡，但按下去一樣開細節 */
     pfCards.forEach((el) => {
       el.addEventListener('click', () => openDetail('work', +el.dataset.i, el));
     });
+
+    /* ── ?debug：lil-gui 調校面板 ─────────────────────────── */
+    function pfDebugPanel() {
+      if (!/(^|[?&])debug\b/.test(location.search) || window.__pfGui) { return; }
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/lil-gui@0.19.2/dist/lil-gui.umd.min.js';
+      s.onerror = () => console.warn('[chengyun] lil-gui 載不到，調校面板跳過。');
+      s.onload = () => {
+        if (!window.lil || !window.lil.GUI) { return; }
+        const gui = new lil.GUI({ title: '活動成果 · 緞帶' });
+        window.__pfGui = gui;
+        const redraw = () => { if (pfBand) { pfBand.rebuild(); } if (pfCss) { pfCss.resize(); } pfRender(pfLast); };
+        const soft = () => pfRender(pfLast);
+
+        const f1 = gui.addFolder('卡片與鏡頭');
+        f1.add(PF, 'cards', 4, 30, 1).name('卡片數量').onFinishChange(redraw);
+        f1.add(PF, 'cardH', .3, 3, .01).name('卡片尺寸').onChange(redraw);
+        f1.add(PF, 'gap', .8, 2.4, .01).name('卡片間距').onChange(redraw);
+        f1.add(PF, 'radius', 3, 40, .1).name('圓柱半徑').onChange(redraw);
+        f1.add(PF, 'bend', 0, 2, .01).name('彎曲度（緞帶）').onChange(soft);
+        f1.add(PF, 'bendGrid', 0, 1, .01).name('彎曲度（拼貼）').onChange(soft);
+        f1.add(PF, 'dist', 4, 80, .5).name('相機距離').onChange(redraw);
+        f1.add(PF, 'gridScale', .3, 3, .02).name('拼貼放大（基準倍數）').onChange(soft);
+
+        PF_KEYS.forEach((k, i) => {
+          const f = gui.addFolder('關鍵影格 ' + k.p.toFixed(2));
+          f.add(k, 'px', -3, 3, .01).name('位置 X（半寬倍數）').onChange(soft);
+          f.add(k, 'py', -3, 3, .01).name('位置 Y（半高倍數）').onChange(soft);
+          f.add(k, 'pz', -40, 20, .1).name('位置 Z（世界）').onChange(soft);
+          f.add(k, 'rx', -180, 180, .5).name('旋轉 X（度）').onChange(soft);
+          f.add(k, 'ry', -180, 180, .5).name('旋轉 Y（度）').onChange(soft);
+          f.add(k, 'rz', -180, 180, .5).name('旋轉 Z（度）').onChange(soft);
+          if (i > 0) { f.close(); }
+        });
+
+        gui.add({
+          dump() {
+            console.log('PF =', JSON.stringify(PF, null, 2));
+            console.log('PF_KEYS =', JSON.stringify(PF_KEYS, null, 2));
+          }
+        }, 'dump').name('把目前數值印到 console');
+      };
+      document.head.appendChild(s);
+    }
 
     pfSync();
     pfRender(reduce ? 1 : 0);
@@ -4288,12 +4662,12 @@
     addEventListener('cy:scene', (e) => {
       if (e.detail === 'portfolio') {
         pfMakeBand();
-        /* 沒有 WebGL 就沒有第二段，行程也跟著收短 */
-        pfNoBand = !pfBand && !reduce;
-        if (pfNoBand) { pfTrack.style.height = '170svh'; }
+        if (!pfBand) { pfMakeCss(); }
         pfWire();
+        pfDebugPanel();
         pfHeadIntro();
         if (pfBand) { pfBand.resize(); pfBand.start(); }
+        if (pfCss) { pfCss.resize(); }
         if (pfLenis) { pfLenis.resize(); pfLenis.start(); }
         /* 分鏡剛顯示出來，量測要重做一次，否則行程長度是舊的 */
         if (window.ScrollTrigger) { requestAnimationFrame(() => ScrollTrigger.refresh()); }
@@ -4301,6 +4675,7 @@
       } else {
         if (pfBand) { pfBand.stop(); }
         if (pfLenis) { pfLenis.stop(); }
+        pfShowHover(-1);
       }
     });
 

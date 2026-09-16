@@ -4060,12 +4060,13 @@
     /* 可調參數。?debug 會開一個 lil-gui 面板接到這裡 */
     const PF = {
       cards: 14,
-      cardH: 1.8,         /* 卡片高（世界單位），寬 = 高 x 1.6 */
-      gap: 0.88,          /* 卡片間距倍率：沿路徑的弧長間隔 = 卡片寬 x 這個值。
-                             小於 1 代表相鄰卡片微微重疊，帶子才連得起來 */
+      cardH: 1.3,         /* 卡片高（世界單位），寬 = 高 x 1.6 */
+      gap: 1.44,          /* 卡片間距倍率：沿路徑的弧長間隔 = 卡片寬 x 這個值 */
+      faceCam: true,      /* 卡片定格：正面永遠對著鏡頭，不隨路徑切線轉 */
       bendR: 11,          /* 彎曲半徑：越小彎得越厲害 */
-      bend: 1,            /* 緞帶期的彎曲度 */
-      bendGrid: 0.15,     /* 拼貼期的彎曲度 */
+      bend: 0,            /* 緞帶期的彎曲度（定格時預設為 0，卡片是平的） */
+      bendGrid: 0,        /* 拼貼期的彎曲度 */
+      gridTilt: 0.05,     /* 拼貼期每張卡片的輕微傾角（0 = 完全定格） */
       gridDist: 26,       /* 拼貼牆離鏡頭多遠（＝相機距離） */
       gridScale: 1.0      /* 拼貼期的卡片放大倍率（1 = 自動算出來的基準） */
     };
@@ -4076,13 +4077,13 @@
        鏡頭在原點朝 -Z 看，z 越負代表越深。
        起點在左下的深處，中段幾乎擦過鏡頭，終點回到右上的深處。 */
     const PF_PATH = [
-      { sx: -1.06, sy: -0.46, z: -22 },
-      { sx: -0.74, sy: -0.30, z: -16 },
-      { sx: -0.42, sy: -0.14, z: -11 },
-      { sx:  0.05, sy:  0.00, z:  -7 },
-      { sx:  0.50, sy:  0.16, z: -11 },
-      { sx:  0.80, sy:  0.34, z: -16 },
-      { sx:  1.10, sy:  0.50, z: -22 }
+      { sx: -1.45, sy: -0.55, z: -26 },
+      { sx: -0.95, sy:  0.14, z: -17 },
+      { sx: -0.42, sy:  0.44, z: -11 },
+      { sx:  0.05, sy:  0.10, z:  -8 },
+      { sx:  0.50, sy: -0.34, z: -11 },
+      { sx:  1.00, sy:  0.06, z: -17 },
+      { sx:  1.50, sy:  0.60, z: -26 }
     ];
 
     /* 拼貼的落點：x、y 是視錐半寬半高的倍數，第三個是相對大小 */
@@ -4117,8 +4118,8 @@
     }
 
     /* 每張卡片固定的小傾角與視差速度：用編號算，重新整理也不會變 */
-    function pfTilt(i) { return ((i * 37 % 25) / 12 - 1) * 0.12; }
-    function pfYaw(i) { return ((i * 53 % 25) / 12 - 1) * 0.12; }
+    function pfTilt(i) { return (i * 37 % 25) / 12 - 1; }   /* -1 ~ 1 */
+    function pfYaw(i) { return (i * 53 % 25) / 12 - 1; }
     function pfSpeed(i) { return 0.8 + (i * 29 % 11) / 10 * 0.5; }
 
     /* 拼貼卡片的說明跟著語言走 */
@@ -4386,10 +4387,7 @@
       }
 
       function placeGrid() {
-        cards.forEach((c) => {
-          c.grid.set(c.spot[0] * gridW, c.spot[1] * gridH, -PF.gridDist);
-          c.qGrid.setFromEuler(eul.set(c.tilt, c.yaw, c.tilt * .4));
-        });
+        cards.forEach((c) => { c.grid.set(c.spot[0] * gridW, c.spot[1] * gridH, -PF.gridDist); });
       }
 
       function resize() {
@@ -4431,18 +4429,26 @@
           const uu = clamp(u, 0, 1);
 
           curve.getPointAt(uu, vPos);
-          curve.getTangentAt(uu, vTan).normalize();
 
-          /* 卡片的寬邊沿著切線走，正面朝鏡頭：
-             這樣彎曲著色器彎的方向就是路徑方向 */
-          vToCam.copy(vPos).negate().normalize();
-          vX.copy(vTan);
-          vY.crossVectors(vToCam, vX);
-          if (vY.lengthSq() < 1e-6) { vY.set(0, 1, 0); }
-          vY.normalize();
-          vZ.crossVectors(vX, vY).normalize();
-          mBasis.makeBasis(vX, vY, vZ);
-          qPath.setFromRotationMatrix(mBasis);
+          if (PF.faceCam) {
+            /* 定格：鏡頭在原點朝 -Z，卡片本來就正對鏡頭，不轉就是不轉。
+               沿路徑滑過去時只有位置和遠近在變，圖片本身像貼在玻璃上 */
+            qPath.identity();
+          } else {
+            /* 另一種做法：寬邊沿著切線走，彎曲著色器彎的方向就是路徑方向 */
+            curve.getTangentAt(uu, vTan).normalize();
+            vToCam.copy(vPos).negate().normalize();
+            vX.copy(vTan);
+            vY.crossVectors(vToCam, vX);
+            if (vY.lengthSq() < 1e-6) { vY.set(0, 1, 0); }
+            vY.normalize();
+            vZ.crossVectors(vX, vY).normalize();
+            mBasis.makeBasis(vX, vY, vZ);
+            qPath.setFromRotationMatrix(mBasis);
+          }
+
+          c.qGrid.setFromEuler(eul.set(
+            c.tilt * PF.gridTilt, c.yaw * PF.gridTilt, c.tilt * PF.gridTilt * .4));
 
           c.mesh.position.set(
             lerp(vPos.x, c.grid.x, morph),
@@ -4686,9 +4692,11 @@
         f1.add(PF, 'cards', 4, 30, 1).name('卡片數量').onFinishChange(hard);
         f1.add(PF, 'cardH', .3, 4, .01).name('卡片尺寸').onChange(hard);
         f1.add(PF, 'gap', .8, 2.4, .01).name('卡片間距').onChange(soft);
+        f1.add(PF, 'faceCam').name('卡片定格（不隨路徑旋轉）').onChange(soft);
         f1.add(PF, 'bendR', 2, 40, .1).name('圓柱半徑（彎曲）').onChange(soft);
         f1.add(PF, 'bend', 0, 2, .01).name('彎曲度（緞帶）').onChange(soft);
         f1.add(PF, 'bendGrid', 0, 1, .01).name('彎曲度（拼貼）').onChange(soft);
+        f1.add(PF, 'gridTilt', 0, .3, .005).name('拼貼傾角（0 = 定格）').onChange(soft);
         f1.add(PF, 'gridDist', 6, 80, .5).name('相機距離（拼貼牆）').onChange(hard);
         f1.add(PF, 'gridScale', .3, 3, .02).name('拼貼放大（基準倍數）').onChange(soft);
 

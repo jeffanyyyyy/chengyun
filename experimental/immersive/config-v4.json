@@ -1,0 +1,27 @@
+{
+  "note": "04 活動成果的緞帶參數快照（v4）。改壞了就把 PF / PF_T 的值貼回 index.html 對應的物件。",
+  "saved": "2026-09-16 · 加深透視、傾斜方向隨階段改變之前",
+  "PF": {
+    "cards": 10, "fov": 46, "radiusFrac": 0.90, "ellipse": 0.78,
+    "arcFrac": 0.55, "slideTurns": 0.55, "slide0": 0.0,
+    "clipL": 0.12, "clipR": 0.88, "ringDist": 20,
+    "tiltX": 0.08, "tiltZ": 0.28,
+    "cardScale": 1.0, "gapPct": 0.01,
+    "bend": 1, "splitZ": 0, "splitSoft": 0.14,
+    "riseFrac": 1.60, "riseX": 1.00, "riseArc": 0.62,
+    "outX": 1.60, "outY": 1.55,
+    "scaleIn": 0.55, "scalePunch": 1.38, "scaleShow": 1.00, "scaleOut": 1.12,
+    "shade": 0.10, "outTilt": 0.10, "outTiltZ": 0.00,
+    "trackR1": 1.00, "trackR2": 1.26, "trackAlpha": 0.55,
+    "titleSpan": 1.42, "titleMid": 0.465,
+    "gridDist": 26, "gridFov": 46, "gridScale": 1.0, "gridTilt": 0.05
+  },
+  "PF_T": {
+    "titleSweepA": 0.00, "titleSweepB": 0.92,
+    "ringInA": 0.16, "ringInB": 0.34,
+    "punchA": 0.26, "punchB": 0.42,
+    "showA": 0.42, "showB": 0.62,
+    "ringOutA": 0.55, "ringOutB": 0.84,
+    "morphA": 0.85, "morphB": 1.00
+  }
+}

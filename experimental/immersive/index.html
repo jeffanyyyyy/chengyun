@@ -4055,20 +4055,25 @@
 
     /* 可調參數。?debug 會開一個 lil-gui 面板接到這裡 */
     const PF = {
-      cards: 10,
-      fov: 46,            /* 近平視：帶子扁、看不到軌道內側；透視強度交給半徑/距離比 */
-      radiusFrac: 0.90,   /* 軌道長半徑 = 這個倍數 x 軌道深度上的畫面半寬 */
-      ellipse: 0.78,      /* 軌道短半徑（深度方向）是長半徑的幾倍 */
-      arcFrac: 0.55,      /* 緞帶佔軌道周長的比例：開放的一段，頭尾不相連 */
-      slideTurns: 0.55,   /* 整段沿軌道滑過幾圈周長 */
+      cards: 9,
+      fov: 30,            /* 由「近端 60% / 遠端 15%」反推：近遠深度比 1 : 4 */
+      radiusFrac: 0.76,   /* 軌道寬度 = 這個倍數 x 畫面半寬。0.76 = 軌道的左右
+                             兩端剛好落在裁切框上，那裡的卡片正好轉成側面 */
+      ellipse: 1.84,      /* 軌道深度是寬度的幾倍。> 1 = 前後拉得比左右深，
+                             這條決定近/遠的大小差距 */
+      arcFrac: 0.60,      /* 緞帶佔軌道周長的比例：開放的一段，頭尾不相連 */
+      slideTurns: 0.35,   /* 整段沿軌道滑過幾圈周長 */
       slide0: 0.00,       /* 起始位置（周長的倍數）；0 = 主秀時緞帶中段在最近點 */
       clipL: 0.12,        /* 左右垂直裁切框：只顯示畫面寬度這兩個比例之間的卡片 */
       clipR: 0.88,
       ringDist: 20,       /* 軌道中心離鏡頭多遠 */
-      tiltX: 0.08,        /* 軸心傾斜：越小越接近平視，越看不到圓環內側 */
-      tiltZ: 0.28,        /* 畫面上的傾斜：正值＝右端抬高，約 16 度 */
+      tiltX: 0.08,        /* 軸心傾斜：越小越接近平視，越看不到軌道內側 */
+      /* 畫面上的傾斜角分三段。正值＝左低右高，負值＝左高右低 */
+      tiltZIn: 0.30,      /* 進場：在下半部、左低右高 */
+      tiltZShow: -0.24,   /* 主秀：翻成左高右低，往右下傾 */
+      tiltZOut: 0.34,     /* 離場：轉回左低右高，往右上飛出 */
       cardScale: 1.0,     /* 卡片尺寸的額外倍率（1 = 剛好繞滿一圈） */
-      gapPct: 0.01,       /* 卡片之間留的縫，佔卡片寬度的比例（幾乎不留） */
+      gapPct: 0.00,       /* 卡片之間留的縫：0 = 首尾相接，整條連續 */
       bend: 1,            /* 卡片沿圓柱面的彎曲度 */
       splitZ: 0,          /* 前後分界：相對圓環中心的 z 位置 */
       splitSoft: 0.14,    /* 分界的柔邊（佔半徑的比例），跨界時交叉淡出不閃 */
@@ -4078,12 +4083,11 @@
       outX: 1.60,         /* 離場往右多遠（半寬倍數）：不縮小，靠平移出畫面 */
       outY: 1.55,         /* 離場往上多遠（半高倍數） */
       scaleIn: 0.55,      /* 剛從左下出現時的尺寸 */
-      scalePunch: 1.38,   /* 過渡：一張卡片翻到最近時整體放大的峰值（近端高度 ~2 倍） */
+      scalePunch: 1.25,   /* 過渡：一張卡片翻到最近時整體放大的峰值 */
       scaleShow: 1.00,    /* 主秀時的尺寸；左右端點靠它固定 */
       scaleOut: 1.12,     /* 離場時的尺寸——維持大，不縮成小物件 */
       shade: 0.10,        /* 卡片外緣柔影的濃度 */
       outTilt: 0.10,      /* 離場時軸心幾乎不再倒：飛出去時仍是一條扁帶 */
-      outTiltZ: 0.00,     /* 離場時 Z 軸再轉多少 */
       trackR1: 1.00,      /* 軌道細線一：就是緞帶跑的那條橢圓 */
       trackR2: 1.26,      /* 軌道細線二：外面再一條 */
       trackAlpha: 0.55,   /* 細線濃度 */
@@ -4510,7 +4514,11 @@
         const punch = Math.sin(Math.PI * pfSpan(p, PF_T.punchA, PF_T.punchB));
         const ringScale = clamp(lerp(lerp(PF.scaleIn, PF.scaleShow, rise), PF.scaleOut, outFast) *
           (1 + (PF.scalePunch - 1) * punch), .3, 2.2);
-        eTilt.set(PF.tiltX + outFast * PF.outTilt, 0, PF.tiltZ - outFast * PF.outTiltZ);
+        /* 傾斜方向隨階段翻面：進場左低右高 → 主秀左高右低 → 離場再翻回來。
+           進場那一段要整段維持住，所以翻面的窗開在進場結束之後 */
+        const tzMix = pfSmooth(pfSpan(p, PF_T.ringInB - .04, PF_T.showA));
+        const tiltZNow = lerp(lerp(PF.tiltZIn, PF.tiltZShow, tzMix), PF.tiltZOut, outFast);
+        eTilt.set(PF.tiltX + outFast * PF.outTilt, 0, tiltZNow);
         qTilt.setFromEuler(eTilt);
 
         /* 緞帶沿軌道往前滑（像火車在軌道上跑），不是整條在原地自轉。
@@ -4529,19 +4537,29 @@
         const soft = Math.max(ringR * PF.splitSoft, 1e-4);
 
         const rzTrack = ringR * PF.ellipse;
+        const halfStep = (trackLen * PF.arcFrac / PF.cards) * .5;
 
         for (let i = 0; i < cards.length; i++) {
           const c = cards[i];
-          const a = trackAt(sCenter + c.ds);
-          const sa = Math.sin(a), ca = Math.cos(a);
+          const sMid = sCenter + c.ds;
+
+          /* 卡片的首、中、尾三點都取自軌道本身。方向用「弦」，彎曲半徑取
+             通過這三點的外接圓——相鄰卡片的端點就落在同一個軌道點上，
+             整條緞帶接得起來、中間不會開縫。 */
+          const aM = trackAt(sMid);
+          const mx = Math.sin(aM) * ringR, mz = Math.cos(aM) * rzTrack;
+          const a0 = trackAt(sMid - halfStep);
+          const x0 = Math.sin(a0) * ringR, z0 = Math.cos(a0) * rzTrack;
+          const a1 = trackAt(sMid + halfStep);
+          const x1 = Math.sin(a1) * ringR, z1 = Math.cos(a1) * rzTrack;
 
           /* 軌道上的位置，先套上軸心傾斜 —— 這就是「相對軌道中心」的座標 */
-          vLocal.set(sa * ringR, 0, ca * rzTrack).applyQuaternion(qTilt);
+          vLocal.set(mx, 0, mz).applyQuaternion(qTilt);
           const zRel = vLocal.z;
           vLocal.multiplyScalar(ringScale);
 
-          /* 卡片正面朝著軌道的外法線，也就是跟著切線走 */
-          qSpin.setFromAxisAngle(AXIS_Y, Math.atan2(rzTrack * sa, ringR * ca));
+          /* 圓弧在中點的切線剛好平行於弦，所以直接用弦的方向 */
+          qSpin.setFromAxisAngle(AXIS_Y, Math.atan2(-(z1 - z0), x1 - x0));
           qCard.copy(qTilt).multiply(qSpin);
 
           vGrid.set(c.spot[0] * gridW, c.spot[1] * gridH + drift * c.speed, -PF.gridDist);
@@ -4557,9 +4575,12 @@
           const sc = lerp(ringScale, gridBase * PF.gridScale * c.spot[2], morph);
           c.mesh.scale.set(sc, sc, sc);
 
-          /* 彎曲度跟著該點的曲率半徑走，橢圓的兩端才不會過彎 */
-          const sp = Math.sqrt(ringR * ringR * ca * ca + rzTrack * rzTrack * sa * sa);
-          c.mat.uniforms.uR.value = Math.max(sp * sp * sp / (ringR * rzTrack), cardW * .6);
+          /* 外接圓半徑 = |ab||bc||ca| / (4 x 三角形面積) */
+          const area2 = Math.abs((mx - x0) * (z1 - z0) - (mz - z0) * (x1 - x0));
+          c.mat.uniforms.uR.value = area2 > 1e-5
+            ? Math.min(Math.max(Math.hypot(mx - x0, mz - z0) * Math.hypot(x1 - mx, z1 - mz) *
+                Math.hypot(x1 - x0, z1 - z0) / (2 * area2), cardW * .55), cardW * 80)
+            : cardW * 80;
           c.mat.uniforms.uClip.value.set(clipOff ? 0 : clipL, clipOff ? -1 : clipR);
           c.mat.uniforms.uBend.value = lerp(PF.bend, 0, morph);
           c.mat.uniforms.uShade.value = PF.shade;
@@ -4751,7 +4772,8 @@
         const ringY = (rise - 1) * PF.riseFrac * halfH + out * PF.outY * halfH;
         const sc = clamp(lerp(PF.scaleShow, PF.scaleOut, out), .8, 1.2);
         const tx = PF.tiltX + out * PF.outTilt;
-        const tz = PF.tiltZ - out * PF.outTiltZ;
+        const tz = lerp(lerp(PF.tiltZIn, PF.tiltZShow,
+          pfSmooth(pfSpan(p, PF_T.ringInB - .04, PF_T.showA))), PF.tiltZOut, out);
         /* 開放緞帶：卡片只佔圓周的 arcFrac，整條沿著軌道往前滑 */
         const step = Math.PI * 2 * PF.arcFrac / PF.cards;
         const slide = (pfSpan(p, PF_T.ringInA, PF_T.ringOutB) - .5 + PF.slide0) *
@@ -4861,7 +4883,7 @@
       s.onerror = () => console.warn('[chengyun] lil-gui 載不到，調校面板跳過。');
       s.onload = () => {
         if (!window.lil || !window.lil.GUI) { return; }
-        const gui = new lil.GUI({ title: '活動成果 · 圓環' });
+        const gui = new lil.GUI({ title: '活動成果 · 緞帶' });
         window.__pfGui = gui;
         const hard = () => { if (pfBand) { pfBand.rebuild(); } if (pfCss) { pfCss.rebuild(); } pfRender(pfLast); };
         const soft = () => pfRender(pfLast);
@@ -4869,11 +4891,13 @@
         const f1 = gui.addFolder('軌道與緞帶');
         f1.add(PF, 'cards', 4, 30, 1).name('卡片數量').onFinishChange(hard);
         f1.add(PF, 'fov', 30, 80, 1).name('相機視角 FOV').onChange(hard);
-        f1.add(PF, 'radiusFrac', .2, 1.6, .01).name('軌道長半徑（半寬倍數）').onChange(hard);
-        f1.add(PF, 'ringDist', 6, 60, .5).name('相機距離（軌道深度）').onChange(hard);
-        f1.add(PF, 'tiltX', -1.4, 1.4, .01).name('軸心傾斜 X').onChange(soft);
-        f1.add(PF, 'tiltZ', -1.4, 1.4, .01).name('軸心傾斜 Z').onChange(soft);
-        f1.add(PF, 'ellipse', .2, 1.6, .01).name('軌道短/長半徑').onChange(hard);
+        f1.add(PF, 'radiusFrac', .2, 3.2, .01).name('軌道寬度（畫面半寬倍數）').onChange(hard);
+        f1.add(PF, 'ringDist', 6, 60, .5).name('相機距離').onChange(hard);
+        f1.add(PF, 'tiltX', -1.4, 1.4, .01).name('軌道傾斜 X（俯仰）').onChange(soft);
+        f1.add(PF, 'tiltZIn', -1.4, 1.4, .01).name('軌道傾斜 Z · 進場').onChange(soft);
+        f1.add(PF, 'tiltZShow', -1.4, 1.4, .01).name('軌道傾斜 Z · 主秀').onChange(soft);
+        f1.add(PF, 'tiltZOut', -1.4, 1.4, .01).name('軌道傾斜 Z · 離場').onChange(soft);
+        f1.add(PF, 'ellipse', .1, 1.6, .01).name('軌道深度（寬度倍數）').onChange(hard);
         f1.add(PF, 'arcFrac', .15, .95, .01).name('緞帶佔周長比例').onChange(hard);
         f1.add(PF, 'slideTurns', -2, 2, .01).name('滑動圈數').onChange(soft);
         f1.add(PF, 'slide0', -1, 1, .005).name('起始位置').onChange(soft);
@@ -4899,7 +4923,6 @@
         f3.add(PF, 'scaleShow', .8, 1.2, .01).name('主秀尺寸').onChange(soft);
         f3.add(PF, 'scaleOut', .8, 1.2, .01).name('離場尺寸').onChange(soft);
         f3.add(PF, 'outTilt', -1.5, 2, .01).name('離場軸心倒向').onChange(soft);
-        f3.add(PF, 'outTiltZ', -1.5, 1.5, .01).name('離場 Z 軸再轉').onChange(soft);
 
         const fT = gui.addFolder('軌道細線');
         fT.add(PF, 'trackR1', .8, 3, .01).name('細線一半徑倍數').onChange(hard);

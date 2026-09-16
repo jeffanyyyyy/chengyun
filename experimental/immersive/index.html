@@ -4055,46 +4055,26 @@
 
     /* 可調參數。?debug 會開一個 lil-gui 面板接到這裡 */
     const PF = {
-      cards: 9,
-      fov: 30,            /* 由「近端 60% / 遠端 15%」反推：近遠深度比 1 : 4 */
-      radiusFrac: 0.76,   /* 軌道寬度 = 這個倍數 x 畫面半寬。0.76 = 軌道的左右
-                             兩端剛好落在裁切框上，那裡的卡片正好轉成側面 */
-      ellipse: 1.84,      /* 軌道深度是寬度的幾倍。> 1 = 前後拉得比左右深，
-                             這條決定近/遠的大小差距 */
-      arcFrac: 0.60,      /* 緞帶佔軌道周長的比例：開放的一段，頭尾不相連 */
-      slideTurns: 0.35,   /* 整段沿軌道滑過幾圈周長 */
-      slide0: 0.00,       /* 起始位置（周長的倍數）；0 = 主秀時緞帶中段在最近點 */
-      clipL: 0.12,        /* 左右垂直裁切框：只顯示畫面寬度這兩個比例之間的卡片 */
+      fov: 30,            /* 緞帶用的視角；拼貼牆另外用 gridFov */
+      ringDist: 20,       /* 曲線座標原點離鏡頭多遠 */
+      ribbonW: 0.62,      /* 緞帶寬度 = 這個倍數 x 曲線深度上的畫面半高 */
+      twist: 0.20,        /* 從頭到尾總共扭轉幾弧度（0 = 整條正面朝鏡頭） */
+      twist0: 0.00,       /* 整條再一起扭轉多少 */
+      flow0: 0.00,        /* 照片在布上的起始位移，單位是「格」 */
+      flowCells: 2.60,    /* 整段捲動下來，照片沿緞帶流過幾格 */
+      clipL: 0.12,        /* 左右垂直裁切框：只顯示畫面寬度這兩個比例之間的緞帶 */
       clipR: 0.88,
-      ringDist: 20,       /* 軌道中心離鏡頭多遠 */
-      tiltX: 0.08,        /* 軸心傾斜：越小越接近平視，越看不到軌道內側 */
-      /* 畫面上的傾斜角分三段。正值＝左低右高，負值＝左高右低 */
-      tiltZIn: 0.30,      /* 進場：在下半部、左低右高 */
-      tiltZShow: -0.24,   /* 主秀：翻成左高右低，往右下傾 */
-      tiltZOut: 0.34,     /* 離場：轉回左低右高，往右上飛出 */
-      cardScale: 1.0,     /* 卡片尺寸的額外倍率（1 = 剛好繞滿一圈） */
-      gapPct: 0.00,       /* 卡片之間留的縫：0 = 首尾相接，整條連續 */
-      bend: 1,            /* 卡片沿圓柱面的彎曲度 */
-      splitZ: 0,          /* 前後分界：相對圓環中心的 z 位置 */
-      splitSoft: 0.14,    /* 分界的柔邊（佔半徑的比例），跨界時交叉淡出不閃 */
-      riseFrac: 1.60,     /* 升起前藏在畫面下方多遠（半高倍數） */
-      riseX: 1.00,        /* 升起前偏到畫面左邊多遠（半寬倍數）：走一條左下的弧線 */
-      riseArc: 0.62,      /* <1 讓左右分量比上下分量晚回中，路徑才是弧形不是直線 */
-      outX: 1.60,         /* 離場往右多遠（半寬倍數）：不縮小，靠平移出畫面 */
-      outY: 1.55,         /* 離場往上多遠（半高倍數） */
-      scaleIn: 0.55,      /* 剛從左下出現時的尺寸 */
-      scalePunch: 1.25,   /* 過渡：一張卡片翻到最近時整體放大的峰值 */
-      scaleShow: 1.00,    /* 主秀時的尺寸；左右端點靠它固定 */
-      scaleOut: 1.12,     /* 離場時的尺寸——維持大，不縮成小物件 */
-      shade: 0.10,        /* 卡片外緣柔影的濃度 */
-      outTilt: 0.10,      /* 離場時軸心幾乎不再倒：飛出去時仍是一條扁帶 */
-      trackR1: 1.00,      /* 軌道細線一：就是緞帶跑的那條橢圓 */
-      trackR2: 1.26,      /* 軌道細線二：外面再一條 */
+      splitZ: 0,          /* 前後分界：曲線座標裡的 z */
+      splitSoft: 0.14,    /* 分界的柔邊（畫面半寬的比例），跨界時交叉淡出不閃 */
+      shade: 0.10,        /* 長邊的淡暗邊，讓布有一點厚度 */
+      trackOff1: 1.45,    /* 軌道細線一：往側邊偏幾個緞帶寬 */
+      trackOff2: -1.70,   /* 軌道細線二 */
       trackAlpha: 0.55,   /* 細線濃度 */
       titleSpan: 1.42,    /* 兩行大標全程橫越幾個畫面寬 */
       titleMid: 0.465,    /* 走到第幾成時剛好回到原本的版位 */
+      gridCards: 12,      /* 拼貼牆放幾張卡片 */
       gridDist: 26,       /* 拼貼牆離鏡頭多遠 */
-      gridFov: 46,        /* 拼貼牆用回正常視角，廣角只留給圓環 */
+      gridFov: 46,        /* 拼貼牆用回正常視角 */
       gridScale: 1.0,
       gridTilt: 0.05
     };
@@ -4103,7 +4083,6 @@
     const PF_T = {
       titleSweepA: 0.00, titleSweepB: 0.92,   /* 大標橫越的起訖，中間不停 */
       ringInA:  0.16, ringInB:  0.34,
-      punchA:   0.26, punchB:   0.42,          /* 過渡：卡片翻起放大的窗 */
       showA:    0.42, showB:    0.62,
       ringOutA: 0.55, ringOutB: 0.84,
       morphA:   0.85, morphB:   1.00
@@ -4115,6 +4094,33 @@
       [-0.80,  0.58, 0.82], [ 0.78, -0.56, 1.22], [ 0.06,  0.66, 0.68], [-0.46, -0.62, 1.30], [ 0.50,  0.50, 1.26],
       [-0.84, -0.06, 1.38], [ 0.86,  0.14, 0.74], [-0.30,  0.08, 0.70], [ 0.34, -0.10, 1.10], [-0.08, -0.70, 0.86],
       [ 0.62,  0.86, 0.66], [-0.62,  0.82, 0.72], [ 0.18, -0.34, 0.78], [-0.88,  0.34, 0.64], [ 0.88, -0.22, 0.90]
+    ];
+
+    /* 緞帶曲線的關鍵形狀。每個控制點是 [x, y, z]：
+       x、z 是畫面半寬的倍數，y 是半高的倍數，z 為正代表往鏡頭這邊靠。
+       progress 落在兩個關鍵影格之間時用 smoothstep 補間。 */
+    const PF_KEYS = [
+      { p: 0.10, pts: [                         /* 還藏在畫面下方 */
+        [-2.05, -3.95, 0.85], [-1.15, -3.62, 0.30], [-0.30, -3.34, -0.55],
+        [ 0.55, -3.22, -1.45], [ 1.35, -3.30, -2.20], [ 2.10, -3.52, -2.90] ] },
+      { p: 0.26, pts: [                         /* 圖B：從左下沿弧線進場 */
+        [-2.05, -1.95, 0.85], [-1.15, -1.62, 0.30], [-0.30, -1.34, -0.55],
+        [ 0.55, -1.22, -1.45], [ 1.35, -1.30, -2.20], [ 2.10, -1.52, -2.90] ] },
+      { p: 0.36, pts: [                         /* 圖C：整條朝鏡頭翹起來 */
+        [-1.95, -0.88, -2.10], [-1.05, -0.38, -0.55], [-0.22, 0.10, 0.70],
+        [ 0.60, 0.04, 0.55], [ 1.35, -0.46, -1.25], [ 2.10, -0.98, -2.70] ] },
+      { p: 0.50, pts: [                         /* 圖D：主秀，左高右低 */
+        [-2.10, 0.80, -2.55], [-1.15, 0.50, -1.05], [-0.30, 0.14, 0.55],
+        [ 0.45, -0.30, 0.90], [ 1.25, -0.72, -1.05], [ 2.10, -1.08, -2.55] ] },
+      { p: 0.68, pts: [                         /* 圖E：往上甩，左低右高 */
+        [-2.05, -0.42, 0.80], [-1.10, 0.24, 0.35], [-0.28, 0.72, -0.70],
+        [ 0.55, 1.04, -1.60], [ 1.35, 1.20, -2.30], [ 2.10, 1.26, -2.95] ] },
+      { p: 0.82, pts: [                         /* 圖F：轉到上方往右上飛出 */
+        [-1.40, 1.02, 0.55], [-0.48, 1.34, -0.10], [ 0.40, 1.58, -0.95],
+        [ 1.28, 1.74, -1.75], [ 2.15, 1.80, -2.40], [ 3.00, 1.76, -3.00] ] },
+      { p: 0.95, pts: [                         /* 已經出框 */
+        [ 0.20, 2.42, 0.55], [ 1.12, 2.74, -0.10], [ 2.00, 2.98, -0.95],
+        [ 2.88, 3.14, -1.75], [ 3.75, 3.20, -2.40], [ 4.60, 3.16, -3.00] ] }
     ];
 
     const pfSpan = (v, a, b) => clamp((v - a) / (b - a), 0, 1);
@@ -4275,6 +4281,53 @@
        後半圈畫到 back 畫布（壓在大標下面），前半圈畫到 front 畫布
        （疊在大標上面）。跨越分界的那一刻卡片正好側面朝鏡頭、
        面積最小，再加一段交叉淡出，所以不會閃。 */
+    /* ── 緞帶著色器 ────────────────────────────────────────
+       頂點已經在 JS 裡貼到曲線上了，這裡只負責投影，
+       外加把「在曲線座標裡的深度」傳給片段，用來分前後兩層。 */
+    const PF_RVERT = `
+      varying vec2 vUv;
+      varying float vZ;
+      void main() {
+        vUv = uv;
+        vZ = position.z;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `;
+
+    const PF_RFRAG = `
+      precision mediump float;
+      uniform sampler2D uMap;
+      uniform float uTiles;     /* 整條緞帶上排幾格照片 */
+      uniform float uCells;     /* 長條貼圖裡有幾格 */
+      uniform float uFlow;      /* 照片沿緞帶流動的位移，單位是「格」 */
+      uniform float uAlpha;
+      uniform float uSide;      /* 1 = 前層，0 = 後層 */
+      uniform float uSplit;
+      uniform float uSoft;
+      uniform float uShade;
+      uniform vec2 uClip;
+      varying vec2 vUv;
+      varying float vZ;
+
+      void main() {
+        if (uClip.y > uClip.x && (gl_FragCoord.x < uClip.x || gl_FragCoord.x > uClip.y)) { discard; }
+
+        /* 前後疊層：同一塊網格畫兩次，各自丟掉另一半，交界處交叉淡出 */
+        float wF = clamp((vZ - uSplit) / uSoft * 0.5 + 0.5, 0.0, 1.0);
+        float side = uSide > 0.5 ? wF : 1.0 - wF;
+        if (side < 0.004) { discard; }
+
+        vec2 uvA = vec2((vUv.x * uTiles + uFlow) / uCells, vUv.y);
+        vec3 col = texture2D(uMap, uvA).rgb;
+
+        /* 長邊留一點很淡的暗邊，讓布有厚度，不做重陰影 */
+        float edge = 1.0 - smoothstep(0.34, 0.5, abs(vUv.y - 0.5));
+        col *= 1.0 - uShade * (1.0 - edge) * 0.8;
+
+        gl_FragColor = vec4(col, side * uAlpha);
+      }
+    `;
+
     function pfMakeBand() {
       if (pfBand || reduce) { return; }
 
@@ -4305,98 +4358,179 @@
       /* 鏡頭擺在原點朝 -Z 看，深度就直接是「離鏡頭多遠」 */
       const camera = new THREE.PerspectiveCamera(PF.fov, 1, .1, 400);
 
-      const loader = new THREE.TextureLoader();
-      const texAspect = PF_SHOTS.map(() => 4 / 3);        /* 載好之前先給一個合理值 */
-      const textures = PF_SHOTS.map((src, i) => loader.load(src,
-        (tex) => {
-          tex.minFilter = THREE.LinearFilter;
-          tex.generateMipmaps = false;
-          if (tex.image && tex.image.height) { texAspect[i] = tex.image.width / tex.image.height; }
-          applyCover();
-        },
-        undefined,
-        () => console.warn('[chengyun] 活動成果：貼圖載不到 —', src)));
-
-      /* cover：照片比卡片瘦就裁上下，比卡片胖就裁左右，比例不被拉歪 */
-      function applyCover() {
-        const cardA = cardW / cardH;
-        cards.forEach((c, i) => {
-          const texA = texAspect[i % texAspect.length];
-          const v = c.mat.uniforms.uCover.value;
-          if (cardA > texA) { v.set(1, texA / cardA); } else { v.set(cardA / texA, 1); }
-        });
+      /* ── 長條貼圖：六張照片橫著排成一條，照片之間留一點紙色的縫 ──
+         緞帶是一整塊網格，所以貼圖也必須是一整條，不能一張一張貼。 */
+      const ATLAS_CELL = 512, ATLAS_H = 320, ATLAS_GAP = 5;
+      const atlasCanvas = document.createElement('canvas');
+      atlasCanvas.width = ATLAS_CELL * PF_SHOTS.length;
+      atlasCanvas.height = ATLAS_H;
+      const actx = atlasCanvas.getContext('2d');
+      const atlasImgs = [];
+      function paintAtlas() {
+        actx.fillStyle = '#e8e8e6';
+        actx.fillRect(0, 0, atlasCanvas.width, atlasCanvas.height);
+        for (let i = 0; i < PF_SHOTS.length; i++) {
+          const img = atlasImgs[i];
+          if (!img || !img.naturalWidth) { continue; }
+          const x = i * ATLAS_CELL + ATLAS_GAP, y = 0;
+          const w = ATLAS_CELL - ATLAS_GAP * 2, h = ATLAS_H;
+          /* cover：照片比例不被格子比例拉歪 */
+          const sc = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+          const dw = img.naturalWidth * sc, dh = img.naturalHeight * sc;
+          actx.save();
+          actx.beginPath(); actx.rect(x, y, w, h); actx.clip();
+          actx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+          actx.restore();
+        }
+        atlasTex.needsUpdate = true;
       }
+      const atlasTex = new THREE.CanvasTexture(atlasCanvas);
+      atlasTex.wrapS = THREE.RepeatWrapping;
+      atlasTex.wrapT = THREE.ClampToEdgeWrapping;
+      atlasTex.minFilter = THREE.LinearFilter;
+      atlasTex.magFilter = THREE.LinearFilter;
+      atlasTex.generateMipmaps = false;
+      PF_SHOTS.forEach((src, i) => {
+        const img = new Image();
+        img.onload = () => { atlasImgs[i] = img; paintAtlas(); };
+        img.onerror = () => console.warn('[chengyun] 活動成果：貼圖載不到 —', src);
+        img.src = src;
+      });
+      paintAtlas();
+
+      /* 拼貼牆那一段還是用一張一張的卡片，所以照片也各自載一份 */
+      const loader = new THREE.TextureLoader();
+      const texAspect = PF_SHOTS.map(() => 4 / 3);
+      const textures = PF_SHOTS.map((src, i) => loader.load(src, (tex) => {
+        tex.minFilter = THREE.LinearFilter;
+        tex.generateMipmaps = false;
+        if (tex.image && tex.image.height) { texAspect[i] = tex.image.width / tex.image.height; }
+        applyCover();
+      }));
 
       let geo = null;
       let cards = [];
-      let tracks = [];            /* 背景的軌道細線，跟著圓環一起轉 */
-      let ringR = 6, cardW = 2, cardH = 1.2;
-      let halfH = 1, halfW = 1;            /* 圓環深度上的視錐半高半寬 */
+      let tracks = [];
+      let halfH = 1, halfW = 1;
       let gridH = 1, gridW = 1, gridBase = 3;
+      let cardW = 2, cardH = 1.2;
       let raf = 0, live = false, dead = false, p = 0, soloMode = false;
 
-      const AXIS_Y = new THREE.Vector3(0, 1, 0);
-      const qTilt = new THREE.Quaternion();
-      const qSpin = new THREE.Quaternion();
-      const qCard = new THREE.Quaternion();
       const qGrid = new THREE.Quaternion();
-      const eTilt = new THREE.Euler();
       const eGrid = new THREE.Euler();
-      const vLocal = new THREE.Vector3();
       const vGrid = new THREE.Vector3();
       const raycaster = new THREE.Raycaster();
       const ndc = new THREE.Vector2();
 
-      /* 橢圓軌道：(sin a * Rx, 0, cos a * Rz)。a = 0 是離鏡頭最近的點。
-         橢圓的參數不等距，所以先建一張「弧長 ↔ 參數」對照表，
-         卡片沿軌道等距排，縫隙才不會忽大忽小。 */
-      const TRACK_N = 720;
-      let trackLUT = new Float32Array(TRACK_N + 1);
-      let trackLen = 1;
+      /* ── 緞帶本體：一塊長條網格，沿一條 3D 曲線彎起來 ────────
+         長度方向切很多段，邊緣才是連續曲線而不是折線。 */
+      const SEG_L = 360, SEG_W = 3;
+      const ribbonGeo = new THREE.PlaneGeometry(1, 1, SEG_L, SEG_W);
+      const ribbonPos = ribbonGeo.attributes.position;
+      const ribbonUv = ribbonGeo.attributes.uv;
+      let ribbonMesh = null, ribbonMat = null;
+      let ribbonWidth = 3, ribbonTiles = 8;
 
-      function trackPos(a, out) {
-        return out.set(Math.sin(a) * ringR, 0, Math.cos(a) * ringR * PF.ellipse);
+      /* 曲線的控制點：每幀從關鍵影格補間出來 */
+      const CTRL = PF_KEYS[0].pts.length;
+      const ctrlPts = [];
+      for (let i = 0; i < CTRL; i++) { ctrlPts.push(new THREE.Vector3()); }
+      const curve = new THREE.CatmullRomCurve3(ctrlPts, false, 'catmullrom', .5);
+      let curvePts = [];
+      const vT = new THREE.Vector3();
+      const vB = new THREE.Vector3();
+      const vN = new THREE.Vector3();
+      const vW = new THREE.Vector3();
+      /* 寬度方向 = t 與世界 Z 的外積，投影下來永遠接近畫面的垂直方向。
+         緞帶因此是一面「立著的布」，沿曲線蜿蜒時自然轉向、收窄。 */
+      function widthBasis(t, outB, outN) {
+        outB.set(t.y, -t.x, 0);
+        if (outB.lengthSq() < 1e-8) { outB.set(0, 1, 0); }
+        outB.normalize();
+        outN.crossVectors(outB, t).normalize();
       }
 
-      function buildTrackLUT() {
-        let acc = 0, px = 0, pz = ringR * PF.ellipse;
-        trackLUT[0] = 0;
-        for (let i = 1; i <= TRACK_N; i++) {
-          const a = (i / TRACK_N) * Math.PI * 2;
-          const x = Math.sin(a) * ringR, z = Math.cos(a) * ringR * PF.ellipse;
-          acc += Math.hypot(x - px, z - pz);
-          trackLUT[i] = acc; px = x; pz = z;
+      /* progress → 控制點。關鍵影格之間用 smoothstep 補間 */
+      function ctrlAt(prog) {
+        let k = 0;
+        while (k < PF_KEYS.length - 2 && prog > PF_KEYS[k + 1].p) { k++; }
+        const a = PF_KEYS[k], b = PF_KEYS[k + 1];
+        const u = pfSmooth(clamp((prog - a.p) / (b.p - a.p), 0, 1));
+        for (let i = 0; i < CTRL; i++) {
+          ctrlPts[i].set(
+            lerp(a.pts[i][0], b.pts[i][0], u) * halfW,
+            lerp(a.pts[i][1], b.pts[i][1], u) * halfH,
+            lerp(a.pts[i][2], b.pts[i][2], u) * halfW
+          );
         }
-        trackLen = acc || 1;
+        curve.updateArcLengths();
       }
 
-      /* 弧長 → 參數 a（對照表上二分再線性內插） */
-      function trackAt(sRaw) {
-        let u = sRaw / trackLen;
-        u -= Math.floor(u);
-        const target = u * trackLen;
-        let lo = 0, hi = TRACK_N;
-        while (lo + 1 < hi) {
-          const mid = (lo + hi) >> 1;
-          if (trackLUT[mid] <= target) { lo = mid; } else { hi = mid; }
+      /* 把網格的每個頂點放到曲線上：位置取曲線點，寬度方向取法線，沿路加扭轉 */
+      function shapeRibbon() {
+        curvePts = curve.getSpacedPoints(SEG_L);
+        const half = ribbonWidth * .5;
+        for (let i = 0; i <= SEG_L; i++) {
+          const pt = curvePts[i];
+          const pPrev = curvePts[Math.max(i - 1, 0)];
+          const pNext = curvePts[Math.min(i + 1, SEG_L)];
+          vT.subVectors(pNext, pPrev);
+          if (vT.lengthSq() < 1e-9) { vT.set(1, 0, 0); }
+          vT.normalize();
+          widthBasis(vT, vB, vN);
+          const tw = PF.twist0 + PF.twist * (i / SEG_L - .5);
+          vW.copy(vB).multiplyScalar(Math.cos(tw)).addScaledVector(vN, Math.sin(tw));
+          for (let j = 0; j <= SEG_W; j++) {
+            const idx = j * (SEG_L + 1) + i;
+            const off = (j / SEG_W - .5) * 2 * half;
+            ribbonPos.setXYZ(idx, pt.x + vW.x * off, pt.y + vW.y * off, pt.z + vW.z * off);
+            ribbonUv.setXY(idx, i / SEG_L, 1 - j / SEG_W);
+          }
         }
-        const seg = trackLUT[hi] - trackLUT[lo] || 1;
-        return ((lo + (target - trackLUT[lo]) / seg) / TRACK_N) * Math.PI * 2;
+        ribbonPos.needsUpdate = true;
+        ribbonUv.needsUpdate = true;
+        ribbonGeo.computeBoundingSphere();
       }
 
+      function buildRibbon() {
+        if (ribbonMesh) { return; }
+        ribbonMat = new THREE.ShaderMaterial({
+          vertexShader: PF_RVERT,
+          fragmentShader: PF_RFRAG,
+          transparent: true,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+          uniforms: {
+            uMap: { value: atlasTex },
+            uTiles: { value: 8 },
+            uCells: { value: PF_SHOTS.length },
+            uFlow: { value: 0 },
+            uAlpha: { value: 1 },
+            uSide: { value: 1 },
+            uSplit: { value: 0 },
+            uSoft: { value: 1 },
+            uShade: { value: PF.shade },
+            uClip: { value: new THREE.Vector2(0, -1) }
+          }
+        });
+        ribbonMesh = new THREE.Mesh(ribbonGeo, ribbonMat);
+        ribbonMesh.frustumCulled = false;
+        ribbonMesh.renderOrder = 1;
+        scene.add(ribbonMesh);
+      }
+
+      /* ── 拼貼牆的卡片：第三段才登場，第二段整批隱形 ───────── */
       function build() {
         cards.forEach((c) => { scene.remove(c.mesh); c.mat.dispose(); });
         if (geo) { geo.dispose(); }
         cards = [];
 
-        buildTrackLUT();
-        const N = PF.cards;
-        /* 卡片只鋪滿軌道的 arcFrac 那一段：這是一條有頭有尾的開放緞帶 */
-        cardW = (trackLen * PF.arcFrac / N) / (1 + PF.gapPct) * PF.cardScale;
-        cardH = cardW / 1.6;
+        const N = Math.min(PF.gridCards, PF_SPOTS.length);
+        cardH = ribbonWidth;
+        cardW = cardH * 1.6;
         const planeW = cardW * 1.14;
         const planeH = cardH * 1.16;
-        geo = new THREE.PlaneGeometry(planeW, planeH, 40, 1);
+        geo = new THREE.PlaneGeometry(planeW, planeH, 2, 1);
 
         for (let i = 0; i < N; i++) {
           const mat = new THREE.ShaderMaterial({
@@ -4407,12 +4541,12 @@
             side: THREE.DoubleSide,
             uniforms: {
               uMap: { value: textures[i % textures.length] },
-              uR: { value: ringR },
-              uBend: { value: PF.bend },
+              uR: { value: 1e6 },
+              uBend: { value: 1 },
               uPlane: { value: new THREE.Vector2(planeW, planeH) },
               uCard: { value: new THREE.Vector2(cardW, cardH) },
               uRad: { value: cardH * .04 },
-              uOpacity: { value: 1 },
+              uOpacity: { value: 0 },
               uShade: { value: PF.shade },
               uCover: { value: new THREE.Vector2(1, 1) },
               uClip: { value: new THREE.Vector2(0, -1) }
@@ -4421,12 +4555,10 @@
           const mesh = new THREE.Mesh(geo, mat);
           mesh.frustumCulled = false;
           mesh.userData.i = i;
+          mesh.visible = false;
           scene.add(mesh);
-          const spot = PF_SPOTS[i % PF_SPOTS.length];
           cards.push({
-            mesh, mat, spot,
-            /* 在緞帶上的位置，單位是弧長，相對於緞帶中心 */
-            ds: (i - (N - 1) / 2) * (trackLen * PF.arcFrac / N),
+            mesh, mat, spot: PF_SPOTS[i % PF_SPOTS.length],
             tilt: pfTilt(i), yaw: pfYaw(i), speed: pfSpeed(i),
             wFront: 1
           });
@@ -4435,28 +4567,53 @@
         applyCover();
       }
 
-      /* 兩條很細的橢圓線：緞帶跑的那條軌道，外面再一條。
-         畫在後層畫布，所以永遠在卡片與標題後面，而且不受裁切框影響。 */
+      function applyCover() {
+        cards.forEach((c, i) => {
+          const want = cardW / cardH;
+          const has = texAspect[i % texAspect.length];
+          const u = c.mat.uniforms.uCover.value;
+          if (has > want) { u.set(want / has, 1); } else { u.set(1, has / want); }
+        });
+      }
+
+      /* ── 軌道細線：跟著同一條曲線，往兩側各偏一點 ─────────── */
       function buildTracks() {
         tracks.forEach((l) => { scene.remove(l); l.geometry.dispose(); l.material.dispose(); });
         tracks = [];
-        [PF.trackR1, PF.trackR2].forEach((k, n) => {
-          const rx = ringR * k, rz = ringR * PF.ellipse * k;
-          const pts = [];
-          for (let i = 0; i <= 200; i++) {
-            const a = (i / 200) * Math.PI * 2;
-            pts.push(new THREE.Vector3(Math.sin(a) * rx, 0, Math.cos(a) * rz));
-          }
-          const g = new THREE.BufferGeometry().setFromPoints(pts);
+        [PF.trackOff1, PF.trackOff2].forEach((k, n) => {
+          const g = new THREE.BufferGeometry();
+          g.setAttribute('position', new THREE.BufferAttribute(new Float32Array((SEG_L + 1) * 3), 3));
           const m = new THREE.LineBasicMaterial({
             color: 0x8d8d8d, transparent: true, opacity: PF.trackAlpha, depthTest: false
           });
           const line = new THREE.Line(g, m);
           line.frustumCulled = false;
-          line.renderOrder = -10 + n;     /* 先畫，永遠在卡片後面 */
+          line.renderOrder = -10 + n;     /* 先畫，永遠在緞帶後面 */
+          line.userData.off = k;
           scene.add(line);
           tracks.push(line);
         });
+      }
+
+      function shapeTracks() {
+        for (let n = 0; n < tracks.length; n++) {
+          const arr = tracks[n].geometry.attributes.position.array;
+          const off = tracks[n].userData.off * ribbonWidth;
+          for (let i = 0; i <= SEG_L; i++) {
+            const pt = curvePts[i];
+            const pPrev = curvePts[Math.max(i - 1, 0)];
+            const pNext = curvePts[Math.min(i + 1, SEG_L)];
+            vT.subVectors(pNext, pPrev);
+            if (vT.lengthSq() < 1e-9) { vT.set(1, 0, 0); }
+            vT.normalize();
+            widthBasis(vT, vB, vN);
+            arr[i * 3] = pt.x + vB.x * off;
+            arr[i * 3 + 1] = pt.y + vB.y * off;
+            arr[i * 3 + 2] = pt.z + vB.z * off;
+          }
+          tracks[n].geometry.attributes.position.needsUpdate = true;
+          tracks[n].geometry.computeBoundingSphere();
+        }
       }
 
       function resize() {
@@ -4466,139 +4623,87 @@
         [rBack, rFront].forEach((r) => { r.setPixelRatio(dpr); r.setSize(w, h, false); });
         camera.aspect = w / h;
         camera.position.set(0, 0, 0);
-        camera.updateProjectionMatrix();
         camera.fov = PF.fov;
         camera.updateProjectionMatrix();
         const tanHalf = Math.tan(camera.fov * Math.PI / 360);
         halfH = tanHalf * PF.ringDist;
         halfW = halfH * camera.aspect;
-        /* 半徑大於標題半寬，環才「包」得住文字 */
-        ringR = PF.radiusFrac * halfW;
-        /* 但近側那一段不能穿過鏡頭，否則卡片會翻到相機後面 */
-        const maxR = (PF.ringDist - 3.2) /
-          Math.max(PF.ellipse * Math.cos(PF.tiltX), .25);
-        ringR = Math.min(ringR, maxR);
+        ribbonWidth = PF.ribbonW * halfH;
+
+        buildRibbon();
+        /* 照片格數由「主秀那一版曲線的長度 ÷ 一格該有的長度」決定，
+           固定住之後補間才不會讓照片忽長忽短 */
+        ctrlAt(PF_KEYS[PF_KEYS.length >> 1].p);
+        ribbonTiles = Math.max(3, Math.round(curve.getLength() / (ribbonWidth * 1.6)));
+        ribbonMat.uniforms.uTiles.value = ribbonTiles;
+
         gridH = Math.tan(PF.gridFov * Math.PI / 360) * PF.gridDist;
         gridW = gridH * camera.aspect;
-        const across = camera.aspect > 1 ? 7 : 3.4;
         build();
+        const across = camera.aspect > 1 ? 7 : 3.4;
         gridBase = (gridW * 2) / (cardW * across);
       }
 
       function draw() {
         if (dead) { return; }
 
-        const rise = pfSmooth(pfSpan(p, PF_T.ringInA, PF_T.ringInB));
-        const outRaw = pfSpan(p, PF_T.ringOutA, PF_T.ringOutB);
-        /* 位移用 easeIn：圓環先留在文字上掃很久，最後才加速衝出畫面 */
-        const out = pfEaseIn(outRaw);
-        /* 傾角與尺寸走得比位移平順一點 */
-        const outFast = pfSmooth(outRaw);
+        const span = pfSpan(p, PF_T.ringInA, PF_T.ringOutB);
         const morph = pfEaseOut(pfSpan(p, PF_T.morphA, PF_T.morphB));
 
-        /* 廣角是為了圓環的透視；補間到拼貼牆時收回正常視角，牆面才不會被拉歪 */
+        /* 廣角是為了緞帶的透視；補間到拼貼牆時收回正常視角 */
         const fovNow = lerp(PF.fov, PF.gridFov, morph);
         if (Math.abs(camera.fov - fovNow) > .01) {
           camera.fov = fovNow;
           camera.updateProjectionMatrix();
         }
 
-        /* 圓環：沿弧線從左下角進場 → 橫過畫面 → 往右上方平移出畫面。
-           左右分量用比較慢的曲線回中，路徑才是弧形而不是一條斜線 */
-        const back = 1 - rise;
-        const ringX = -PF.riseX * halfW * Math.pow(back, PF.riseArc) + out * PF.outX * halfW;
-        const ringY = -PF.riseFrac * halfH * back + out * PF.outY * halfH;
-        const ringZ = -PF.ringDist;
-        /* 過渡：一張卡片轉到最近時整體鼓一下，鼓完剛好接上主秀，
-           所以主秀期間 ringScale 固定 = 左右端點不動 */
-        const punch = Math.sin(Math.PI * pfSpan(p, PF_T.punchA, PF_T.punchB));
-        const ringScale = clamp(lerp(lerp(PF.scaleIn, PF.scaleShow, rise), PF.scaleOut, outFast) *
-          (1 + (PF.scalePunch - 1) * punch), .3, 2.2);
-        /* 傾斜方向隨階段翻面：進場左低右高 → 主秀左高右低 → 離場再翻回來。
-           進場那一段要整段維持住，所以翻面的窗開在進場結束之後 */
-        const tzMix = pfSmooth(pfSpan(p, PF_T.ringInB - .04, PF_T.showA));
-        const tiltZNow = lerp(lerp(PF.tiltZIn, PF.tiltZShow, tzMix), PF.tiltZOut, outFast);
-        eTilt.set(PF.tiltX + outFast * PF.outTilt, 0, tiltZNow);
-        qTilt.setFromEuler(eTilt);
-
-        /* 緞帶沿軌道往前滑（像火車在軌道上跑），不是整條在原地自轉。
-           span = 0.5 時緞帶中心剛好在離鏡頭最近的那一點 */
-        const sCenter = (pfSpan(p, PF_T.ringInA, PF_T.ringOutB) - .5 + PF.slide0) *
-          PF.slideTurns * trackLen;
-
-        /* 裁切框：主秀期間切成垂直兩刀，離場時放開讓卡片飛出框外 */
+        /* 裁切框：主秀期間切成垂直兩刀，離場時放開讓緞帶飛出框外 */
         const relax = pfSmooth(pfSpan(p, PF_T.ringOutA + .06, PF_T.ringOutB));
         const wpx = pfCanvasFront.width;
         const clipL = (PF.clipL - relax * .7) * wpx;
         const clipR = (PF.clipR + relax * .7) * wpx;
         const clipOff = relax > .995 || morph > .001;
 
+        /* 曲線隨捲動在關鍵形狀之間補間，網格每幀重新貼上去 */
+        ctrlAt(p);
+        shapeRibbon();
+        shapeTracks();
+
+        const ribbonAlpha = 1 - pfSmooth(pfSpan(p, PF_T.morphA, PF_T.morphA + .07));
+        ribbonMesh.position.set(0, 0, -PF.ringDist);
+        ribbonMat.uniforms.uAlpha.value = ribbonAlpha;
+        ribbonMat.uniforms.uShade.value = PF.shade;
+        ribbonMat.uniforms.uSplit.value = PF.splitZ;
+        ribbonMat.uniforms.uSoft.value = Math.max(halfW * PF.splitSoft, 1e-3);
+        ribbonMat.uniforms.uFlow.value = PF.flow0 + PF.flowCells * span;
+        ribbonMat.uniforms.uClip.value.set(clipOff ? 0 : clipL, clipOff ? -1 : clipR);
+        ribbonMesh.visible = ribbonAlpha > .004;
+
+        for (let i = 0; i < tracks.length; i++) {
+          const l = tracks[i];
+          l.position.set(0, 0, -PF.ringDist);
+          l.material.opacity = PF.trackAlpha * ribbonAlpha *
+            pfSmooth(pfSpan(p, PF_T.ringInA, PF_T.ringInA + .08));
+        }
+
+        /* 拼貼牆：卡片直接站在自己的位置上，靠透明度登場 */
         const drift = (1 - pfSpan(p, PF_T.morphA, 1)) * gridH * .55;
-        const soft = Math.max(ringR * PF.splitSoft, 1e-4);
-
-        const rzTrack = ringR * PF.ellipse;
-        const halfStep = (trackLen * PF.arcFrac / PF.cards) * .5;
-
+        const cardAlpha = pfSmooth(pfSpan(p, PF_T.morphA + .01, PF_T.morphA + .16));
         for (let i = 0; i < cards.length; i++) {
           const c = cards[i];
-          const sMid = sCenter + c.ds;
-
-          /* 卡片的首、中、尾三點都取自軌道本身。方向用「弦」，彎曲半徑取
-             通過這三點的外接圓——相鄰卡片的端點就落在同一個軌道點上，
-             整條緞帶接得起來、中間不會開縫。 */
-          const aM = trackAt(sMid);
-          const mx = Math.sin(aM) * ringR, mz = Math.cos(aM) * rzTrack;
-          const a0 = trackAt(sMid - halfStep);
-          const x0 = Math.sin(a0) * ringR, z0 = Math.cos(a0) * rzTrack;
-          const a1 = trackAt(sMid + halfStep);
-          const x1 = Math.sin(a1) * ringR, z1 = Math.cos(a1) * rzTrack;
-
-          /* 軌道上的位置，先套上軸心傾斜 —— 這就是「相對軌道中心」的座標 */
-          vLocal.set(mx, 0, mz).applyQuaternion(qTilt);
-          const zRel = vLocal.z;
-          vLocal.multiplyScalar(ringScale);
-
-          /* 圓弧在中點的切線剛好平行於弦，所以直接用弦的方向 */
-          qSpin.setFromAxisAngle(AXIS_Y, Math.atan2(-(z1 - z0), x1 - x0));
-          qCard.copy(qTilt).multiply(qSpin);
-
           vGrid.set(c.spot[0] * gridW, c.spot[1] * gridH + drift * c.speed, -PF.gridDist);
           eGrid.set(c.tilt * PF.gridTilt, c.yaw * PF.gridTilt, c.tilt * PF.gridTilt * .4);
           qGrid.setFromEuler(eGrid);
-
-          c.mesh.position.set(
-            lerp(vLocal.x + ringX, vGrid.x, morph),
-            lerp(vLocal.y + ringY, vGrid.y, morph),
-            lerp(vLocal.z + ringZ, vGrid.z, morph)
-          );
-          c.mesh.quaternion.copy(qCard).slerp(qGrid, morph);
-          const sc = lerp(ringScale, gridBase * PF.gridScale * c.spot[2], morph);
+          c.mesh.position.copy(vGrid);
+          c.mesh.quaternion.copy(qGrid);
+          const sc = gridBase * PF.gridScale * c.spot[2];
           c.mesh.scale.set(sc, sc, sc);
-
-          /* 外接圓半徑 = |ab||bc||ca| / (4 x 三角形面積) */
-          const area2 = Math.abs((mx - x0) * (z1 - z0) - (mz - z0) * (x1 - x0));
-          c.mat.uniforms.uR.value = area2 > 1e-5
-            ? Math.min(Math.max(Math.hypot(mx - x0, mz - z0) * Math.hypot(x1 - mx, z1 - mz) *
-                Math.hypot(x1 - x0, z1 - z0) / (2 * area2), cardW * .55), cardW * 80)
-            : cardW * 80;
-          c.mat.uniforms.uClip.value.set(clipOff ? 0 : clipL, clipOff ? -1 : clipR);
-          c.mat.uniforms.uBend.value = lerp(PF.bend, 0, morph);
           c.mat.uniforms.uShade.value = PF.shade;
-
-          /* 前半圈 / 後半圈。跨界時卡片正好側面朝鏡頭，再加柔邊交叉淡出 */
-          c.wFront = lerp(clamp((zRel - PF.splitZ) / soft * .5 + .5, 0, 1), 1, morph);
+          c.alpha = cardAlpha;
+          c.wFront = 1;
         }
 
-        /* 軌道細線跟著圓環的位移、傾斜、尺寸走；補間到拼貼牆時淡掉 */
-        for (let i = 0; i < tracks.length; i++) {
-          const l = tracks[i];
-          l.position.set(ringX, ringY, ringZ);
-          l.quaternion.copy(qTilt);
-          l.scale.setScalar(ringScale);
-          l.material.opacity = PF.trackAlpha * (1 - morph) * rise;
-        }
-
-        /* 一幀畫兩次：先後半圈，再前半圈 */
+        /* 一幀畫兩次：先後半段，再前半段 */
         drawPass(rBack, false);
         drawPass(rFront, true);
         pfCanvasFront.classList.toggle('is-live', morph > .6);
@@ -4607,13 +4712,15 @@
       function drawPass(renderer, front) {
         for (let i = 0; i < cards.length; i++) {
           const c = cards[i];
-          /* 卡片本身永遠是 opacity 1，這裡只是把它分給前後兩張畫布 */
-          let w = front ? c.wFront : 1 - c.wFront;
+          let w = front ? c.alpha || 0 : 0;
           if (soloMode && !c.solo) { w = 0; }
           c.mat.uniforms.uOpacity.value = w;
           c.mesh.visible = w > .004;
         }
-        /* 細線只畫在後層畫布，所以永遠在卡片與標題後面 */
+        if (ribbonMat) {
+          /* 同一塊網格畫兩次，著色器依頂點深度丟掉另一半 */
+          ribbonMat.uniforms.uSide.value = front ? 1 : 0;
+        }
         for (let i = 0; i < tracks.length; i++) {
           tracks[i].visible = !front && !soloMode && tracks[i].material.opacity > .01;
         }
@@ -4655,6 +4762,9 @@
         cancelAnimationFrame(raf);
         cards.forEach((c) => c.mat.dispose());
         textures.forEach((tex) => tex.dispose());
+        atlasTex.dispose();
+        if (ribbonMat) { ribbonMat.dispose(); }
+        ribbonGeo.dispose();
         if (geo) { geo.dispose(); }
         rBack.dispose(); rFront.dispose();
         pfBand = null;
@@ -4673,49 +4783,73 @@
       addEventListener('resize', resize);
       root.classList.add('pf-gl-on');
 
-      /* ?probe：給驗收腳本用的量測鉤子，正常瀏覽不會掛上去。
-         卡片是斜的，用四角外接框會高估尺寸，所以量「上下邊中點的距離」
-         與「左右邊中點的距離」，那才是看起來的卡片大小。 */
-      if (/(^|[?&])probe\b/.test(location.search)) {
-        const pv = (c, x, y) => {
-          const v = new THREE.Vector3(x, y, 0)
-            .applyQuaternion(c.mesh.quaternion)
-            .multiplyScalar(c.mesh.scale.x)
-            .add(c.mesh.position);
-          const z = v.z;
-          v.project(camera);
-          return { x: v.x, y: v.y, z };
+      /* ?debug：把曲線與控制點畫出來，並且可以逐點調 */
+      let dbgCurve = null, dbgDots = null;
+      function pfDebugCurve(on) {
+        if (!on) {
+          if (dbgCurve) { scene.remove(dbgCurve); scene.remove(dbgDots); dbgCurve = dbgDots = null; }
+          return;
+        }
+        if (dbgCurve) { return; }
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.BufferAttribute(new Float32Array((SEG_L + 1) * 3), 3));
+        dbgCurve = new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0xff3b1f, depthTest: false }));
+        dbgCurve.frustumCulled = false; dbgCurve.renderOrder = 50;
+        const g2 = new THREE.BufferGeometry();
+        g2.setAttribute('position', new THREE.BufferAttribute(new Float32Array(CTRL * 3), 3));
+        dbgDots = new THREE.Points(g2, new THREE.PointsMaterial({ color: 0x1f6bff, size: 10, sizeAttenuation: false, depthTest: false }));
+        dbgDots.frustumCulled = false; dbgDots.renderOrder = 51;
+        scene.add(dbgCurve); scene.add(dbgDots);
+        const tick = () => {
+          if (!dbgCurve || dead) { return; }
+          const a = dbgCurve.geometry.attributes.position.array;
+          for (let i = 0; i <= SEG_L; i++) {
+            const q = curvePts[i] || ctrlPts[0];
+            a[i * 3] = q.x; a[i * 3 + 1] = q.y; a[i * 3 + 2] = q.z;
+          }
+          dbgCurve.geometry.attributes.position.needsUpdate = true;
+          const b = dbgDots.geometry.attributes.position.array;
+          for (let i = 0; i < CTRL; i++) {
+            b[i * 3] = ctrlPts[i].x; b[i * 3 + 1] = ctrlPts[i].y; b[i * 3 + 2] = ctrlPts[i].z;
+          }
+          dbgDots.geometry.attributes.position.needsUpdate = true;
+          dbgCurve.position.set(0, 0, -PF.ringDist);
+          dbgDots.position.set(0, 0, -PF.ringDist);
+          requestAnimationFrame(tick);
         };
-        window.__pfProbe = () => cards.map((c, idx) => {
-          const top = pv(c, 0, cardH / 2), bot = pv(c, 0, -cardH / 2);
-          const lf = pv(c, -cardW / 2, 0), rt = pv(c, cardW / 2, 0);
-          const corners = [pv(c, -cardW / 2, -cardH / 2), pv(c, cardW / 2, -cardH / 2),
-                           pv(c, cardW / 2, cardH / 2), pv(c, -cardW / 2, cardH / 2)];
-          const xs = corners.map((q) => q.x), ys = corners.map((q) => q.y);
-          return {
-            i: idx,
-            /* 在鏡頭前面就算存在，前後兩張畫布都會畫 */
-            front: corners.every((q) => q.z < -0.1),
-            wFront: c.wFront,
-            hPct: Math.abs(top.y - bot.y) / 2 * 100,
-            wPct: Math.abs(rt.x - lf.x) / 2 * 100,
-            x0: Math.min(...xs), x1: Math.max(...xs),
-            y0: Math.min(...ys), y1: Math.max(...ys)
-          };
-        });
-        /* 讓驗收腳本可以掃參數，找出符合螢幕佔比目標的組合 */
+        tick();
+      }
+
+      /* ?probe：量緞帶的上下兩條邊，確認是連續曲線而不是折線 */
+      if (/(^|[?&])probe\b/.test(location.search)) {
+        const vTmp = new THREE.Vector3();
+        window.__pfRibbon = () => {
+          const top = [], bot = [];
+          for (let i = 0; i <= SEG_L; i += 2) {
+            for (const [row, arr] of [[0, top], [SEG_W, bot]]) {
+              const idx = row * (SEG_L + 1) + i;
+              vTmp.set(ribbonPos.getX(idx), ribbonPos.getY(idx), ribbonPos.getZ(idx));
+              vTmp.z -= PF.ringDist;
+              const depth = -vTmp.z;
+              vTmp.project(camera);
+              arr.push([vTmp.x, vTmp.y, depth]);
+            }
+          }
+          return { top, bot, clipL: PF.clipL, clipR: PF.clipR };
+        };
         window.__pfSet = (patch) => { Object.assign(PF, patch); resize(); };
         window.__pfOnly = (i) => {
           cards.forEach((c, k) => { c.solo = (i < 0 || k === i); });
           soloMode = i >= 0;
         };
-        /* 量帶子的像素寬度時要先把軌道細線關掉，否則量到的是細線 */
         window.__pfTracks = (on) => { PF.trackAlpha = on ? 0.55 : 0; };
       }
 
       pfBand = {
         set(v) { p = v; },
         resize,
+        keys: PF_KEYS,
+        showCurve: pfDebugCurve,
         rebuild() { resize(); },
         start() { if (!live && !dead) { live = true; loop(); } },
         stop() { live = false; cancelAnimationFrame(raf); },
@@ -4723,9 +4857,16 @@
       };
     }
 
-    /* ── CSS 3D 退路：沒有 WebGL 時的圓環 ───────────────────
-       一樣是圓環、一樣分前後兩層，只是卡片本身彎不起來。
-       每張卡片依角度放進 back 或 front 那一層，大標照樣被套住。 */
+    /* ── CSS 3D 退路：沒有 WebGL 時的緞帶 ───────────────────
+       CSS 做不到「一整塊網格沿曲線彎」，所以退路仍然是一張一張卡片
+       排在一段圓弧上，一樣分前後兩層、一樣有左右裁切框，
+       大標照樣被套住。參數自己一份，不跟 WebGL 版共用。 */
+    const PF_CSS = {
+      cards: 9, radiusFrac: 0.76, arcFrac: 0.60, slideTurns: 0.35, slide0: 0,
+      riseFrac: 1.60, outX: 1.60, outY: 1.55,
+      tiltX: 0.08, tiltZIn: 0.30, tiltZShow: -0.24, tiltZOut: 0.34, outTilt: 0.10
+    };
+
     function pfMakeCss() {
       if (pfCss || reduce) { return; }
       pfCssBack.hidden = false;
@@ -4734,7 +4875,7 @@
       pfCssFront.innerHTML = '';
 
       const cards = [];
-      for (let i = 0; i < PF.cards; i++) {
+      for (let i = 0; i < PF_CSS.cards; i++) {
         const el = document.createElement('div');
         el.className = 'pf-bcard';
         el.style.backgroundImage = 'url(' + PF_SHOTS[i % PF_SHOTS.length] + ')';
@@ -4747,8 +4888,8 @@
       function resize() {
         halfW = (pfCssFront.clientWidth || innerWidth) / 2;
         halfH = (pfCssFront.clientHeight || innerHeight) / 2;
-        R = PF.radiusFrac * halfW;
-        cw = (2 * Math.PI * R * PF.arcFrac / PF.cards) / (1 + PF.gapPct) * PF.cardScale;
+        R = PF_CSS.radiusFrac * halfW;
+        cw = (2 * Math.PI * R * PF_CSS.arcFrac / PF_CSS.cards);
         ch = cw / 1.6;
         cards.forEach((c) => {
           c.el.style.width = cw + 'px';
@@ -4768,16 +4909,16 @@
         });
         if (alpha < .004) { return; }
 
-        const ringX = out * PF.outX * halfW;
-        const ringY = (rise - 1) * PF.riseFrac * halfH + out * PF.outY * halfH;
-        const sc = clamp(lerp(PF.scaleShow, PF.scaleOut, out), .8, 1.2);
-        const tx = PF.tiltX + out * PF.outTilt;
-        const tz = lerp(lerp(PF.tiltZIn, PF.tiltZShow,
-          pfSmooth(pfSpan(p, PF_T.ringInB - .04, PF_T.showA))), PF.tiltZOut, out);
+        const ringX = out * PF_CSS.outX * halfW;
+        const ringY = (rise - 1) * PF_CSS.riseFrac * halfH + out * PF_CSS.outY * halfH;
+        const sc = clamp(lerp(1, 1.12, out), .8, 1.2);
+        const tx = PF_CSS.tiltX + out * PF_CSS.outTilt;
+        const tz = lerp(lerp(PF_CSS.tiltZIn, PF_CSS.tiltZShow,
+          pfSmooth(pfSpan(p, PF_T.ringInB - .04, PF_T.showA))), PF_CSS.tiltZOut, out);
         /* 開放緞帶：卡片只佔圓周的 arcFrac，整條沿著軌道往前滑 */
-        const step = Math.PI * 2 * PF.arcFrac / PF.cards;
-        const slide = (pfSpan(p, PF_T.ringInA, PF_T.ringOutB) - .5 + PF.slide0) *
-          PF.slideTurns * Math.PI * 2;
+        const step = Math.PI * 2 * PF_CSS.arcFrac / PF_CSS.cards;
+        const slide = (pfSpan(p, PF_T.ringInA, PF_T.ringOutB) - .5 + PF_CSS.slide0) *
+          PF_CSS.slideTurns * Math.PI * 2;
         const relax = pfSmooth(pfSpan(p, PF_T.ringOutA + .06, PF_T.ringOutB));
         const inset = relax > .995 ? 'none'
           : 'inset(0 ' + ((1 - PF.clipR + relax * .7) * 100).toFixed(1) + '% 0 ' +
@@ -4888,45 +5029,46 @@
         const hard = () => { if (pfBand) { pfBand.rebuild(); } if (pfCss) { pfCss.rebuild(); } pfRender(pfLast); };
         const soft = () => pfRender(pfLast);
 
-        const f1 = gui.addFolder('軌道與緞帶');
-        f1.add(PF, 'cards', 4, 30, 1).name('卡片數量').onFinishChange(hard);
-        f1.add(PF, 'fov', 30, 80, 1).name('相機視角 FOV').onChange(hard);
-        f1.add(PF, 'radiusFrac', .2, 3.2, .01).name('軌道寬度（畫面半寬倍數）').onChange(hard);
+        const f1 = gui.addFolder('緞帶與鏡頭');
+        f1.add(PF, 'fov', 12, 80, 1).name('相機視角 FOV').onChange(hard);
         f1.add(PF, 'ringDist', 6, 60, .5).name('相機距離').onChange(hard);
-        f1.add(PF, 'tiltX', -1.4, 1.4, .01).name('軌道傾斜 X（俯仰）').onChange(soft);
-        f1.add(PF, 'tiltZIn', -1.4, 1.4, .01).name('軌道傾斜 Z · 進場').onChange(soft);
-        f1.add(PF, 'tiltZShow', -1.4, 1.4, .01).name('軌道傾斜 Z · 主秀').onChange(soft);
-        f1.add(PF, 'tiltZOut', -1.4, 1.4, .01).name('軌道傾斜 Z · 離場').onChange(soft);
-        f1.add(PF, 'ellipse', .1, 1.6, .01).name('軌道深度（寬度倍數）').onChange(hard);
-        f1.add(PF, 'arcFrac', .15, .95, .01).name('緞帶佔周長比例').onChange(hard);
-        f1.add(PF, 'slideTurns', -2, 2, .01).name('滑動圈數').onChange(soft);
-        f1.add(PF, 'slide0', -1, 1, .005).name('起始位置').onChange(soft);
+        f1.add(PF, 'ribbonW', .1, 2, .01).name('緞帶寬度（半高倍數）').onChange(hard);
+        f1.add(PF, 'twist', -3, 3, .01).name('沿路扭轉量').onChange(soft);
+        f1.add(PF, 'twist0', -3, 3, .01).name('整條扭轉').onChange(soft);
+        f1.add(PF, 'flowCells', -8, 8, .05).name('照片流動格數').onChange(soft);
+        f1.add(PF, 'flow0', -8, 8, .05).name('照片起始位移').onChange(soft);
+        f1.add(PF, 'shade', 0, .6, .01).name('長邊暗邊').onChange(soft);
+        f1.add(PF, 'splitZ', -20, 20, .1).name('前後分界位置').onChange(soft);
+        f1.add(PF, 'splitSoft', .01, .8, .01).name('分界柔邊').onChange(soft);
         f1.add(PF, 'clipL', 0, .45, .005).name('裁切框 左').onChange(soft);
         f1.add(PF, 'clipR', .55, 1, .005).name('裁切框 右').onChange(soft);
 
-        const f2 = gui.addFolder('卡片');
-        f2.add(PF, 'cardScale', .3, 2.5, .01).name('卡片尺寸').onChange(hard);
-        f2.add(PF, 'shade', 0, .6, .01).name('柔影濃度').onChange(soft);
-        f2.add(PF, 'gapPct', 0, .3, .005).name('卡片間距（寬度比例）').onChange(hard);
-        f2.add(PF, 'bend', 0, 2, .01).name('沿圓柱彎曲度').onChange(soft);
-        f2.add(PF, 'splitZ', -20, 20, .1).name('前後分界位置').onChange(soft);
-        f2.add(PF, 'splitSoft', .01, .8, .01).name('分界柔邊').onChange(soft);
-
-        const f3 = gui.addFolder('進場與離場');
-        f3.add(PF, 'riseFrac', 0, 3, .01).name('進場前藏多低').onChange(soft);
-        f3.add(PF, 'riseX', 0, 3, .01).name('進場前偏左多遠').onChange(soft);
-        f3.add(PF, 'riseArc', .2, 2, .01).name('進場弧度').onChange(soft);
-        f3.add(PF, 'scaleIn', .2, 1.2, .01).name('進場尺寸').onChange(soft);
-        f3.add(PF, 'scalePunch', 1, 2.2, .01).name('過渡放大峰值').onChange(soft);
-        f3.add(PF, 'outX', -2, 3, .01).name('離場往右').onChange(soft);
-        f3.add(PF, 'outY', -2, 3, .01).name('離場往上').onChange(soft);
-        f3.add(PF, 'scaleShow', .8, 1.2, .01).name('主秀尺寸').onChange(soft);
-        f3.add(PF, 'scaleOut', .8, 1.2, .01).name('離場尺寸').onChange(soft);
-        f3.add(PF, 'outTilt', -1.5, 2, .01).name('離場軸心倒向').onChange(soft);
+        /* 曲線控制點：先選關鍵影格，再逐點調 xyz。改完畫面上會同步。 */
+        const dbg = { key: 'D（主秀）', curve: true };
+        const KEY_LABEL = ['藏在下方', 'B（進場）', 'C（翹起）', 'D（主秀）',
+                           'E（上甩）', 'F（離場）', '出框'];
+        const fc = gui.addFolder('曲線控制點');
+        fc.add(dbg, 'curve').name('畫出曲線與控制點')
+          .onChange((v) => { if (pfBand) { pfBand.showCurve(v); } });
+        fc.add(dbg, 'key', KEY_LABEL).name('關鍵影格').onChange(bindPts);
+        let ptRows = [];
+        function bindPts() {
+          ptRows.forEach((c) => c.destroy());
+          ptRows = [];
+          const k = PF_KEYS[Math.max(0, KEY_LABEL.indexOf(dbg.key))];
+          k.pts.forEach((pt, i) => {
+            ['x', 'y', 'z'].forEach((axis, ai) => {
+              ptRows.push(fc.add(pt, String(ai), -6, 6, .01)
+                .name('P' + i + ' ' + axis).onChange(soft));
+            });
+          });
+        }
+        bindPts();
+        if (pfBand) { pfBand.showCurve(true); }
 
         const fT = gui.addFolder('軌道細線');
-        fT.add(PF, 'trackR1', .8, 3, .01).name('細線一半徑倍數').onChange(hard);
-        fT.add(PF, 'trackR2', .8, 3, .01).name('細線二半徑倍數').onChange(hard);
+        fT.add(PF, 'trackOff1', -4, 4, .01).name('細線一偏移（緞帶寬）').onChange(soft);
+        fT.add(PF, 'trackOff2', -4, 4, .01).name('細線二偏移').onChange(soft);
         fT.add(PF, 'trackAlpha', 0, 1, .01).name('細線濃度').onChange(soft);
 
         const f5b = gui.addFolder('大標');
@@ -4934,6 +5076,7 @@
         f5b.add(PF, 'titleMid', 0, 1, .005).name('回到版位的時機').onChange(soft);
 
         const f4 = gui.addFolder('拼貼牆');
+        f4.add(PF, 'gridCards', 4, 15, 1).name('卡片數').onChange(hard);
         f4.add(PF, 'gridDist', 6, 80, .5).name('拼貼牆深度').onChange(hard);
         f4.add(PF, 'gridFov', 25, 90, 1).name('拼貼牆視角 FOV').onChange(hard);
         f4.add(PF, 'gridScale', .3, 3, .02).name('拼貼放大').onChange(soft);
@@ -4942,8 +5085,7 @@
         const f5 = gui.addFolder('時間軸 progress');
         [['titleSweepA', '大標橫越 起'], ['titleSweepB', '大標橫越 訖'],
          ['ringInA', '緞帶進場 起'], ['ringInB', '緞帶進場 訖'],
-         ['punchA', '過渡放大 起'], ['punchB', '過渡放大 訖'],
-         ['showA', '環繞主秀 起'], ['showB', '環繞主秀 訖'],
+         ['showA', '主秀 起'], ['showB', '主秀 訖'],
          ['ringOutA', '緞帶離場 起'], ['ringOutB', '緞帶離場 訖'],
          ['morphA', '接拼貼牆 起'], ['morphB', '接拼貼牆 訖']
         ].forEach(([k, label]) => f5.add(PF_T, k, 0, 1, .01).name(label).onChange(soft));
@@ -4952,6 +5094,7 @@
           dump() {
             console.log('PF =', JSON.stringify(PF, null, 2));
             console.log('PF_T =', JSON.stringify(PF_T, null, 2));
+            console.log('PF_KEYS =', JSON.stringify(PF_KEYS));
           }
         }, 'dump').name('把目前數值印到 console');
       };

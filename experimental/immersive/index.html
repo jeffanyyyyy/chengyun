@@ -1178,6 +1178,90 @@
   }
 
   /* ── 活動成果卡 ─────────────────────── */
+  /* ── 00 過場影片：捲動控制播放進度 ─────
+     影片鋪滿整個分鏡，進度由捲動量推動（不是自動播放），
+     所以它不需要 autoplay，也不會有行動裝置擋自動播放的問題。 */
+  .scene-intro { background: #05060a; touch-action: none; }
+
+  .intro-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #05060a;
+  }
+
+  /* 影片從森林一路到一片白，固定顏色的文字一定會有一段看不見；
+     和頁首同一招：difference 混合，底色是什麼它就反過來 */
+  .intro-veil {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgba(5, 6, 10, .3) 0%, rgba(5, 6, 10, 0) 26%);
+    pointer-events: none;
+  }
+
+  .intro-ui {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: clamp(4.5rem, 12vh, 8rem);
+    mix-blend-mode: difference;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 1.5rem;
+  }
+
+  .intro-hint {
+    margin: 0;
+    font-size: .62rem;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .78);
+    transition: opacity .5s var(--ease);
+  }
+
+  .intro-bar {
+    width: min(360px, 62vw);
+    height: 1px;
+    background: rgba(255, 255, 255, .32);
+    overflow: hidden;
+  }
+
+  .intro-bar i {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: #fff;
+  }
+
+  .intro-skip {
+    font-size: .6rem;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .6);
+    transition: color .4s var(--ease);
+  }
+
+  .intro-skip:hover { color: #fff; }
+
+  /* 還在載影片：進度條先呼吸，告訴使用者在等什麼 */
+  .scene-intro.is-loading .intro-bar i {
+    width: 34%;
+    animation: introWait 1.4s ease-in-out infinite;
+  }
+
+  @keyframes introWait {
+    0%, 100% { transform: translateX(-100%); }
+    50% { transform: translateX(200%); }
+  }
+
+  /* 進度滿了就把提示收掉，畫面留給最後那一格 */
+  .scene-intro.is-done .intro-hint,
+  .scene-intro.is-done .intro-bar { opacity: 0; }
+
   /* ── 04 活動成果：Obys 式作品索引 ─────
      白底、中央一條無限循環的垂直圖列、左側名稱清單、
      正中央一對括號框住當前作品、右側分類與編號。
@@ -1563,6 +1647,20 @@
     </a>
   </nav>
 </div>
+
+<!-- ── 00 Intro：捲動控制的過場影片 ──
+     長按進入後不直接跳章節，先用捲動推著這支影片走完，
+     最後一格（鹿撞破玻璃走進白色空間）再交棒給「關於我們」。 -->
+<section class="scene scene-intro" data-scene="intro" aria-hidden="true">
+  <video class="intro-video" id="introVideo" muted playsinline preload="none" aria-hidden="true"></video>
+  <div class="intro-veil" aria-hidden="true"></div>
+
+  <div class="intro-ui">
+    <p class="intro-hint" id="introHint" data-i18n="intro.hint">Scroll to continue</p>
+    <div class="intro-bar" aria-hidden="true"><i id="introBar"></i></div>
+    <button class="intro-skip hover-target" id="introSkip" type="button" data-i18n="intro.skip">Skip →</button>
+  </div>
+</section>
 
 <!-- ── 01 About ────────────────────── -->
 <section class="scene" data-scene="about" aria-hidden="true">
@@ -2025,6 +2123,8 @@
     const I18N = {
       en: {
         'hero.top': 'View All Projects', 'hero.hold': 'Click & Hold',
+        'label.intro': '— Entering', 'hint.intro': 'Scroll to run the film · Esc to go back',
+        'intro.hint': 'Scroll to continue', 'intro.skip': 'Skip →',
         'teams.b1': 'Theme, schedule and overall pacing; speaks for the organiser.',
         'teams.b2': 'Brand communication, screening and allocation; keeps the tone of the settlement.',
         'teams.b3': 'Load-in, flow, power and safety — every call made on the day.',
@@ -2076,6 +2176,8 @@
       },
       zh: {
         'hero.top': '瀏覽所有章節', 'hero.hold': '長按進入',
+        'label.intro': '— 進場', 'hint.intro': '捲動推進影片 · Esc 返回',
+        'intro.hint': '捲動繼續', 'intro.skip': '跳過 →',
         'contact.t0': '澄耘活動工作室 有限公司',
         'form.heading': '線上諮詢',
         'form.subject': '詢問主題 <i class="req">*</i>', 'form.choose': '請選擇',
@@ -2230,6 +2332,8 @@
       },
       ja: {
         'hero.top': 'すべての章を見る', 'hero.hold': '長押しで開く',
+        'label.intro': '— 入場', 'hint.intro': 'スクロールで進む · Esc で戻る',
+        'intro.hint': 'スクロールで進む', 'intro.skip': 'スキップ →',
         'contact.t0': '澄耘活動工作室 有限公司',
         'form.heading': 'お問い合わせ',
         'form.subject': 'ご用件 <i class="req">*</i>', 'form.choose': '選択してください',
@@ -2610,17 +2714,20 @@
     function release() {
       endHold(true);
       root.classList.add('is-entering');
-      setTimeout(openMenu, reduce ? 0 : 300);
+      /* 長按之後先走過場影片；影片載不到或使用者要求減少動態時直接進章節 */
+      const next = (reduce || introBroken) ? 'about' : 'intro';
+      setTimeout(() => goTo(next), reduce ? 0 : 300);
       setTimeout(() => root.classList.remove('is-entering'), reduce ? 60 : 1300);
     }
 
-    holdZone.addEventListener('pointerdown', (e) => { e.preventDefault(); startHold(); });
+    /* 一按下就先去載過場影片，多半在放開手之前就備好了 */
+    holdZone.addEventListener('pointerdown', (e) => { e.preventDefault(); introPreload(); startHold(); });
     addEventListener('pointerup', () => { if (holding) { endHold(false); } });
     addEventListener('pointercancel', () => { if (holding) { endHold(false); } });
 
     /* 鍵盤同樣能展開：長按對鍵盤與輔助技術並不友善，按下即視同完成 */
     holdZone.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setProgress(1); release(); }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); introPreload(); setProgress(1); release(); }
     });
 
     /* ══ 導覽與返回 ════════════════════════════════════════════ */
@@ -3368,6 +3475,142 @@
     filmSync();
     filmMetrics();
     filmRender(performance.now());
+
+    /* ══ 過場影片：捲動控制播放進度 ═══════════════════════════
+       影片不自動播放，currentTime 由捲動量推著走 —— 往下前進、往上倒退。
+       目標值與實際值之間走 lerp，所以放開手之後還會滑一小段，
+       和整站其他捲動一致。走到最後一格就交棒給「關於我們」。 */
+    const introScene = scenes.get('intro');
+    const introVideo = document.getElementById('introVideo');
+    const introBar = document.getElementById('introBar');
+    const introSkip = document.getElementById('introSkip');
+
+    const INTRO_SPAN = 2200;                           /* 捲動多少 px 走完整支 */
+    let introP = 0;                                    /* 目前進度 0–1 */
+    let introT = 0;                                    /* 目標進度 */
+    let introRaf = 0;
+    let introRunning = false;
+    let introReady = false;                            /* 有足夠的資料可以 seek */
+    let introBroken = false;                           /* 載不到就跳過這一段 */
+    let introDone = false;                             /* 已經交棒，避免重複觸發 */
+    let introLoaded = false;
+
+    /* 到了要用的時候才載：這支有 5MB，不該在首屏就下載。
+       使用者一按下長按區就先載，通常在放開手之前就備好了 */
+    function introPreload() {
+      if (introLoaded || reduce) { return; }
+      introLoaded = true;
+      const small = innerWidth < 900 || (navigator.connection && navigator.connection.saveData);
+      introVideo.src = small ? '../../assets/deer-480.mp4' : '../../assets/deer-720.mp4';
+      introVideo.load();
+    }
+
+    introVideo.addEventListener('loadeddata', () => {
+      introReady = true;
+      introScene.classList.remove('is-loading');
+    });
+    introVideo.addEventListener('error', () => { introBroken = true; });
+
+    function introSeek() {
+      const d = introVideo.duration;
+      if (!introReady || !d || !isFinite(d)) { return; }
+      const target = introP * (d - .05);
+      /* 差距太小就不要動：每幀都 seek 會讓解碼器一直重來 */
+      if (Math.abs(introVideo.currentTime - target) < .02) { return; }
+      if (introVideo.fastSeek) { introVideo.fastSeek(target); }
+      else { introVideo.currentTime = target; }
+    }
+
+    function introFrame() {
+      introP += (introT - introP) * .12;
+      if (Math.abs(introT - introP) < .0005) { introP = introT; }
+
+      introSeek();
+      introBar.style.width = (introP * 100).toFixed(2) + '%';
+      introScene.classList.toggle('is-done', introP > .94);
+
+      /* 推到底就交棒。用 introT 判斷，避免 lerp 還在收斂時提早換場 */
+      if (!introDone && introT >= 1 && introP > .985) {
+        introDone = true;
+        goTo('about');
+      }
+
+      introRaf = requestAnimationFrame(introFrame);
+    }
+
+    function introStart() {
+      if (introRunning) { return; }
+      introRunning = true;
+      introRaf = requestAnimationFrame(introFrame);
+    }
+
+    function introStop() {
+      introRunning = false;
+      cancelAnimationFrame(introRaf);
+    }
+
+    /* 進入這一段時從頭開始 */
+    let introBail = 0;
+    function introReset() {
+      introP = 0;
+      introT = 0;
+      introDone = false;
+      introBar.style.width = '0%';
+      introScene.classList.remove('is-done');
+      introScene.classList.toggle('is-loading', !introReady);
+      if (introReady) { introVideo.currentTime = 0; }
+
+      /* 等太久就直接進章節：使用者不該被卡在一段載不完的影片前面 */
+      clearTimeout(introBail);
+      introBail = setTimeout(() => {
+        if (!introReady && current === 'intro' && !introDone) { introDone = true; goTo('about'); }
+      }, 8000);
+    }
+
+    function introPush(dy) {
+      /* 影片還沒備好就先不動：進度條自己往前跑、畫面卻停著，比等待更難理解 */
+      if (introDone || !introReady) { return; }
+      introT = clamp(introT + dy / INTRO_SPAN, 0, 1);
+      introStart();
+    }
+
+    introScene.addEventListener('wheel', (e) => {
+      if (current !== 'intro') { return; }
+      e.preventDefault();
+      /* 已經在最前面又繼續往上推，就退回首頁 */
+      if (e.deltaY < 0 && introT <= 0 && introP < .02) { goTo('hero'); return; }
+      introPush(e.deltaY);
+    }, { passive: false });
+
+    const introDrag = { on: false, y: 0 };
+    introScene.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('button')) { return; }
+      introDrag.on = true;
+      introDrag.y = e.clientY;
+      introScene.setPointerCapture(e.pointerId);
+    });
+    introScene.addEventListener('pointermove', (e) => {
+      if (!introDrag.on) { return; }
+      const dy = introDrag.y - e.clientY;             /* 往上滑＝前進，和捲動方向一致 */
+      introDrag.y = e.clientY;
+      introPush(dy * 1.6);
+    });
+    const introRelease = () => { introDrag.on = false; };
+    introScene.addEventListener('pointerup', introRelease);
+    introScene.addEventListener('pointercancel', introRelease);
+
+    addEventListener('keydown', (e) => {
+      if (current !== 'intro') { return; }
+      if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); introPush(320); }
+      if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); introPush(-320); }
+    });
+
+    introSkip.addEventListener('click', () => { introDone = true; goTo('about'); });
+
+    addEventListener('cy:scene', (e) => {
+      if (e.detail === 'intro') { introReset(); introStart(); }
+      else { introStop(); clearTimeout(introBail); }
+    });
 
     /* ══ 活動成果：Obys 式作品索引 ═══════════════════════════════
        中央是一條無限循環的垂直圖列：位置用一個連續的 px 值表示，

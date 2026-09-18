@@ -1700,13 +1700,11 @@
     background: none;
     opacity: 0;
     will-change: transform, opacity;
-    pointer-events: none;
+    pointer-events: none;   /* 只是圖與說明，不收滑鼠 */
   }
 
-  .pf-card.is-live { pointer-events: auto; }
+  .pf-card[hidden] { display: none; }
 
-  /* 第三段改由 WebGL 畫時，DOM 這一份留在無障礙樹裡：
-     看不見，但仍在 Tab 順序上，聚焦時會現身，按下去一樣開細節 */
   .pf-shot {
     display: block;
     width: 100%;
@@ -1715,11 +1713,6 @@
     background: #d6d5d0 center / cover no-repeat;
     box-shadow: 0 18px 44px rgba(26, 26, 26, .14);
     transition: transform .6s var(--ease), box-shadow .6s var(--ease);
-  }
-
-  .pf-card.is-live:hover .pf-shot {
-    transform: translateY(-6px);
-    box-shadow: 0 26px 60px rgba(26, 26, 26, .22);
   }
 
   .pf-cap {
@@ -1733,11 +1726,6 @@
   }
 
   .pf-cap b { display: block; font-weight: 400; color: var(--pf-ink); letter-spacing: .1em; }
-
-  .pf-card .pf-cap::after {
-    content: ' \2192';
-    color: var(--pf-ink);
-  }
 
   /* 進度：右下角一條細線，讓人知道這一章還有多長 */
   .pf-meter {
@@ -2136,9 +2124,9 @@
 
         <!-- 第一段：錯開的兩行大標 -->
         <div class="pf-head" id="pfHead">
-          <h2 class="pf-line pf-line-a" id="pfLineA" data-i18n="pf.l1">EVENTS IN</h2>
+          <h2 class="pf-line pf-line-a" id="pfLineA" data-i18n="pf.l1">CHENG</h2>
           <p class="pf-kicker" id="pfKicker" data-i18n="pf.kicker">Six rooms we built, and what it took to build them.</p>
-          <h2 class="pf-line pf-line-b" id="pfLineB" data-i18n="pf.l2">MOTION</h2>
+          <h2 class="pf-line pf-line-b" id="pfLineB" data-i18n="pf.l2">YUN</h2>
         </div>
 
         <div class="pf-rib pf-rib-front" id="pfRibFront" aria-hidden="true">
@@ -2147,36 +2135,39 @@
 
         <!-- 第三段：散落的拼貼 -->
         <div class="pf-collage" id="pfCollage">
-        <button class="pf-card" type="button" data-i="0" data-speed="0.86"
+        <!-- 一個主題兩張照片，這裡只放每一組的第一張當主圖。
+             不是按鈕：看圖 + 下面一行說明就好，不再點進細節頁。 -->
+        <figure class="pf-card" data-i="0" data-speed="0.86"
                 style="left:  4%; top:  8%; width: 26%">
           <span class="pf-shot" style="background-image: url(../../assets/work/01.jpg)"></span>
-          <span class="pf-cap"><b data-i18n="pf.t1">Silent Market</b><span data-i18n="pf.m1">Chengyun Event Studio · Banqiao, New Taipei · 2026</span></span>
-        </button>
-        <button class="pf-card" type="button" data-i="1" data-speed="1.22"
+          <figcaption class="pf-cap"><b data-i18n="pf.t1">Year-end gala</b><span data-i18n="pf.m1">GREAT HONOR × JYUAN.AN · 2025</span></figcaption>
+        </figure>
+        <figure class="pf-card" data-i="1" data-speed="1.22"
                 style="left: 36%; top: 20%; width: 20%">
-          <span class="pf-shot" style="background-image: url(../../assets/work/02.jpg)"></span>
-          <span class="pf-cap"><b data-i18n="pf.t2">Year-end gala</b><span data-i18n="pf.m2">GREAT HONOR × JYUAN.AN · 2025</span></span>
-        </button>
-        <button class="pf-card" type="button" data-i="2" data-speed="0.94"
-                style="left: 62%; top:  4%; width: 30%">
           <span class="pf-shot" style="background-image: url(../../assets/work/03.jpg)"></span>
-          <span class="pf-cap"><b data-i18n="pf.t3">Welcome act</b><span data-i18n="pf.m3">GREAT HONOR × JYUAN.AN · 2025</span></span>
-        </button>
-        <button class="pf-card" type="button" data-i="3" data-speed="1.16"
-                style="left:  8%; top: 52%; width: 22%">
-          <span class="pf-shot" style="background-image: url(../../assets/work/04.jpg)"></span>
-          <span class="pf-cap"><b data-i18n="pf.t4">Awards stage</b><span data-i18n="pf.m4">GREAT HONOR × JYUAN.AN · 2025</span></span>
-        </button>
-        <button class="pf-card" type="button" data-i="4" data-speed="0.82"
-                style="left: 34%; top: 58%; width: 28%">
+          <figcaption class="pf-cap"><b data-i18n="pf.t2">Brand interview</b><span data-i18n="pf.m2">Client and date to be confirmed</span></figcaption>
+        </figure>
+        <figure class="pf-card" data-i="2" data-speed="0.94"
+                style="left: 62%; top:  4%; width: 30%">
           <span class="pf-shot" style="background-image: url(../../assets/work/05.jpg)"></span>
-          <span class="pf-cap"><b data-i18n="pf.t5">Brand film</b><span data-i18n="pf.m5">Client and date to be confirmed</span></span>
-        </button>
-        <button class="pf-card" type="button" data-i="5" data-speed="1.28"
+          <figcaption class="pf-cap"><b data-i18n="pf.t3">Sisley annual party</b><span data-i18n="pf.m3">Sisley · 2026</span></figcaption>
+        </figure>
+        <figure class="pf-card" data-i="3" data-speed="1.16"
+                style="left:  8%; top: 52%; width: 22%">
+          <span class="pf-shot" style="background-image: url(../../assets/work/07.jpg)"></span>
+          <figcaption class="pf-cap"><b data-i18n="pf.t4">Weaving Dreams</b><span data-i18n="pf.m4">Hsing Wu University, Dept. of Fashion Design · 2026</span></figcaption>
+        </figure>
+        <!-- 第五、六組的照片還沒到，先留著版位不顯示 -->
+        <figure class="pf-card" data-i="4" data-speed="0.82" hidden
+                style="left: 34%; top: 58%; width: 28%">
+          <span class="pf-shot"></span>
+          <figcaption class="pf-cap"><b data-i18n="pf.t5">Photos to come</b><span data-i18n="pf.m5">Client and date to be confirmed</span></figcaption>
+        </figure>
+        <figure class="pf-card" data-i="5" data-speed="1.28" hidden
                 style="left: 70%; top: 46%; width: 24%">
-          <span class="pf-shot" style="background-image: url(../../assets/work/06.jpg)"></span>
-          <span class="pf-cap"><b data-i18n="pf.t6">Founder interview</b><span data-i18n="pf.m6">Client and date to be confirmed</span></span>
-        </button>
+          <span class="pf-shot"></span>
+          <figcaption class="pf-cap"><b data-i18n="pf.t6">Photos to come</b><span data-i18n="pf.m6">Client and date to be confirmed</span></figcaption>
+        </figure>
         </div>
 
         <p class="pf-hover" id="pfHover" aria-hidden="true"></p>
@@ -2473,17 +2464,17 @@
         'label.services': '02 — Services', 'label.teams': '03 — Teams',
         'label.portfolio': '04 — Portfolio', 'label.faq': '05 — Q&A', 'label.contact': '06 — Contact Us',
         'hint.hero': 'Chengyun Event Studio — Silent Market', 'hint.menu': 'Choose a chapter',
-        'hint.portfolio': 'Pick a work, or use the arrows', 'hint.faq': 'Click a question to expand',
+        'hint.faq': 'Click a question to expand',
         'hint.default': 'Esc to go back',
         'menu.about': 'About Us',
         'menu.services': 'Services',
         'menu.teams': 'Teams',
-        'pf.l1': 'EVENTS IN', 'pf.l2': 'MOTION',
+        'pf.l1': 'CHENG', 'pf.l2': 'YUN',
         'pf.kicker': 'Six rooms we built, and what it took to build them.',
         'pf.eyebrow': '04 — Portfolio',
         'pf.scope': 'Scope',
-        'pf.t1': 'Silent Market', 'pf.t2': 'Year-end gala', 'pf.t3': 'Welcome act',
-        'pf.t4': 'Awards stage', 'pf.t5': 'Brand film', 'pf.t6': 'Founder interview',
+        'pf.t1': 'Year-end gala', 'pf.t2': 'Brand interview', 'pf.t3': 'Sisley annual party',
+        'pf.t4': 'Weaving Dreams', 'pf.t5': 'Photos to come', 'pf.t6': 'Photos to come',
         'pf.d1': 'A curated market built on one rule: silence. No loudspeakers, no PA, no microphones \u2014 hand-held signs, boards and purpose-built props carry the exchange instead, so attention stays on the work and the person who made it.',
         'pf.d2': 'A black-and-gold backdrop wall, geometric side panels, a sequin column and gilded florals turn a hotel lobby into an entrance sequence \u2014 so the first thing a guest sees is already the brand.',
         'pf.d3': 'A five-piece African drum troupe met guests at the door and carried the room from the lift lobby into the hall. The act at the door is cast, rehearsed and cued the same way the stage inside is.',
@@ -2496,10 +2487,10 @@
         'pf.n4': 'LED stage \u00b7 Hosting \u00b7 Run-down',
         'pf.n5': 'Set build \u00b7 Lighting \u00b7 Direction',
         'pf.n6': 'Two-camera interview \u00b7 Natural light',
-        'pf.m1': 'Chengyun Event Studio \u00b7 Banqiao, New Taipei \u00b7 2026',
-        'pf.m2': 'GREAT HONOR \u00d7 JYUAN.AN \u00b7 2025',
-        'pf.m3': 'GREAT HONOR \u00d7 JYUAN.AN \u00b7 2025',
-        'pf.m4': 'GREAT HONOR \u00d7 JYUAN.AN \u00b7 2025',
+        'pf.m1': 'GREAT HONOR × JYUAN.AN · 2025',
+        'pf.m2': 'Client and date to be confirmed',
+        'pf.m3': 'Sisley · 2026',
+        'pf.m4': 'Hsing Wu University, Dept. of Fashion Design · 2026',
         'pf.m5': 'Client and date to be confirmed',
         'pf.m6': 'Client and date to be confirmed',
         'menu.portfolio': 'Portfolio',
@@ -2538,7 +2529,7 @@
         'label.services': '02 — 服務內容', 'label.teams': '03 — 我們的團隊',
         'label.portfolio': '04 — 活動成果', 'label.faq': '05 — 常見問題', 'label.contact': '06 — 聯繫我們',
         'hint.hero': '澄耘活動工作室 — 默者文畫 無聲風格聚落', 'hint.menu': '選擇章節',
-        'hint.portfolio': '點左側作品，或用箭頭換一件', 'hint.faq': '點擊問題可展開回答',
+        'hint.faq': '點擊問題可展開回答',
         'hint.default': '按 Esc 返回',
         'hero.lede': '澄耘活動工作室創立於 2026 年，專注高質感活動整合、品牌視覺設計與 ESG 永續會展。我們以企業管理的嚴謹架構為核心，推行「模組化透明報價」，把成本與規格科學化拆解，讓每一筆預算都看得見、算得清。從企劃設計到現場執行，一站到位。',
         'about.eyebrow': '01 — 關於澄耘',
@@ -2555,12 +2546,12 @@
         'menu.about': '關於我們',
         'menu.services': '服務內容',
         'menu.teams': '我們的團隊',
-        'pf.l1': '把現場', 'pf.l2': '推到位',
+        'pf.l1': 'CHENG', 'pf.l2': 'YUN',
         'pf.kicker': '六個被我們做出來的場，以及它們花了什麼。',
         'pf.eyebrow': '04 — 活動成果',
         'pf.scope': '服務範圍',
-        'pf.t1': '默者文畫', 'pf.t2': '年終晚會', 'pf.t3': '迎賓演出',
-        'pf.t4': '頒獎舞台', 'pf.t5': '品牌影片', 'pf.t6': '人物專訪',
+        'pf.t1': '年終感恩晚會', 'pf.t2': '品牌訪談側拍', 'pf.t3': 'Sisley 年會',
+        'pf.t4': '織景 畢業展演', 'pf.t5': '照片待補', 'pf.t6': '照片待補',
         'pf.d1': '一場以「安靜」為唯一規則的策展市集。沒有大聲公、沒有音響、沒有麥克風——手舉牌、看板與專屬道具接手叫賣這件事，注意力才留得住在作品與做作品的人身上。',
         'pf.d2': '黑金主視覺背板、兩側幾何立牌、亮片柱與金色花藝，把飯店大廳圍成一段入場序列——賓客第一眼看見的，已經是品牌本身。',
         'pf.d3': '五人非洲鼓團在門口迎賓，把場子從電梯口一路帶進會場。門口這一段，和場內的舞台一樣要選角、排練、下 cue。',
@@ -2573,10 +2564,10 @@
         'pf.n4': 'LED 舞台 · 主持 · 流程控管',
         'pf.n5': '場景搭設 · 燈光 · 導演',
         'pf.n6': '雙機訪談 · 自然光',
-        'pf.m1': '澄耘活動工作室 · 新北板橋 · 2026',
-        'pf.m2': '山榮資產 GREAT HONOR × 昭安國際 JYUAN.AN · 2025',
-        'pf.m3': '山榮資產 GREAT HONOR × 昭安國際 JYUAN.AN · 2025',
-        'pf.m4': '山榮資產 GREAT HONOR × 昭安國際 JYUAN.AN · 2025',
+        'pf.m1': '昭安國際 × 山榮資產 · 2025',
+        'pf.m2': '客戶與日期待補',
+        'pf.m3': 'Sisley · 2026',
+        'pf.m4': '醒吾科技大學 時尚造形設計系 · 2026',
         'pf.m5': '客戶與日期待補',
         'pf.m6': '客戶與日期待補',
         'menu.portfolio': '活動成果',
@@ -2707,7 +2698,7 @@
         'label.services': '02 — サービス内容', 'label.teams': '03 — チーム',
         'label.portfolio': '04 — 実績', 'label.faq': '05 — よくある質問', 'label.contact': '06 — お問い合わせ',
         'hint.hero': '澄耘イベントスタジオ — サイレントマーケット', 'hint.menu': '章を選んでください',
-        'hint.portfolio': '左の作品名をクリック、または矢印で切り替え', 'hint.faq': '質問をクリックで回答',
+        'hint.faq': '質問をクリックで回答',
         'hint.default': 'Esc で戻る',
         'hero.lede': '澄耘活動工作室は2026年設立。上質なイベント統合、ブランドビジュアルデザイン、ESGを踏まえたMICEを手がけます。企業経営の厳密な枠組みを軸に「モジュール型の透明な見積」を採用し、コストと仕様を科学的に分解。予算の一つひとつが見え、確かめられる状態にします。企画から当日の運営まで、ワンストップで。',
         'about.eyebrow': '01 — 澄耘について',
@@ -2724,12 +2715,12 @@
         'menu.about': '私たちについて',
         'menu.services': 'サービス内容',
         'menu.teams': 'チーム',
-        'pf.l1': '現場を', 'pf.l2': '動かす',
+        'pf.l1': 'CHENG', 'pf.l2': 'YUN',
         'pf.kicker': 'つくった六つの場と、それにかかったもの。',
         'pf.eyebrow': '04 — 実績',
         'pf.scope': '対応範囲',
-        'pf.t1': 'サイレントマーケット', 'pf.t2': '年末式典', 'pf.t3': 'ウェルカム演出',
-        'pf.t4': '表彰ステージ', 'pf.t5': 'ブランドムービー', 'pf.t6': '創業者インタビュー',
+        'pf.t1': '年末感謝パーティー', 'pf.t2': 'ブランド取材', 'pf.t3': 'Sisley 年次パーティー',
+        'pf.t4': '織景 卒業展', 'pf.t5': '写真は準備中', 'pf.t6': '写真は準備中',
         'pf.d1': '「静けさ」をただ一つのルールにしたキュレーション・マーケット。拡声器も、PAも、マイクもありません。手持ちの札や看板、専用の小道具がやり取りを引き受け、注意は作品とつくった人のもとに留まります。',
         'pf.d2': '黒と金のメインバックパネル、両脇の幾何学スタンド、スパンコールの柱、金色のフラワー。ホテルのロビーが入場のシークエンスになり、来場者が最初に目にするものがすでにブランドになります。',
         'pf.d3': '5人編成のアフリカン・ドラム隊が入口で出迎え、エレベーターホールから会場まで空気を運びます。入口の演出も、場内の舞台と同じようにキャスティングし、リハーサルし、キューを出します。',
@@ -2742,12 +2733,12 @@
         'pf.n4': 'LEDステージ · 司会 · 進行管理',
         'pf.n5': 'セット製作 · ライティング · 演出',
         'pf.n6': '2カメラ収録 · 自然光',
-        'pf.m1': '澄耘イベントスタジオ · 新北市板橋 · 2026',
-        'pf.m2': 'GREAT HONOR × JYUAN.AN · 2025',
-        'pf.m3': 'GREAT HONOR × JYUAN.AN · 2025',
-        'pf.m4': 'GREAT HONOR × JYUAN.AN · 2025',
-        'pf.m5': 'クライアント・日程は調整中',
-        'pf.m6': 'クライアント・日程は調整中',
+        'pf.m1': 'GREAT HONOR × JYUAN.AN · 2025',
+        'pf.m2': 'クライアントと日付は未定',
+        'pf.m3': 'Sisley · 2026',
+        'pf.m4': '醒吾科技大学 ファッションデザイン学科 · 2026',
+        'pf.m5': 'クライアントと日付は未定',
+        'pf.m6': 'クライアントと日付は未定',
         'menu.portfolio': '実績',
         'menu.faq': 'よくある質問',
         'menu.contact': 'お問い合わせ',
@@ -2934,7 +2925,9 @@
     function syncChrome() {
       const open = menuOverlay.classList.contains('is-open');
       sceneLabel.textContent = open ? t('label.menu') : t('label.' + current);
-      footHint.textContent = open ? t('hint.menu') : (t('hint.' + current) || t('hint.default'));
+      /* 活動成果不給提示文字：那一章的操作就是捲動，寫了反而多餘 */
+      footHint.textContent = open ? t('hint.menu')
+        : (current === 'portfolio' ? '' : (t('hint.' + current) || t('hint.default')));
     }
 
     function goTo(name) {
@@ -4401,10 +4394,6 @@
 
     /* 拼貼卡片的說明跟著語言走 */
     pfSync = function () {
-      pfCards.forEach((el) => {
-        const i = +el.dataset.i;
-        el.setAttribute('aria-label', t('pf.t' + (i + 1)));
-      });
       if (pfHoverIndex >= 0) { pfShowHover(pfHoverIndex); }
     };
 
@@ -5161,11 +5150,6 @@
     pfWrap.addEventListener('scroll', () => {
       if (!pfScrub) { pfRender(pfProgress()); }
     }, { passive: true });
-
-    /* DOM 拼貼：WebGL 版接手時它只留在無障礙樹裡，但按下去一樣開細節 */
-    pfCards.forEach((el) => {
-      el.addEventListener('click', () => openDetail('work', +el.dataset.i, el));
-    });
 
     /* ── 路徑編輯器的開關 ──────────────────────────────────
        鍵盤 D 開關（輸入框聚焦時不觸發），網址加 ?debug 也能直接開。

@@ -1465,7 +1465,8 @@
     pointer-events: none;
   }
 
-  .pf-rails.is-edit { pointer-events: none; }
+  /* 編輯時把路徑層抬到面板上面，中段的控制點才看得到也拖得到 */
+  .pf-rails.is-edit { z-index: 7; pointer-events: none; }
   .pf-rails.is-edit .pf-path { opacity: 1; }
 
   .pf-rails.is-edit .pf-handle {
@@ -1476,6 +1477,116 @@
   }
 
   .pf-rails.is-edit .pf-handle:active { cursor: grabbing; fill: #1f6bff; }
+
+  .pf-handle-tag {
+    fill: #1f6bff;
+    font-size: 10px;
+    font-family: var(--mono, ui-monospace, monospace);
+    letter-spacing: .04em;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .pf-rails.is-edit .pf-handle-tag { opacity: .9; }
+
+  /* ── 路徑編輯器的兩條列 ───────────────── */
+  .pf-tools {
+    position: absolute;
+    z-index: 8;
+    top: clamp(14px, 2.4vh, 26px);
+    left: clamp(18px, 5vw, 92px);
+    right: clamp(18px, 5vw, 92px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .pf-tool {
+    appearance: none;
+    border: 1px solid rgba(26, 26, 26, .18);
+    background: rgba(255, 255, 255, .72);
+    backdrop-filter: blur(6px);
+    border-radius: 999px;
+    padding: 7px 15px;
+    font: inherit;
+    font-size: 12px;
+    letter-spacing: .08em;
+    color: var(--pf-ink);
+    cursor: pointer;
+    transition: background .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
+  }
+
+  .pf-tool:hover { border-color: rgba(26, 26, 26, .4); }
+
+  .pf-tool.is-on {
+    background: #1f6bff;
+    border-color: #1f6bff;
+    color: #fff;
+  }
+
+  .pf-status {
+    position: absolute;
+    z-index: 8;
+    left: clamp(18px, 5vw, 92px);
+    right: clamp(18px, 5vw, 92px);
+    bottom: clamp(14px, 2.4vh, 26px);
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 2.4vw, 34px);
+    flex-wrap: wrap;
+    padding: 12px 18px;
+    border-radius: 14px;
+    border: 1px solid rgba(26, 26, 26, .12);
+    background: rgba(255, 255, 255, .78);
+    backdrop-filter: blur(8px);
+    font-size: 12px;
+    letter-spacing: .04em;
+    color: var(--pf-dim);
+  }
+
+  .pf-status p { margin: 0; }
+  .pf-status b { color: var(--pf-ink); font-weight: 500; }
+  .pf-status-tip { flex: 1 1 260px; line-height: 1.5; }
+
+  .pf-status-slider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+  }
+
+  .pf-status-slider input[type="range"] { width: clamp(90px, 14vw, 180px); accent-color: #1f6bff; }
+
+  .pf-status-slider input[type="number"] {
+    width: 52px;
+    padding: 4px 6px;
+    border: 1px solid rgba(26, 26, 26, .18);
+    border-radius: 7px;
+    background: transparent;
+    font: inherit;
+    font-size: 12px;
+    color: var(--pf-ink);
+  }
+
+  .pf-status-jump { display: flex; gap: 6px; }
+  .pf-status-read { white-space: nowrap; }
+  .pf-status-read em { font-style: normal; color: #c2410c; }
+
+  .pf-status-btn {
+    appearance: none;
+    border: 1px solid rgba(26, 26, 26, .18);
+    background: transparent;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font: inherit;
+    font-size: 12px;
+    letter-spacing: .08em;
+    color: var(--pf-ink);
+    cursor: pointer;
+  }
+
+  .pf-status-btn:hover { border-color: rgba(26, 26, 26, .45); }
 
   /* 滑到某一張卡片時，左下角報出它是哪一件 */
   .pf-hover {
@@ -1671,7 +1782,7 @@
   @media (prefers-reduced-motion: reduce) {
     .pf-track { height: auto; }
     .pf-stage { position: static; height: auto; overflow: visible; padding: clamp(78px, 12vh, 120px) clamp(18px, 5vw, 92px) clamp(70px, 10vh, 110px); }
-    .pf-rib, .pf-rails, .pf-hover { display: none !important; }
+    .pf-rib, .pf-rails, .pf-hover, .pf-tools, .pf-status { display: none !important; }
     .pf-head { position: static; padding: 0; }
     .pf-collage {
       position: static;
@@ -2032,6 +2143,22 @@
         </div>
 
         <p class="pf-hover" id="pfHover" aria-hidden="true"></p>
+
+        <!-- 路徑編輯器：按 D 才出現 -->
+        <div class="pf-tools" id="pfTools" hidden></div>
+        <div class="pf-status" id="pfStatus" hidden>
+          <p class="pf-status-tip">拖曳控制點改路徑；按住 <b>Shift</b> 上下拖改深度（遠近）。改動會存在這台裝置的瀏覽器裡。</p>
+          <span class="pf-status-jump" id="pfJump"></span>
+          <label class="pf-status-slider">並排間距
+            <input type="range" id="pfGap" min="0.6" max="1.4" step="0.01" value="1">
+            <b id="pfGapVal">1.00</b>
+          </label>
+          <label class="pf-status-slider">面板
+            <input type="number" id="pfNP" min="4" max="16" step="1" value="8">張
+          </label>
+          <p class="pf-status-read"><span id="pfOverlap"></span></p>
+          <button class="pf-status-btn" id="pfReset" type="button">還原預設</button>
+        </div>
         <span class="pf-eyebrow" data-i18n="pf.eyebrow">04 — Portfolio</span>
         <div class="pf-meter" aria-hidden="true"><i id="pfMeter"></i></div>
 
@@ -4107,7 +4234,7 @@
 
     /* 三段的區間 */
 
-    /* ── 緞帶的可調參數。按 D 會開一個 lil-gui 面板接到這裡 ──
+    /* ── 緞帶的可調參數。按 D 會在畫面上開編輯器接到這裡 ──
        幾何模型：整條緞帶就是同一個圓柱上的一片。
        面板自己的彎曲半徑 = 路徑的圓弧半徑（同一個 RC），兩者一致，
        接縫處切線就自動吻合，整條看起來才是一條帶子而不是一排柵欄。 */
@@ -4120,6 +4247,12 @@
       flowSpan: 0.62, /* 整段捲下來流過幾圈 */
       flow0: 0.00,    /* 起始位移 */
       damp: 0.07,     /* flow 的 lerp 係數。越小越黏、越大越跟手 */
+      spacing: 1.00,  /* 並排間距：面板中心的間隔佔面板寬的比例。
+                         1 = 首尾剛好相接，<1 重疊、>1 留縫 */
+      bend: 1,        /* 弧面：0 = 面板攤平 */
+      twistOn: 1,     /* 扭轉 */
+      yawOn: 1,       /* 轉向：面板跟著路徑的方向轉 */
+      rollOn: 1,      /* 傾斜：面板跟著路徑的升降傾斜 */
       splitZ: -420,   /* 前後分界：深度大於這個值的面板疊到大標上面 */
       railOff: 0.62,  /* 軌道細線離路徑多遠（面板高的倍數） */
       railAlpha: 0.50
@@ -4145,6 +4278,63 @@
     ];
     const RIB_LEAD = { x: -0.18, y: 0.78 };   /* 進場之前整條再往左下推 */
     const RIB_TAIL = { x: 0.46, y: -0.52 };   /* 離場之後整條再往右上飛 */
+
+    /* 編輯器的顯示開關 */
+    const RIB_UI = { edit: true, path: true, play: true };
+
+    /* 改動存在這台裝置的瀏覽器裡，重新整理還在 */
+    const RIB_KEY = 'chengyun.pf.path.v1';
+    const RIB_DEFAULT = JSON.stringify({ RIB, RIB_STAGE, RIB_LEAD, RIB_TAIL });
+
+    function ribSave() {
+      try {
+        localStorage.setItem(RIB_KEY, JSON.stringify({
+          RIB: RIB, RIB_STAGE: RIB_STAGE, RIB_LEAD: RIB_LEAD, RIB_TAIL: RIB_TAIL
+        }));
+      } catch (err) { /* 無痕視窗或封鎖 localStorage：不存就算了 */ }
+    }
+
+    function ribLoad() {
+      let raw = null;
+      try { raw = localStorage.getItem(RIB_KEY); } catch (err) { return; }
+      if (!raw) { return; }
+      try {
+        const d = JSON.parse(raw);
+        if (d.RIB) { Object.keys(RIB).forEach((k) => { if (typeof d.RIB[k] === 'number') { RIB[k] = d.RIB[k]; } }); }
+        if (Array.isArray(d.RIB_STAGE)) {
+          d.RIB_STAGE.forEach((st, i) => {
+            const t = RIB_STAGE[i];
+            if (!t || !st) { return; }
+            if (typeof st.at === 'number') { t.at = st.at; }
+            if (typeof st.clip === 'number') { t.clip = st.clip; }
+            if (Array.isArray(st.pts) && st.pts.length === t.pts.length) {
+              st.pts.forEach((q, j) => { if (Array.isArray(q) && q.length === 3) { t.pts[j] = q.slice(); } });
+            }
+          });
+        }
+        ['x', 'y'].forEach((k) => {
+          if (d.RIB_LEAD && typeof d.RIB_LEAD[k] === 'number') { RIB_LEAD[k] = d.RIB_LEAD[k]; }
+          if (d.RIB_TAIL && typeof d.RIB_TAIL[k] === 'number') { RIB_TAIL[k] = d.RIB_TAIL[k]; }
+        });
+      } catch (err) {
+        console.warn('[chengyun] 活動成果：存起來的路徑讀不回來，用預設值。', err);
+      }
+    }
+
+    function ribReset() {
+      const d = JSON.parse(RIB_DEFAULT);
+      Object.keys(d.RIB).forEach((k) => { RIB[k] = d.RIB[k]; });
+      d.RIB_STAGE.forEach((st, i) => {
+        RIB_STAGE[i].at = st.at;
+        RIB_STAGE[i].clip = st.clip;
+        st.pts.forEach((q, j) => { RIB_STAGE[i].pts[j] = q.slice(); });
+      });
+      RIB_LEAD.x = d.RIB_LEAD.x; RIB_LEAD.y = d.RIB_LEAD.y;
+      RIB_TAIL.x = d.RIB_TAIL.x; RIB_TAIL.y = d.RIB_TAIL.y;
+      try { localStorage.removeItem(RIB_KEY); } catch (err) { /* 沒存過就算了 */ }
+    }
+
+    ribLoad();
 
     /* 大標的橫越 */
     const PF = {
@@ -4258,6 +4448,15 @@
       const rail2 = document.getElementById('pfRail2');
       if (!backIn || !frontIn) { return; }
 
+      const elTools = document.getElementById('pfTools');
+      const elStatus = document.getElementById('pfStatus');
+      const elGap = document.getElementById('pfGap');
+      const elGapVal = document.getElementById('pfGapVal');
+      const elNP = document.getElementById('pfNP');
+      const elJump = document.getElementById('pfJump');
+      const elOverlap = document.getElementById('pfOverlap');
+      const elReset = document.getElementById('pfReset');
+
       const CN = RIB_STAGE[0].pts.length;   /* 控制點數 */
       const M = 200;                        /* 路徑取樣數 */
 
@@ -4366,26 +4565,36 @@
         el.innerHTML = '';
         rec.strips = [];
         const N = Math.max(4, Math.round(RIB.N));
+        for (let i = 0; i < N; i++) {
+          const u = (i + .5) / N;
+          const st = document.createElement('div');
+          st.className = 'pf-strip';
+          st.style.backgroundImage = 'url(' + rec.src + ')';
+          st.style.setProperty('--u', u.toFixed(4));
+          st._u = u;
+          el.appendChild(st);
+          rec.strips.push(st);
+        }
+        sizeStrips(rec);
+      }
+
+      /* 面板寬變了就重算縱條的位置與背景（不重建元素） */
+      function sizeStrips(rec) {
+        const N = rec.strips.length || 1;
         const sw = Ww / N;
         const ar = rec.ar || 1.5;
         let bw = Ww, bh = Ww / ar;
         if (bh < Wh) { bh = Wh; bw = Wh * ar; }
         const ox = (Ww - bw) / 2, oy = (Wh - bh) / 2;
+        rec.el.style.setProperty('--cw', Ww.toFixed(1) + 'px');
         for (let i = 0; i < N; i++) {
-          const u = (i + .5) / N;
+          const st = rec.strips[i];
           const x0 = i * sw - RIB.OVERLAP / 2;
-          const st = document.createElement('div');
-          st.className = 'pf-strip';
           st.style.left = x0.toFixed(2) + 'px';
           st.style.width = (sw + RIB.OVERLAP).toFixed(2) + 'px';
-          st.style.backgroundImage = 'url(' + rec.src + ')';
           st.style.backgroundSize = bw.toFixed(1) + 'px ' + bh.toFixed(1) + 'px';
           st.style.backgroundPosition = (-x0 + ox).toFixed(1) + 'px ' + oy.toFixed(1) + 'px';
-          st.style.setProperty('--u', u.toFixed(4));
-          st._u = u;
-          st._flat = (u - .5) * Ww;
-          el.appendChild(st);
-          rec.strips.push(st);
+          st._flat = (st._u - .5) * Ww;
         }
         rec.R = 0;
       }
@@ -4393,6 +4602,7 @@
       /* 把這張面板彎到半徑 R（帶正負號＝凹凸方向）。
          弧長對應攤平寬度，所以兩端剛好落在路徑上。 */
       function bendPanel(rec, R, sign) {
+        if (!RIB.bend) { R = Ww * 4000; sign = 1; }
         if (rec.R && Math.abs(R / rec.R - 1) < .01 && rec.sign === sign) { return; }
         rec.R = R; rec.sign = sign;
         for (let i = 0; i < rec.strips.length; i++) {
@@ -4410,12 +4620,12 @@
         measure();
         buildPath(prog);
         const NP = Math.max(3, Math.round(RIB.NP));
-        Ww = arcTotal / NP;            /* 面板寬 = 路徑每張分到的弧長 */
-        Wh = Ww * 5 / 6;               /* 對上 CSS 的 aspect-ratio: 6/5 */
+        /* 面板寬 = 每張分到的弧長 x 並排間距。1 = 首尾剛好相接 */
+        Ww = arcTotal / NP / Math.max(RIB.spacing, .2);
+        Wh = Ww * 5 / 6;
         for (let i = 0; i < NP; i++) {
           const el = document.createElement('div');
           el.className = 'pf-panel';
-          el.style.setProperty('--cw', Ww.toFixed(1) + 'px');
           const rec = { el, i, side: -1, src: PF_SHOTS[i % PF_SHOTS.length], strips: [], ar: 1.5, R: 0, sign: 1 };
           const img = new Image();
           img.onload = () => { rec.ar = img.naturalWidth / img.naturalHeight; buildStrips(rec); };
@@ -4431,6 +4641,14 @@
         const c = buildPath(prog);
         const NP = panels.length || 1;
         const L = arcTotal / NP;
+        /* 面板寬 = 每張分到的弧長 x 並排間距。路徑長度會隨階段變，
+           差超過 1% 才重算一次縱條，不是每幀都算 */
+        const want = L / Math.max(RIB.spacing, .2);
+        if (Math.abs(want / (Ww || 1) - 1) > .01) {
+          Ww = want;
+          Wh = Ww * 5 / 6;
+          panels.forEach(sizeStrips);
+        }
         const alpha = 1 - pfSmooth(pfSpan(prog, PF_T.morphA, PF_T.morphA + .07));
         const span = 1 / NP;
 
@@ -4450,8 +4668,8 @@
           const dxz = Math.hypot(dx, dz) || 1e-3;
 
           /* 面板的 +X 對齊弦；rotateZ 讓它跟著路徑的升降 */
-          const ry = Math.atan2(-dz, dx) * 180 / Math.PI;
-          const rz = Math.atan2(dy, dxz) * 180 / Math.PI;
+          const ry = RIB.yawOn ? Math.atan2(-dz, dx) * 180 / Math.PI : 0;
+          const rz = RIB.rollOn ? Math.atan2(dy, dxz) * 180 / Math.PI : 0;
 
           /* 外接圓半徑 = 通過首中尾三點的圓（取 x–z 平面的曲率） */
           const cross = (pm.x - p0.x) * (p1.z - p0.z) - (pm.z - p0.z) * (p1.x - p0.x);
@@ -4469,9 +4687,10 @@
           el.style.setProperty('--ry', ry.toFixed(3) + 'deg');
           el.style.setProperty('--rz', rz.toFixed(3) + 'deg');
           el.style.setProperty('--o', (fadeAtEnds(t) * alpha).toFixed(3));
-          const tw0 = roll(t - span / 2);
+          const tw0 = RIB.twistOn ? roll(t - span / 2) : 0;
           el.style.setProperty('--tw0', tw0.toFixed(3));
-          el.style.setProperty('--twSpan', (roll(t + span / 2) - tw0).toFixed(3));
+          el.style.setProperty('--twSpan',
+            (RIB.twistOn ? roll(t + span / 2) - tw0 : 0).toFixed(3));
 
           const side = pm.z > RIB.splitZ ? 1 : 0;
           if (side !== rec.side) {
@@ -4481,6 +4700,23 @@
         }
 
         drawRails(alpha);
+        if (statusOn) { drawStatus(L); }
+      }
+
+      /* 下排狀態列：面板數與實測的重疊／間隙 */
+      let statusOn = false;
+      function drawStatus(L) {
+        const over = Ww - L;
+        if (document.activeElement !== elNP) { elNP.value = panels.length; }
+        if (Math.abs(over) < 6) {
+          elOverlap.innerHTML = '<b>首尾剛好相接</b>';
+        } else if (over > 0) {
+          elOverlap.innerHTML = '實測重疊 <em>' + Math.round(over) + '</em> px' +
+            '　→ 拉到 1.00 重疊歸零';
+        } else {
+          elOverlap.innerHTML = '實測間隙 <em>' + Math.round(-over) + '</em> px' +
+            '　← 拉到 1.00 間隙歸零';
+        }
       }
 
       /* 軌道細線：跟路徑同一條，往上下各偏一點，自己算 CSS 的透視投影 */
@@ -4505,7 +4741,7 @@
       }
 
       /* ── 可以拖的控制點 ──────────────────────────────────── */
-      let handles = [], pathLine = null, dragI = -1, dragStage = null;
+      let handles = [], tags = [], pathLine = null, dragI = -1, dragStage = null;
 
       function nearestStage() {
         let best = RIB_STAGE[0], bd = 9;
@@ -4524,27 +4760,46 @@
           c.setAttribute('class', 'pf-handle');
           c.setAttribute('r', 9);
           c.dataset.i = i;
+          const tag = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          tag.setAttribute('class', 'pf-handle-tag');
+          let lastY = 0;
           c.addEventListener('pointerdown', (ev) => {
             ev.preventDefault();
             dragI = i;
             dragStage = nearestStage();
+            lastY = ev.clientY;
             c.setPointerCapture(ev.pointerId);
           });
           c.addEventListener('pointermove', (ev) => {
             if (dragI !== i || !dragStage) { return; }
-            const r = rails.getBoundingClientRect();
-            const sx = (ev.clientX - r.left) / r.width * stageW;
-            const sy = (ev.clientY - r.top) / r.height * stageH;
-            const k = RIB.P / (RIB.P - dragStage.pts[i][2]);
-            dragStage.pts[i][0] = ((sx - stageW * .5) / k) / stageW;
-            dragStage.pts[i][1] = ((sy - stageH * .46) / k) / stageH;
+            const pt = dragStage.pts[i];
+            if (ev.shiftKey) {
+              /* 按住 Shift：上下拖改深度，往上＝往鏡頭靠近 */
+              pt[2] = clamp(pt[2] - (ev.clientY - lastY) * 4, -2600, RIB.P - 160);
+              lastY = ev.clientY;
+            } else {
+              const r = rails.getBoundingClientRect();
+              const sx = (ev.clientX - r.left) / r.width * stageW;
+              const sy = (ev.clientY - r.top) / r.height * stageH;
+              const k = RIB.P / (RIB.P - pt[2]);
+              pt[0] = ((sx - stageW * .5) / k) / stageW;
+              pt[1] = ((sy - stageH * .46) / k) / stageH;
+              lastY = ev.clientY;
+            }
             if (!live) { layout(); }
           });
-          const done = () => { if (dragI === i) { dragI = -1; rebuild(); } };
+          const done = () => {
+            if (dragI !== i) { return; }
+            dragI = -1;
+            ribSave();
+            rebuild();
+          };
           c.addEventListener('pointerup', done);
           c.addEventListener('pointercancel', done);
           rails.appendChild(c);
+          rails.appendChild(tag);
           handles.push(c);
+          tags.push(tag);
         }
       }
 
@@ -4561,19 +4816,104 @@
           const q = proj({ x: st.pts[i][0] * stageW, y: st.pts[i][1] * stageH, z: st.pts[i][2] }, 0);
           handles[i].setAttribute('cx', q[0].toFixed(1));
           handles[i].setAttribute('cy', q[1].toFixed(1));
+          tags[i].setAttribute('x', (q[0] + 13).toFixed(1));
+          tags[i].setAttribute('y', (q[1] + 4).toFixed(1));
+          tags[i].textContent = Math.round(st.pts[i][2]);
         }
       }
 
+      /* 上排開關：四個效果 + 編輯中 / 顯示路徑 / 動態 */
+      const TOOLS = [
+        { key: 'bend', on: RIB, label: '弧面' },
+        { key: 'twistOn', on: RIB, label: '扭轉' },
+        { key: 'yawOn', on: RIB, label: '轉向' },
+        { key: 'rollOn', on: RIB, label: '傾斜' },
+        { key: 'edit', on: RIB_UI, label: '編輯中' },
+        { key: 'path', on: RIB_UI, label: '顯示路徑' },
+        { key: 'play', on: RIB_UI, label: '動態' }
+      ];
+      const COPY_LABEL = '複製數值';
+      let toolBtns = [];
+
+      function syncTools() {
+        toolBtns.forEach((b, i) => {
+          const t = TOOLS[i];
+          b.classList.toggle('is-on', !!t.on[t.key]);
+          b.setAttribute('aria-pressed', t.on[t.key] ? 'true' : 'false');
+        });
+        elGap.value = RIB.spacing.toFixed(2);
+        elGapVal.textContent = RIB.spacing.toFixed(2);
+      }
+
+      function buildTools() {
+        if (toolBtns.length) { return; }
+        TOOLS.forEach((t) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'pf-tool';
+          b.textContent = t.label;
+          b.addEventListener('click', () => {
+            t.on[t.key] = t.on[t.key] ? 0 : 1;
+            if (t.key === 'edit' || t.key === 'path') { showEdit(statusOn); }
+            syncTools();
+            ribSave();
+            rebuild();
+          });
+          elTools.appendChild(b);
+          toolBtns.push(b);
+        });
+        const cp = document.createElement('button');
+        cp.type = 'button';
+        cp.className = 'pf-tool';
+        cp.textContent = COPY_LABEL;
+        cp.addEventListener('click', pfCopyValues);
+        elTools.appendChild(cp);
+        elGap.addEventListener('input', () => {
+          RIB.spacing = +elGap.value;
+          elGapVal.textContent = RIB.spacing.toFixed(2);
+          rebuild();
+        });
+        elGap.addEventListener('change', ribSave);
+        elNP.addEventListener('change', () => {
+          RIB.NP = clamp(Math.round(+elNP.value || 8), 4, 16);
+          elNP.value = RIB.NP;
+          ribSave();
+          rebuild();
+        });
+        RIB_STAGE.forEach((st) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'pf-status-btn';
+          b.textContent = st.name;
+          b.addEventListener('click', () => pfJumpTo(st.at));
+          elJump.appendChild(b);
+        });
+        elReset.addEventListener('click', () => {
+          ribReset();
+          syncTools();
+          rebuild();
+        });
+      }
+
+      function showPanel(on) {
+        statusOn = on;
+        elTools.hidden = !on;
+        elStatus.hidden = !on;
+        if (on) { buildTools(); syncTools(); }
+      }
+
       function showEdit(on) {
-        editing = on;
-        rails.classList.toggle('is-edit', on);
-        if (on) { ensureHandles(); drawHandles(); }
+        editing = on && RIB_UI.edit;
+        rails.classList.toggle('is-edit', editing);
+        rails.classList.toggle('is-path', on && RIB_UI.path);
+        if (editing) { ensureHandles(); drawHandles(); }
+        if (pathLine) { pathLine.style.opacity = (on && RIB_UI.path) ? 1 : 0; }
       }
 
       function frame(ts) {
         if (!live) { return; }
         flowTarget = RIB.flow0 + pfSpan(prog, PF_T.ringInA, PF_T.ringOutB) * RIB.flowSpan +
-          (document.hidden ? 0 : ts * 0.0000075);
+          ((document.hidden || !RIB_UI.play) ? 0 : ts * 0.0000075);
         flow += (flowTarget - flow) * RIB.damp;
         layout();
         raf = requestAnimationFrame(frame);
@@ -4588,7 +4928,7 @@
         set(v) { prog = clamp(v, 0, 1); if (!live) { layout(); } },
         rebuild,
         relayout: layout,
-        edit: showEdit,
+        edit(on) { showPanel(on); showEdit(on); },
         start() {
           if (live) { return; }
           live = true;
@@ -4667,11 +5007,11 @@
       el.addEventListener('click', () => openDetail('work', +el.dataset.i, el));
     });
 
-    /* ── ?debug：lil-gui 調校面板 ─────────────────────────── */
-    /* ── 調校面板 ────────────────────────────────────────────
-       鍵盤 D 開關（輸入框聚焦時不觸發），也支援網址加 ?debug 直接開。
-       面板開著的時候，畫面上同時畫出曲線與控制點。 */
-    let pfGuiState = { open: false, loading: false };
+    /* ── 路徑編輯器的開關 ──────────────────────────────────
+       鍵盤 D 開關（輸入框聚焦時不觸發），網址加 ?debug 也能直接開。
+       開著的時候，上排是效果開關、下排是狀態列，畫面上畫出路徑與
+       可以拖的控制點。沒有用到任何外部函式庫。 */
+    let pfGuiState = { open: false };
 
     let pfToastTimer = 0;
     function pfToast(msg) {
@@ -4718,85 +5058,15 @@
       }
     }
 
-    function pfBuildGui() {
-      const gui = new lil.GUI({ title: '活動成果 · 緞帶（按 D 開關）' });
-      window.__pfGui = gui;
-      /* hard：幾何變了要重切縱條；soft：只要重排一次 */
-      const hard = () => { if (pfRib) { pfRib.rebuild(); } pfRender(pfLast); };
-      const soft = () => { if (pfRib) { pfRib.relayout(); } pfRender(pfLast); };
-
-      gui.add({ copy: pfCopyValues }, 'copy').name('複製目前數值');
-
-      const f1 = gui.addFolder('緞帶形狀');
-      f1.add(RIB, 'NP', 4, 16, 1).name('面板數').onChange(hard);
-      f1.add(RIB, 'N', 6, 40, 1).name('每張切幾條').onChange(hard);
-      f1.add(RIB, 'TWIST', 0, 40, .5).name('扭轉角度').onChange(soft);
-      f1.add(RIB, 'OVERLAP', 0, 16, .5).name('縱條重疊 px').onChange(hard);
-      f1.add(RIB, 'splitZ', -1800, 700, 10).name('前後分界深度').onChange(soft);
-      f1.add(RIB, 'P', 500, 3000, 20).name('perspective').onChange(soft);
-
-      const f2 = gui.addFolder('流動與軌道線');
-      f2.add(RIB, 'flowSpan', -2, 2, .01).name('流動圈數').onChange(soft);
-      f2.add(RIB, 'flow0', -2, 2, .01).name('起始位移').onChange(soft);
-      f2.add(RIB, 'damp', .01, .3, .005).name('阻尼').onChange(soft);
-      f2.add(RIB, 'railOff', 0, 3, .02).name('軌道線離路徑多遠').onChange(soft);
-      f2.add(RIB, 'railAlpha', 0, 1, .01).name('軌道線濃度').onChange(soft);
-
-      /* 路徑：x、y 直接在畫面上拖白點，這裡只放深度與階段 */
-      RIB_STAGE.forEach((st) => {
-        const f = gui.addFolder('路徑 · ' + st.name + '（拖白點改 x/y）');
-        f.add({ go: () => pfJumpTo(st.at) }, 'go').name('跳到此階段');
-        st.pts.forEach((pt, i) => {
-          f.add(pt, '2', -2600, 700, 10).name('P' + i + ' 深度').onChange(soft);
-        });
-      });
-
-      const f3 = gui.addFolder('階段');
-      RIB_STAGE.forEach((st) => {
-        f3.add(st, 'at', 0, 1, .01).name(st.name + ' progress').onChange(soft);
-      });
-      RIB_STAGE.forEach((st) => {
-        f3.add(st, 'clip', 0, .4, .005).name(st.name + ' 裁切框').onChange(soft);
-      });
-
-      const f4 = gui.addFolder('時間軸 progress');
-      [['ringInA', '進場 起'], ['ringInB', '進場 訖'],
-       ['ringOutA', '離場 起'], ['ringOutB', '離場 訖'],
-       ['morphA', '接拼貼牆 起'], ['titleSweepB', '大標橫越 訖']
-      ].forEach(([k, label]) => f4.add(PF_T, k, 0, 1, .01).name(label).onChange(soft));
-
-      return gui;
-    }
-
     function pfShowGui(on) {
       pfGuiState.open = on;
-      if (window.__pfGui) {
-        window.__pfGui.domElement.style.display = on ? '' : 'none';
-      }
       if (pfRailsEl) { pfRailsEl.classList.toggle('is-debug', on); }
       if (pfStage) { pfStage.classList.toggle('is-debug-rib', on); }
       if (pfRib && pfRib.edit) { pfRib.edit(on); }
     }
 
     function pfToggleGui(force) {
-      const want = force === undefined ? !pfGuiState.open : force;
-      if (window.__pfGui) { pfShowGui(want); return; }
-      if (!want || pfGuiState.loading) { return; }
-      pfGuiState.loading = true;
-      const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/lil-gui@0.19.2/dist/lil-gui.umd.min.js';
-      s.onerror = () => {
-        pfGuiState.loading = false;
-        pfToast('lil-gui 載不到');
-        console.warn('[chengyun] lil-gui 載不到，調校面板跳過。');
-      };
-      s.onload = () => {
-        pfGuiState.loading = false;
-        if (!window.lil || !window.lil.GUI) { return; }
-        pfBuildGui();
-        pfShowGui(true);
-      };
-      document.head.appendChild(s);
+      pfShowGui(force === undefined ? !pfGuiState.open : force);
     }
 
     /* 鍵盤 D。輸入框、文字區、可編輯區聚焦時不搶鍵；有修飾鍵也不搶 */

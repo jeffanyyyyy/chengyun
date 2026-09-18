@@ -1445,10 +1445,37 @@
     vector-effect: non-scaling-stroke;
   }
 
-  /* 調校面板開著時：軌道加深，面板描一圈框，看得出弧面怎麼切 */
+  /* 調校面板開著時：軌道加深，路徑畫出來，控制點可以直接拖 */
   .pf-rails.is-debug .pf-rail { stroke: rgba(255, 59, 31, .85); }
-  .pf-rails.is-debug ~ .pf-rib .pf-strip,
-  .is-debug-rib .pf-strip { outline: 1px solid rgba(31, 107, 255, .35); }
+  .is-debug-rib .pf-strip { outline: 1px solid rgba(31, 107, 255, .3); }
+
+  .pf-path {
+    stroke: rgba(31, 107, 255, .75);
+    stroke-width: 1.5;
+    stroke-dasharray: 5 4;
+    vector-effect: non-scaling-stroke;
+    opacity: 0;
+  }
+
+  .pf-handle {
+    fill: #fff;
+    stroke: #1f6bff;
+    stroke-width: 2;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .pf-rails.is-edit { pointer-events: none; }
+  .pf-rails.is-edit .pf-path { opacity: 1; }
+
+  .pf-rails.is-edit .pf-handle {
+    opacity: 1;
+    cursor: grab;
+    pointer-events: auto;
+    touch-action: none;
+  }
+
+  .pf-rails.is-edit .pf-handle:active { cursor: grabbing; fill: #1f6bff; }
 
   /* 滑到某一張卡片時，左下角報出它是哪一件 */
   .pf-hover {
@@ -4085,35 +4112,39 @@
        面板自己的彎曲半徑 = 路徑的圓弧半徑（同一個 RC），兩者一致，
        接縫處切線就自動吻合，整條看起來才是一條帶子而不是一排柵欄。 */
     const RIB = {
-      cwFrac: 0.26,   /* 面板寬 = 這個倍數 x 舞台寬（再夾在下面兩個值之間） */
-      cwMin: 260,
-      cwMax: 420,
       NP: 8,          /* 面板數 */
-      RCF: 2.6,       /* 圓柱半徑 = RCF x 面板寬。越小越彎、可見面板越少 */
-      PHI0: 0.45,     /* 可視窗口在圓弧上的中心角，控制左右不對稱 */
-      CZ: 60,         /* 圓弧最近點的深度。越大越靠近鏡頭、面板越大 */
-      SLOPE: -0.18,   /* 整條往右抬升的斜率。負值往右上 */
-      N: 20,          /* 每張面板切幾條縱條。扭轉越大要越多條 */
-      TWIST: 11,      /* 扭轉最大角度（度）。加大要同步加 N 與 OVERLAP */
+      N: 20,          /* 每張面板切幾條縱條。路徑越彎要越多條 */
+      TWIST: 11,      /* 扭轉最大角度（度） */
       OVERLAP: 5,     /* 縱條左右外擴 px，蓋掉細縫 */
       P: 1200,        /* perspective，必須跟 CSS 的 .pf-rib 同值 */
       flowSpan: 0.62, /* 整段捲下來流過幾圈 */
       flow0: 0.00,    /* 起始位移 */
       damp: 0.07,     /* flow 的 lerp 係數。越小越黏、越大越跟手 */
       splitZ: -420,   /* 前後分界：深度大於這個值的面板疊到大標上面 */
-      railOff: 0.62,  /* 軌道細線離中心線多遠（面板高的倍數） */
+      railOff: 0.62,  /* 軌道細線離路徑多遠（面板高的倍數） */
       railAlpha: 0.50
     };
 
-    /* 軌跡條的版面：三個階段各自的位移、旋轉、裁切框。
-       進場之前與離場之後再各自加一段偏移，讓它滑進滑出畫面。 */
+    /* ── 緞帶跑的路徑 ────────────────────────────────────────
+       三個階段各有一條路徑，每條五個控制點，progress 落在中間時
+       逐點補間。x、y 是舞台寬高的倍數（0 = 正中），z 是深度 px，
+       越大越靠近鏡頭。按 D 開面板後可以直接在畫面上拖控制點。
+
+       面板沿著路徑等弧長鋪：每張的兩端都落在路徑上，彎曲半徑取
+       通過首中尾三點的外接圓——所以路徑怎麼改，接縫都還是密合的。 */
     const RIB_STAGE = [
-      { name: '進場', at: 0.26, x: -16, y: 30, rot: 7, clip: 0.12 },
-      { name: '主秀', at: 0.50, x: 0, y: 4, rot: -9, clip: 0.12 },
-      { name: '離場', at: 0.82, x: 20, y: -26, rot: 8, clip: 0.00 }
+      { name: '進場', at: 0.26, clip: 0.12, pts: [
+        [-0.62, 0.34, 120], [-0.28, 0.40, -120], [0.06, 0.42, -520],
+        [0.40, 0.38, -1000], [0.70, 0.30, -1500] ] },
+      { name: '主秀', at: 0.50, clip: 0.12, pts: [
+        [-0.62, -0.10, -900], [-0.30, 0.02, -260], [0.02, 0.12, 60],
+        [0.34, 0.24, -300], [0.66, 0.34, -1000] ] },
+      { name: '離場', at: 0.82, clip: 0.00, pts: [
+        [-0.55, -0.02, 60], [-0.22, -0.16, -260], [0.12, -0.28, -640],
+        [0.46, -0.36, -1100], [0.78, -0.40, -1600] ] }
     ];
-    const RIB_LEAD = { x: -24, y: 86 };    /* 進場之前藏在左下 */
-    const RIB_TAIL = { x: 42, y: -54 };    /* 離場之後飛到右上 */
+    const RIB_LEAD = { x: -0.18, y: 0.78 };   /* 進場之前整條再往左下推 */
+    const RIB_TAIL = { x: 0.46, y: -0.52 };   /* 離場之後整條再往右上飛 */
 
     /* 大標的橫越 */
     const PF = {
@@ -4211,7 +4242,10 @@
       pfMeter.style.transform = 'scaleX(' + p.toFixed(4) + ')';
     }
 
-    /* ── 第二段：純 CSS 3D 的圓柱緞帶 ─────────────────────── */
+    /* ── 第二段：純 CSS 3D 的緞帶，沿一條可編輯的路徑鋪 ───────
+       面板沿路徑等弧長鋪，每張的兩端都落在路徑上，彎曲半徑取通過
+       首中尾三點的外接圓——相鄰面板共用同一個端點，所以路徑怎麼改
+       接縫都密合。面板自己再切成 N 條縱條各轉一點角度拼成弧面。 */
     function pfMakeRibbon() {
       if (pfRib || reduce) { return; }
 
@@ -4224,76 +4258,149 @@
       const rail2 = document.getElementById('pfRail2');
       if (!backIn || !frontIn) { return; }
 
+      const CN = RIB_STAGE[0].pts.length;   /* 控制點數 */
+      const M = 200;                        /* 路徑取樣數 */
+
       let panels = [];
-      let Ww = 320, Wh = 266, RC = 1150, DPHI = 0.28;
+      let Ww = 320, Wh = 266;
       let stageW = 1440, stageH = 900;
       let flow = 0, flowTarget = 0, raf = 0, live = false, prog = 0;
+      let curve = [], arcTab = [], arcTotal = 1;
+      let editing = false;
 
-      /* 面板 = 圓的一條弦。弦長等於面板寬，所以張角固定，
-         相鄰面板首尾自動貼齊，一條縫都不會有。 */
       function measure() {
         stageW = pfStage.clientWidth || innerWidth;
         stageH = pfStage.clientHeight || innerHeight;
-        Ww = clamp(RIB.cwFrac * stageW, RIB.cwMin, RIB.cwMax);
-        Wh = Ww * 5 / 6;                       /* 對上 CSS 的 aspect-ratio: 6/5 */
-        RC = RIB.RCF * Ww;
-        DPHI = 2 * Math.asin(1 / (2 * RIB.RCF));
         rails.setAttribute('viewBox', '0 0 ' + stageW + ' ' + stageH);
       }
 
-      function pose(t) {
-        const phi = RIB.PHI0 + (t - .5) * RIB.NP * DPHI;
-        const x = RC * Math.sin(phi);
-        return {
-          x: x,
-          y: x * RIB.SLOPE,
-          z: RIB.CZ - RC * (1 - Math.cos(phi)),
-          ry: phi * 180 / Math.PI
-        };
+      /* progress → 這一刻的控制點（三個階段之間逐點補間，
+         進場之前與離場之後再整條偏移，讓它滑進滑出畫面） */
+      function ctrlNow(t) {
+        const S = RIB_STAGE;
+        const keys = [
+          { p: Math.min(PF_T.ringInA, S[0].at - .04), st: S[0], off: RIB_LEAD },
+          { p: S[0].at, st: S[0], off: null },
+          { p: S[1].at, st: S[1], off: null },
+          { p: S[2].at, st: S[2], off: null },
+          { p: Math.max(PF_T.morphA, S[2].at + .04), st: S[2], off: RIB_TAIL }
+        ];
+        let k = 0;
+        while (k < keys.length - 2 && t > keys[k + 1].p) { k++; }
+        const A = keys[k], B = keys[k + 1];
+        const u = pfSmooth(clamp((t - A.p) / Math.max(B.p - A.p, 1e-4), 0, 1));
+        const out = [];
+        for (let i = 0; i < CN; i++) {
+          const a = A.st.pts[i], b = B.st.pts[i];
+          const ax = a[0] + (A.off ? A.off.x : 0), ay = a[1] + (A.off ? A.off.y : 0);
+          const bx = b[0] + (B.off ? B.off.x : 0), by = b[1] + (B.off ? B.off.y : 0);
+          out.push({
+            x: lerp(ax, bx, u) * stageW,
+            y: lerp(ay, by, u) * stageH,
+            z: lerp(a[2], b[2], u)
+          });
+        }
+        return { pts: out, clip: lerp(A.st.clip, B.st.clip, u) };
       }
 
-      /* 兩端淡出，蓋掉繞回來的那個接點 */
+      /* Catmull–Rom，兩端各補一個虛擬點 */
+      function spline(c, u) {
+        const n = c.length - 1;
+        const f = clamp(u, 0, 1) * n;
+        const i = Math.min(Math.floor(f), n - 1);
+        const w = f - i;
+        const p0 = c[Math.max(i - 1, 0)], p1 = c[i], p2 = c[i + 1], p3 = c[Math.min(i + 2, n)];
+        const w2 = w * w, w3 = w2 * w;
+        const h = (a, b, cc, d) =>
+          .5 * ((2 * b) + (-a + cc) * w + (2 * a - 5 * b + 4 * cc - d) * w2 + (-a + 3 * b - 3 * cc + d) * w3);
+        return { x: h(p0.x, p1.x, p2.x, p3.x), y: h(p0.y, p1.y, p2.y, p3.y), z: h(p0.z, p1.z, p2.z, p3.z) };
+      }
+
+      function buildPath(t) {
+        const c = ctrlNow(t);
+        curve = [];
+        for (let i = 0; i <= M; i++) { curve.push(spline(c.pts, i / M)); }
+        arcTab = [0];
+        for (let i = 1; i <= M; i++) {
+          const a = curve[i - 1], b = curve[i];
+          arcTab.push(arcTab[i - 1] + Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z));
+        }
+        arcTotal = arcTab[M] || 1;
+        return c;
+      }
+
+      /* 弧長 → 路徑上的點（超出兩端就沿切線外推，面板才不會擠在端點） */
+      function pathAt(sr) {
+        if (sr <= 0) {
+          const a = curve[0], b = curve[1];
+          const d = Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z) || 1;
+          const k = sr / d;
+          return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, z: a.z + (b.z - a.z) * k };
+        }
+        if (sr >= arcTotal) {
+          const a = curve[M - 1], b = curve[M];
+          const d = Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z) || 1;
+          const k = (sr - arcTotal) / d;
+          return { x: b.x + (b.x - a.x) * k, y: b.y + (b.y - a.y) * k, z: b.z + (b.z - a.z) * k };
+        }
+        let lo = 0, hi = M;
+        while (lo + 1 < hi) { const mid = (lo + hi) >> 1; if (arcTab[mid] <= sr) { lo = mid; } else { hi = mid; } }
+        const seg = arcTab[hi] - arcTab[lo] || 1;
+        const w = (sr - arcTab[lo]) / seg;
+        const a = curve[lo], b = curve[hi];
+        return { x: lerp(a.x, b.x, w), y: lerp(a.y, b.y, w), z: lerp(a.z, b.z, w) };
+      }
+
       function fadeAtEnds(t) {
         if (t < .08) { return Math.max(0, t / .08); }
         if (t > .94) { return Math.max(0, (1 - t) / .06); }
         return 1;
       }
 
-      /* 扭轉：週期 1，繞回 0 時連續。翻滾角依縱條在整條緞帶上的位置
-         決定，不是在自己面板裡的位置，接合處才對得起來。
-         角度每幀都在變，但只寫在面板上，縱條用 calc() 搭自己的 --u
-         自己內插，所以每幀只要寫 NP 次。 */
       function roll(t) { return RIB.TWIST * Math.sin(t * Math.PI * 2); }
 
-      /* 縱條：同一張圖切成 N 條，用 background-position 錯開拼回來。
-         這段每張面板只算一次，之後不動。 */
-      function buildStrips(panel, src) {
-        panel.innerHTML = '';
+      /* 縱條：只建一次。left / width / 背景都只跟面板寬有關，
+         每幀變的只有 --dx / --dz / --a 三個值。 */
+      function buildStrips(rec) {
+        const el = rec.el;
+        el.innerHTML = '';
+        rec.strips = [];
         const N = Math.max(4, Math.round(RIB.N));
         const sw = Ww / N;
-        const THETA = DPHI;                    /* 面板彎曲角度 = 路徑張角 */
-        /* cover：照片比例不被面板比例拉歪 */
-        const ar = panel._ar || 1.5;
+        const ar = rec.ar || 1.5;
         let bw = Ww, bh = Ww / ar;
         if (bh < Wh) { bh = Wh; bw = Wh * ar; }
         const ox = (Ww - bw) / 2, oy = (Wh - bh) / 2;
         for (let i = 0; i < N; i++) {
           const u = (i + .5) / N;
-          const a = (u - .5) * THETA;
-          const flatX = (u - .5) * Ww;
           const x0 = i * sw - RIB.OVERLAP / 2;
           const st = document.createElement('div');
           st.className = 'pf-strip';
           st.style.left = x0.toFixed(2) + 'px';
           st.style.width = (sw + RIB.OVERLAP).toFixed(2) + 'px';
-          st.style.backgroundImage = 'url(' + src + ')';
+          st.style.backgroundImage = 'url(' + rec.src + ')';
           st.style.backgroundSize = bw.toFixed(1) + 'px ' + bh.toFixed(1) + 'px';
           st.style.backgroundPosition = (-x0 + ox).toFixed(1) + 'px ' + oy.toFixed(1) + 'px';
           st.style.setProperty('--u', u.toFixed(4));
-          st.style.setProperty('--dx', (RC * Math.sin(a) - flatX).toFixed(2) + 'px');
-          st.style.setProperty('--dz', (RC * Math.cos(a) - RC).toFixed(2) + 'px');
-          st.style.setProperty('--a', (a * 180 / Math.PI).toFixed(3) + 'deg');
-          panel.appendChild(st);
+          st._u = u;
+          st._flat = (u - .5) * Ww;
+          el.appendChild(st);
+          rec.strips.push(st);
+        }
+        rec.R = 0;
+      }
+
+      /* 把這張面板彎到半徑 R（帶正負號＝凹凸方向）。
+         弧長對應攤平寬度，所以兩端剛好落在路徑上。 */
+      function bendPanel(rec, R, sign) {
+        if (rec.R && Math.abs(R / rec.R - 1) < .01 && rec.sign === sign) { return; }
+        rec.R = R; rec.sign = sign;
+        for (let i = 0; i < rec.strips.length; i++) {
+          const st = rec.strips[i];
+          const a = st._flat / R;
+          st.style.setProperty('--dx', (R * Math.sin(a) - st._flat).toFixed(2) + 'px');
+          st.style.setProperty('--dz', (sign * (R * Math.cos(a) - R)).toFixed(2) + 'px');
+          st.style.setProperty('--a', (sign * a * 180 / Math.PI).toFixed(3) + 'deg');
         }
       }
 
@@ -4301,108 +4408,168 @@
         panels.forEach((q) => q.el.remove());
         panels = [];
         measure();
+        buildPath(prog);
         const NP = Math.max(3, Math.round(RIB.NP));
+        Ww = arcTotal / NP;            /* 面板寬 = 路徑每張分到的弧長 */
+        Wh = Ww * 5 / 6;               /* 對上 CSS 的 aspect-ratio: 6/5 */
         for (let i = 0; i < NP; i++) {
           const el = document.createElement('div');
           el.className = 'pf-panel';
           el.style.setProperty('--cw', Ww.toFixed(1) + 'px');
-          const src = PF_SHOTS[i % PF_SHOTS.length];
-          const rec = { el, i, side: -1, src };
+          const rec = { el, i, side: -1, src: PF_SHOTS[i % PF_SHOTS.length], strips: [], ar: 1.5, R: 0, sign: 1 };
           const img = new Image();
-          img.onload = () => {
-            el._ar = img.naturalWidth / img.naturalHeight;
-            buildStrips(el, src);
-          };
-          img.src = src;
-          buildStrips(el, src);
+          img.onload = () => { rec.ar = img.naturalWidth / img.naturalHeight; buildStrips(rec); };
+          img.src = rec.src;
+          buildStrips(rec);
           frontIn.appendChild(el);
           panels.push(rec);
         }
       }
 
-      /* 軌跡條的版面：三個階段之間補間 */
-      function bandAt(t) {
-        const S = RIB_STAGE;
-        const keys = [
-          { p: Math.min(PF_T.ringInA, S[0].at - .04),
-            v: { x: S[0].x + RIB_LEAD.x, y: S[0].y + RIB_LEAD.y, rot: S[0].rot, clip: S[0].clip } },
-          { p: S[0].at, v: S[0] },
-          { p: S[1].at, v: S[1] },
-          { p: S[2].at, v: S[2] },
-          { p: Math.max(PF_T.morphA, S[2].at + .04),
-            v: { x: S[2].x + RIB_TAIL.x, y: S[2].y + RIB_TAIL.y, rot: S[2].rot, clip: S[2].clip } }
-        ];
-        let k = 0;
-        while (k < keys.length - 2 && t > keys[k + 1].p) { k++; }
-        const A = keys[k], B = keys[k + 1];
-        const u = pfSmooth(clamp((t - A.p) / Math.max(B.p - A.p, 1e-4), 0, 1));
-        return {
-          x: lerp(A.v.x, B.v.x, u),
-          y: lerp(A.v.y, B.v.y, u),
-          rot: lerp(A.v.rot, B.v.rot, u),
-          clip: lerp(A.v.clip, B.v.clip, u)
-        };
-      }
-
-      /* 每幀只更新 NP 張面板，不是每條縱條 */
+      /* 每幀只更新 NP 張面板；縱條只有在曲率真的變了才重寫 */
       function layout() {
-        const b = bandAt(prog);
-        const tf = 'translate3d(' + b.x.toFixed(2) + 'vw,' + b.y.toFixed(2) + 'vh,0)' +
-          ' rotate(' + b.rot.toFixed(2) + 'deg)';
-        backIn.style.transform = tf;
-        frontIn.style.transform = tf;
-        rails.style.transform = tf;
+        const c = buildPath(prog);
+        const NP = panels.length || 1;
+        const L = arcTotal / NP;
+        const alpha = 1 - pfSmooth(pfSpan(prog, PF_T.morphA, PF_T.morphA + .07));
+        const span = 1 / NP;
 
-        const inset = b.clip < .003 ? 'none'
-          : 'inset(0 ' + (b.clip * 100).toFixed(1) + '% 0 ' + (b.clip * 100).toFixed(1) + '%)';
+        const inset = c.clip < .003 ? 'none'
+          : 'inset(0 ' + (c.clip * 100).toFixed(1) + '% 0 ' + (c.clip * 100).toFixed(1) + '%)';
         ribBack.style.clipPath = inset;
         ribFront.style.clipPath = inset;
 
-        const alpha = 1 - pfSmooth(pfSpan(prog, PF_T.morphA, PF_T.morphA + .07));
-        const rzDeg = Math.atan(RIB.SLOPE) * 180 / Math.PI;
-        const span = 1 / Math.max(3, Math.round(RIB.NP));
-
         for (let i = 0; i < panels.length; i++) {
-          const q = panels[i];
-          const t = ((q.i / panels.length + flow) % 1 + 1) % 1;
-          const ps = pose(t);
-          const el = q.el;
-          el.style.setProperty('--x', ps.x.toFixed(2) + 'px');
-          el.style.setProperty('--y', ps.y.toFixed(2) + 'px');
-          el.style.setProperty('--z', ps.z.toFixed(2) + 'px');
-          el.style.setProperty('--ry', ps.ry.toFixed(3) + 'deg');
-          el.style.setProperty('--rz', rzDeg.toFixed(3) + 'deg');
+          const rec = panels[i];
+          const t = ((rec.i / NP + flow) % 1 + 1) % 1;
+          const sMid = t * arcTotal;
+          const pm = pathAt(sMid);
+          const p0 = pathAt(sMid - L / 2);
+          const p1 = pathAt(sMid + L / 2);
+          const dx = p1.x - p0.x, dy = p1.y - p0.y, dz = p1.z - p0.z;
+          const dxz = Math.hypot(dx, dz) || 1e-3;
+
+          /* 面板的 +X 對齊弦；rotateZ 讓它跟著路徑的升降 */
+          const ry = Math.atan2(-dz, dx) * 180 / Math.PI;
+          const rz = Math.atan2(dy, dxz) * 180 / Math.PI;
+
+          /* 外接圓半徑 = 通過首中尾三點的圓（取 x–z 平面的曲率） */
+          const cross = (pm.x - p0.x) * (p1.z - p0.z) - (pm.z - p0.z) * (p1.x - p0.x);
+          const area2 = Math.abs(cross);
+          const R = area2 > 1e-3
+            ? Math.min(Math.hypot(pm.x - p0.x, pm.z - p0.z) * Math.hypot(p1.x - pm.x, p1.z - pm.z) *
+                Math.hypot(dx, dz) / (2 * area2), Ww * 80)
+            : Ww * 80;
+          bendPanel(rec, Math.max(R, Ww * .55), cross > 0 ? 1 : -1);
+
+          const el = rec.el;
+          el.style.setProperty('--x', pm.x.toFixed(2) + 'px');
+          el.style.setProperty('--y', pm.y.toFixed(2) + 'px');
+          el.style.setProperty('--z', pm.z.toFixed(2) + 'px');
+          el.style.setProperty('--ry', ry.toFixed(3) + 'deg');
+          el.style.setProperty('--rz', rz.toFixed(3) + 'deg');
           el.style.setProperty('--o', (fadeAtEnds(t) * alpha).toFixed(3));
           const tw0 = roll(t - span / 2);
           el.style.setProperty('--tw0', tw0.toFixed(3));
           el.style.setProperty('--twSpan', (roll(t + span / 2) - tw0).toFixed(3));
-          /* 三明治：深度大於分界的疊到大標上面 */
-          const side = ps.z > RIB.splitZ ? 1 : 0;
-          if (side !== q.side) {
-            q.side = side;
+
+          const side = pm.z > RIB.splitZ ? 1 : 0;
+          if (side !== rec.side) {
+            rec.side = side;
             (side ? frontIn : backIn).appendChild(el);
           }
         }
 
-        /* 軌道細線：同一個圓柱，自己算 CSS 的透視投影 */
-        const cx = stageW * .5, cy = stageH * .46;
+        drawRails(alpha);
+      }
+
+      /* 軌道細線：跟路徑同一條，往上下各偏一點，自己算 CSS 的透視投影 */
+      function proj(q, offY) {
+        const k = RIB.P / (RIB.P - q.z);
+        return [stageW * .5 + q.x * k, stageH * .46 + (q.y + offY) * k];
+      }
+
+      function drawRails(alpha) {
         const railA = RIB.railAlpha * alpha;
         [rail1, rail2].forEach((el, n) => {
           const off = (n ? -1 : 1) * RIB.railOff * Wh;
           let d = '';
-          for (let j = 0; j <= 120; j++) {
-            const t = -.14 + (j / 120) * 1.28;
-            const ps = pose(t);
-            const k = RIB.P / (RIB.P - ps.z);
-            d += (j ? 'L' : 'M') + (cx + ps.x * k).toFixed(1) + ',' +
-              (cy + (ps.y + off) * k).toFixed(1);
+          for (let j = 0; j <= M; j += 2) {
+            const q = proj(curve[j], off);
+            d += (j ? 'L' : 'M') + q[0].toFixed(1) + ',' + q[1].toFixed(1);
           }
           el.setAttribute('d', d);
           el.style.opacity = railA.toFixed(3);
         });
+        if (editing) { drawHandles(); }
       }
 
-      /* 捲動值不直接套上去：這個 lerp 產生的慣性就是「順」的來源 */
+      /* ── 可以拖的控制點 ──────────────────────────────────── */
+      let handles = [], pathLine = null, dragI = -1, dragStage = null;
+
+      function nearestStage() {
+        let best = RIB_STAGE[0], bd = 9;
+        RIB_STAGE.forEach((st) => { const d = Math.abs(st.at - prog); if (d < bd) { bd = d; best = st; } });
+        return best;
+      }
+
+      function ensureHandles() {
+        if (pathLine) { return; }
+        pathLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        pathLine.setAttribute('class', 'pf-path');
+        pathLine.setAttribute('fill', 'none');
+        rails.appendChild(pathLine);
+        for (let i = 0; i < CN; i++) {
+          const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          c.setAttribute('class', 'pf-handle');
+          c.setAttribute('r', 9);
+          c.dataset.i = i;
+          c.addEventListener('pointerdown', (ev) => {
+            ev.preventDefault();
+            dragI = i;
+            dragStage = nearestStage();
+            c.setPointerCapture(ev.pointerId);
+          });
+          c.addEventListener('pointermove', (ev) => {
+            if (dragI !== i || !dragStage) { return; }
+            const r = rails.getBoundingClientRect();
+            const sx = (ev.clientX - r.left) / r.width * stageW;
+            const sy = (ev.clientY - r.top) / r.height * stageH;
+            const k = RIB.P / (RIB.P - dragStage.pts[i][2]);
+            dragStage.pts[i][0] = ((sx - stageW * .5) / k) / stageW;
+            dragStage.pts[i][1] = ((sy - stageH * .46) / k) / stageH;
+            if (!live) { layout(); }
+          });
+          const done = () => { if (dragI === i) { dragI = -1; rebuild(); } };
+          c.addEventListener('pointerup', done);
+          c.addEventListener('pointercancel', done);
+          rails.appendChild(c);
+          handles.push(c);
+        }
+      }
+
+      function drawHandles() {
+        ensureHandles();
+        let d = '';
+        for (let j = 0; j <= M; j += 2) {
+          const q = proj(curve[j], 0);
+          d += (j ? 'L' : 'M') + q[0].toFixed(1) + ',' + q[1].toFixed(1);
+        }
+        pathLine.setAttribute('d', d);
+        const st = dragStage || nearestStage();
+        for (let i = 0; i < CN; i++) {
+          const q = proj({ x: st.pts[i][0] * stageW, y: st.pts[i][1] * stageH, z: st.pts[i][2] }, 0);
+          handles[i].setAttribute('cx', q[0].toFixed(1));
+          handles[i].setAttribute('cy', q[1].toFixed(1));
+        }
+      }
+
+      function showEdit(on) {
+        editing = on;
+        rails.classList.toggle('is-edit', on);
+        if (on) { ensureHandles(); drawHandles(); }
+      }
+
       function frame(ts) {
         if (!live) { return; }
         flowTarget = RIB.flow0 + pfSpan(prog, PF_T.ringInA, PF_T.ringOutB) * RIB.flowSpan +
@@ -4412,14 +4579,16 @@
         raf = requestAnimationFrame(frame);
       }
 
+      function rebuild() { build(); layout(); }
+
       build();
-      addEventListener('resize', () => { build(); layout(); });
+      addEventListener('resize', rebuild);
 
       pfRib = {
         set(v) { prog = clamp(v, 0, 1); if (!live) { layout(); } },
-        rebuild() { build(); layout(); },
+        rebuild,
         relayout: layout,
-        stage: RIB_STAGE,
+        edit: showEdit,
         start() {
           if (live) { return; }
           live = true;
@@ -4559,38 +4728,36 @@
       gui.add({ copy: pfCopyValues }, 'copy').name('複製目前數值');
 
       const f1 = gui.addFolder('緞帶形狀');
-      f1.add(RIB, 'cwFrac', .15, .7, .01).name('面板寬（舞台寬倍數）').onChange(hard);
       f1.add(RIB, 'NP', 4, 16, 1).name('面板數').onChange(hard);
-      f1.add(RIB, 'RCF', 1.6, 8, .05).name('圓柱半徑（面板寬倍數）').onChange(hard);
-      f1.add(RIB, 'PHI0', -1.4, 1.4, .01).name('視窗中心角').onChange(soft);
-      f1.add(RIB, 'CZ', -600, 700, 5).name('最近點深度').onChange(soft);
-      f1.add(RIB, 'SLOPE', -.8, .8, .01).name('往右抬升斜率').onChange(soft);
+      f1.add(RIB, 'N', 6, 40, 1).name('每張切幾條').onChange(hard);
+      f1.add(RIB, 'TWIST', 0, 40, .5).name('扭轉角度').onChange(soft);
+      f1.add(RIB, 'OVERLAP', 0, 16, .5).name('縱條重疊 px').onChange(hard);
+      f1.add(RIB, 'splitZ', -1800, 700, 10).name('前後分界深度').onChange(soft);
+      f1.add(RIB, 'P', 500, 3000, 20).name('perspective').onChange(soft);
 
-      const f2 = gui.addFolder('弧面與流動');
-      f2.add(RIB, 'N', 6, 40, 1).name('每張切幾條').onChange(hard);
-      f2.add(RIB, 'TWIST', 0, 40, .5).name('扭轉角度').onChange(soft);
-      f2.add(RIB, 'OVERLAP', 0, 16, .5).name('縱條重疊 px').onChange(hard);
+      const f2 = gui.addFolder('流動與軌道線');
       f2.add(RIB, 'flowSpan', -2, 2, .01).name('流動圈數').onChange(soft);
+      f2.add(RIB, 'flow0', -2, 2, .01).name('起始位移').onChange(soft);
       f2.add(RIB, 'damp', .01, .3, .005).name('阻尼').onChange(soft);
-      f2.add(RIB, 'splitZ', -900, 700, 5).name('前後分界深度').onChange(soft);
+      f2.add(RIB, 'railOff', 0, 3, .02).name('軌道線離路徑多遠').onChange(soft);
+      f2.add(RIB, 'railAlpha', 0, 1, .01).name('軌道線濃度').onChange(soft);
 
-      /* 軌跡條的版面：每個階段各自的位移、旋轉、裁切框 */
+      /* 路徑：x、y 直接在畫面上拖白點，這裡只放深度與階段 */
       RIB_STAGE.forEach((st) => {
-        const f = gui.addFolder('軌跡 · ' + st.name);
+        const f = gui.addFolder('路徑 · ' + st.name + '（拖白點改 x/y）');
         f.add({ go: () => pfJumpTo(st.at) }, 'go').name('跳到此階段');
-        f.add(st, 'x', -80, 80, .5).name('左右位移 vw').onChange(soft);
-        f.add(st, 'y', -80, 80, .5).name('上下位移 vh').onChange(soft);
-        f.add(st, 'rot', -45, 45, .5).name('旋轉角度').onChange(soft);
-        f.add(st, 'clip', 0, .4, .005).name('左右裁切框').onChange(soft);
-        f.add(st, 'at', 0, 1, .01).name('這一階段的 progress').onChange(soft);
+        st.pts.forEach((pt, i) => {
+          f.add(pt, '2', -2600, 700, 10).name('P' + i + ' 深度').onChange(soft);
+        });
       });
 
-      const f3 = gui.addFolder('軌道細線');
-      f3.add(RIB, 'railOff', 0, 3, .02).name('離中心線多遠').onChange(soft);
-      f3.add(RIB, 'railAlpha', 0, 1, .01).name('濃度').onChange(soft);
-      f3.add(RIB_LEAD, 'y', 0, 160, 1).name('進場前藏多低').onChange(soft);
-      f3.add(RIB_TAIL, 'x', -20, 120, 1).name('離場後飛多右').onChange(soft);
-      f3.add(RIB_TAIL, 'y', -160, 20, 1).name('離場後飛多高').onChange(soft);
+      const f3 = gui.addFolder('階段');
+      RIB_STAGE.forEach((st) => {
+        f3.add(st, 'at', 0, 1, .01).name(st.name + ' progress').onChange(soft);
+      });
+      RIB_STAGE.forEach((st) => {
+        f3.add(st, 'clip', 0, .4, .005).name(st.name + ' 裁切框').onChange(soft);
+      });
 
       const f4 = gui.addFolder('時間軸 progress');
       [['ringInA', '進場 起'], ['ringInB', '進場 訖'],
@@ -4608,6 +4775,7 @@
       }
       if (pfRailsEl) { pfRailsEl.classList.toggle('is-debug', on); }
       if (pfStage) { pfStage.classList.toggle('is-debug-rib', on); }
+      if (pfRib && pfRib.edit) { pfRib.edit(on); }
     }
 
     function pfToggleGui(force) {

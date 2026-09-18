@@ -1377,47 +1377,78 @@
     overflow: hidden;
   }
 
-  /* 卡片帶的畫布鋪滿舞台，滑鼠事件一律放行給底下的拼貼 */
-  .pf-gl {
+  /* ── 第二段：純 CSS 3D 的圓柱緞帶 ─────
+     整條緞帶是同一個圓柱上的一片。面板寬 = 圓的一條弦，所以相鄰
+     面板首尾自動貼齊；面板自己再切成 N 條縱條各轉一點角度，拼起來
+     就是弧面。彎曲用 rotateY，扭轉用 rotateX。
+     面板上絕對不能加 overflow:hidden 或 filter —— 兩者都會把 3D
+     壓扁成 2D，弧面就沒了。所以陰影只能畫進圖裡。 */
+  .pf-rib {
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
-    /* 拼貼期要點得到卡片，所以畫布收事件；圓環期由 JS 讓它放行 */
-    pointer-events: none;
-  }
-
-  /* 三明治：後半圈壓在大標下面，前半圈疊在大標上面 */
-  .pf-gl-back { z-index: 1; }
-  .pf-gl-front { z-index: 3; }
-  .pf-gl-front.is-live { pointer-events: auto; }
-
-  /* ── 第二段的 CSS 3D 退路 ─────────────
-     沒有 WebGL 時用 CSS transform 把卡片排在圓柱面上。
-     卡片本身不會彎（CSS 做不到），但整條弧是真的 3D。 */
-  .pf-band-css {
-    position: absolute;
-    inset: 0;
-    perspective: 1500px;
-    perspective-origin: 50% 50%;
+    perspective: 1200px;             /* 必須跟 JS 的 RIB.P 同值 */
+    perspective-origin: 50% 46%;
     pointer-events: none;
     will-change: opacity;
   }
 
-  .pf-band-back { z-index: 1; }
-  .pf-band-front { z-index: 3; }
+  .pf-rib-back { z-index: 1; }
+  .pf-rib-front { z-index: 3; }
 
-  .pf-bcard {
+  .pf-rib-in {
     position: absolute;
-    left: 0;
-    top: 0;
-    border-radius: 3px;
-    background: #d6d5d0 center / cover no-repeat;
-    box-shadow: 0 14px 34px rgba(26, 26, 26, .18);
-    backface-visibility: hidden;
+    inset: 0;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .pf-panel {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--cw);
+    aspect-ratio: 6 / 5;             /* 所有面板同一個比例，上下緣才齊 */
+    transform-style: preserve-3d;    /* 少了這行縱條的 3D 會被壓扁 */
+    transform: translate(-50%, -50%)
+               translate3d(var(--x), var(--y), var(--z))
+               rotateY(var(--ry)) rotateZ(var(--rz));
+    opacity: var(--o);
     will-change: transform, opacity;
   }
+
+  .pf-strip {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    background-repeat: no-repeat;
+    backface-visibility: hidden;
+    transform-origin: 50% 50%;
+    transform: translate3d(var(--dx), 0, var(--dz))
+               rotateY(var(--a))
+               rotateX(calc((var(--tw0) + var(--u) * var(--twSpan)) * 1deg));
+  }
+
+  /* 軌道細線：跟緞帶同一個圓柱，自己算投影畫成 SVG，不受裁切框影響 */
+  .pf-rails {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .pf-rail {
+    stroke: rgba(26, 26, 26, .28);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+
+  /* 調校面板開著時：軌道加深，面板描一圈框，看得出弧面怎麼切 */
+  .pf-rails.is-debug .pf-rail { stroke: rgba(255, 59, 31, .85); }
+  .pf-rails.is-debug ~ .pf-rib .pf-strip,
+  .is-debug-rib .pf-strip { outline: 1px solid rgba(31, 107, 255, .35); }
 
   /* 滑到某一張卡片時，左下角報出它是哪一件 */
   .pf-hover {
@@ -1504,33 +1535,6 @@
 
   /* 第三段改由 WebGL 畫時，DOM 這一份留在無障礙樹裡：
      看不見，但仍在 Tab 順序上，聚焦時會現身，按下去一樣開細節 */
-  :root.pf-gl-on .pf-collage {
-    inset: auto auto clamp(52px, 8vh, 80px) clamp(18px, 5vw, 92px);
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-  }
-
-  :root.pf-gl-on .pf-card {
-    position: static !important;
-    width: auto !important;
-    height: 1px;
-    overflow: hidden;
-    opacity: 0 !important;
-    transform: none !important;
-    pointer-events: auto;
-  }
-
-  :root.pf-gl-on .pf-card:focus-visible {
-    height: auto;
-    opacity: 1 !important;
-    padding: .5em .8em;
-    background: var(--pf-bg);
-  }
-
-  :root.pf-gl-on .pf-shot { display: none; }
-
   .pf-shot {
     display: block;
     width: 100%;
@@ -1640,7 +1644,7 @@
   @media (prefers-reduced-motion: reduce) {
     .pf-track { height: auto; }
     .pf-stage { position: static; height: auto; overflow: visible; padding: clamp(78px, 12vh, 120px) clamp(18px, 5vw, 92px) clamp(70px, 10vh, 110px); }
-    .pf-gl, .pf-band-css, .pf-hover { display: none !important; }
+    .pf-rib, .pf-rails, .pf-hover { display: none !important; }
     .pf-head { position: static; padding: 0; }
     .pf-collage {
       position: static;
@@ -1651,7 +1655,6 @@
       pointer-events: auto;
     }
     .pf-card { position: static !important; width: auto !important; height: auto; overflow: visible; opacity: 1 !important; transform: none !important; pointer-events: auto; }
-    :root.pf-gl-on .pf-shot { display: block; }
     .pf-meter, .pf-eyebrow { position: static; margin-top: 2.5rem; }
     .pf-meter { display: none; }
   }
@@ -1945,11 +1948,16 @@
     <div class="pf-track" id="pfTrack">
       <div class="pf-stage" id="pfStage">
 
-        <!-- 三明治：後半圈的卡片 → 大標 → 前半圈的卡片。
-             兩張畫布共用同一個場景與同一台相機，每一幀畫兩次，
-             大標才能真的被圓環套住 -->
-        <canvas class="pf-gl pf-gl-back" id="pfGLBack" aria-hidden="true"></canvas>
-        <div class="pf-band-css pf-band-back" id="pfCssBack" hidden aria-hidden="true"></div>
+        <!-- 三明治：軌道細線 → 後半段面板 → 大標 → 前半段面板。
+             面板依自己的深度被丟進 back 或 front 那一層，
+             大標才能真的被緞帶夾住 -->
+        <svg class="pf-rails" id="pfRails" aria-hidden="true" preserveAspectRatio="none">
+          <path class="pf-rail" id="pfRail1" fill="none"></path>
+          <path class="pf-rail" id="pfRail2" fill="none"></path>
+        </svg>
+        <div class="pf-rib pf-rib-back" id="pfRibBack" aria-hidden="true">
+          <div class="pf-rib-in" id="pfRibBackIn"></div>
+        </div>
 
         <!-- 第一段：錯開的兩行大標 -->
         <div class="pf-head" id="pfHead">
@@ -1958,8 +1966,9 @@
           <h2 class="pf-line pf-line-b" id="pfLineB" data-i18n="pf.l2">MOTION</h2>
         </div>
 
-        <canvas class="pf-gl pf-gl-front" id="pfGLFront" aria-hidden="true"></canvas>
-        <div class="pf-band-css pf-band-front" id="pfCssFront" hidden aria-hidden="true"></div>
+        <div class="pf-rib pf-rib-front" id="pfRibFront" aria-hidden="true">
+          <div class="pf-rib-in" id="pfRibFrontIn"></div>
+        </div>
 
         <!-- 第三段：散落的拼貼 -->
         <div class="pf-collage" id="pfCollage">
@@ -4059,10 +4068,8 @@
     const pfLineB = document.getElementById('pfLineB');
     const pfKicker = document.getElementById('pfKicker');
     const pfMeter = document.getElementById('pfMeter');
-    const pfCanvasBack = document.getElementById('pfGLBack');
-    const pfCanvasFront = document.getElementById('pfGLFront');
-    const pfCssBack = document.getElementById('pfCssBack');
-    const pfCssFront = document.getElementById('pfCssFront');
+    const pfStage = document.getElementById('pfStage');
+    const pfRailsEl = document.getElementById('pfRails');
     const pfHover = document.getElementById('pfHover');
     const pfCards = [...document.querySelectorAll('.pf-card')];
 
@@ -4073,30 +4080,45 @@
 
     /* 三段的區間 */
 
-    /* 可調參數。?debug 會開一個 lil-gui 面板接到這裡 */
+    /* ── 緞帶的可調參數。按 D 會開一個 lil-gui 面板接到這裡 ──
+       幾何模型：整條緞帶就是同一個圓柱上的一片。
+       面板自己的彎曲半徑 = 路徑的圓弧半徑（同一個 RC），兩者一致，
+       接縫處切線就自動吻合，整條看起來才是一條帶子而不是一排柵欄。 */
+    const RIB = {
+      cwFrac: 0.26,   /* 面板寬 = 這個倍數 x 舞台寬（再夾在下面兩個值之間） */
+      cwMin: 260,
+      cwMax: 420,
+      NP: 8,          /* 面板數 */
+      RCF: 2.6,       /* 圓柱半徑 = RCF x 面板寬。越小越彎、可見面板越少 */
+      PHI0: 0.45,     /* 可視窗口在圓弧上的中心角，控制左右不對稱 */
+      CZ: 60,         /* 圓弧最近點的深度。越大越靠近鏡頭、面板越大 */
+      SLOPE: -0.18,   /* 整條往右抬升的斜率。負值往右上 */
+      N: 20,          /* 每張面板切幾條縱條。扭轉越大要越多條 */
+      TWIST: 11,      /* 扭轉最大角度（度）。加大要同步加 N 與 OVERLAP */
+      OVERLAP: 5,     /* 縱條左右外擴 px，蓋掉細縫 */
+      P: 1200,        /* perspective，必須跟 CSS 的 .pf-rib 同值 */
+      flowSpan: 0.62, /* 整段捲下來流過幾圈 */
+      flow0: 0.00,    /* 起始位移 */
+      damp: 0.07,     /* flow 的 lerp 係數。越小越黏、越大越跟手 */
+      splitZ: -420,   /* 前後分界：深度大於這個值的面板疊到大標上面 */
+      railOff: 0.62,  /* 軌道細線離中心線多遠（面板高的倍數） */
+      railAlpha: 0.50
+    };
+
+    /* 軌跡條的版面：三個階段各自的位移、旋轉、裁切框。
+       進場之前與離場之後再各自加一段偏移，讓它滑進滑出畫面。 */
+    const RIB_STAGE = [
+      { name: '進場', at: 0.26, x: -16, y: 30, rot: 7, clip: 0.12 },
+      { name: '主秀', at: 0.50, x: 0, y: 4, rot: -9, clip: 0.12 },
+      { name: '離場', at: 0.82, x: 20, y: -26, rot: 8, clip: 0.00 }
+    ];
+    const RIB_LEAD = { x: -24, y: 86 };    /* 進場之前藏在左下 */
+    const RIB_TAIL = { x: 42, y: -54 };    /* 離場之後飛到右上 */
+
+    /* 大標的橫越 */
     const PF = {
-      fov: 30,            /* 緞帶用的視角；拼貼牆另外用 gridFov */
-      ringDist: 20,       /* 曲線座標原點離鏡頭多遠 */
-      ribbonW: 0.62,      /* 緞帶寬度 = 這個倍數 x 曲線深度上的畫面半高 */
-      twist: 0.20,        /* 從頭到尾總共扭轉幾弧度（0 = 整條正面朝鏡頭） */
-      twist0: 0.00,       /* 整條再一起扭轉多少 */
-      flow0: 0.00,        /* 照片在布上的起始位移，單位是「格」 */
-      flowCells: 2.60,    /* 整段捲動下來，照片沿緞帶流過幾格 */
-      clipL: 0.12,        /* 左右垂直裁切框：只顯示畫面寬度這兩個比例之間的緞帶 */
-      clipR: 0.88,
-      splitZ: 0,          /* 前後分界：曲線座標裡的 z */
-      splitSoft: 0.14,    /* 分界的柔邊（畫面半寬的比例），跨界時交叉淡出不閃 */
-      shade: 0.10,        /* 長邊的淡暗邊，讓布有一點厚度 */
-      trackOff1: 1.45,    /* 軌道細線一：往側邊偏幾個緞帶寬 */
-      trackOff2: -1.70,   /* 軌道細線二 */
-      trackAlpha: 0.55,   /* 細線濃度 */
       titleSpan: 1.42,    /* 兩行大標全程橫越幾個畫面寬 */
-      titleMid: 0.465,    /* 走到第幾成時剛好回到原本的版位 */
-      gridCards: 12,      /* 拼貼牆放幾張卡片 */
-      gridDist: 26,       /* 拼貼牆離鏡頭多遠 */
-      gridFov: 46,        /* 拼貼牆用回正常視角 */
-      gridScale: 1.0,
-      gridTilt: 0.05
+      titleMid: 0.465     /* 走到第幾成時剛好回到原本的版位 */
     };
 
     /* 各階段的 progress 起訖 */
@@ -4108,51 +4130,11 @@
       morphA:   0.85, morphB:   1.00
     };
 
-    /* 拼貼的落點：x、y 是視錐半寬半高的倍數，第三個是相對大小 */
-    /* 順序刻意打散：卡片數調少時，前 N 個仍然鋪滿整個畫面 */
-    const PF_SPOTS = [
-      [-0.80,  0.58, 0.82], [ 0.78, -0.56, 1.22], [ 0.06,  0.66, 0.68], [-0.46, -0.62, 1.30], [ 0.50,  0.50, 1.26],
-      [-0.84, -0.06, 1.38], [ 0.86,  0.14, 0.74], [-0.30,  0.08, 0.70], [ 0.34, -0.10, 1.10], [-0.08, -0.70, 0.86],
-      [ 0.62,  0.86, 0.66], [-0.62,  0.82, 0.72], [ 0.18, -0.34, 0.78], [-0.88,  0.34, 0.64], [ 0.88, -0.22, 0.90]
-    ];
-
-    /* 緞帶曲線的關鍵形狀。每個控制點是 [x, y, z]：
-       x、z 是畫面半寬的倍數，y 是半高的倍數，z 為正代表往鏡頭這邊靠。
-       progress 落在兩個關鍵影格之間時用 smoothstep 補間。 */
-    const PF_KEYS = [
-      { p: 0.10, pts: [                         /* 還藏在畫面下方 */
-        [-2.05, -3.95, 0.85], [-1.15, -3.62, 0.30], [-0.30, -3.34, -0.55],
-        [ 0.55, -3.22, -1.45], [ 1.35, -3.30, -2.20], [ 2.10, -3.52, -2.90] ] },
-      { p: 0.26, pts: [                         /* 圖B：從左下沿弧線進場 */
-        [-2.05, -1.95, 0.85], [-1.15, -1.62, 0.30], [-0.30, -1.34, -0.55],
-        [ 0.55, -1.22, -1.45], [ 1.35, -1.30, -2.20], [ 2.10, -1.52, -2.90] ] },
-      { p: 0.36, pts: [                         /* 圖C：整條朝鏡頭翹起來 */
-        [-1.95, -0.88, -2.10], [-1.05, -0.38, -0.55], [-0.22, 0.10, 0.70],
-        [ 0.60, 0.04, 0.55], [ 1.35, -0.46, -1.25], [ 2.10, -0.98, -2.70] ] },
-      { p: 0.50, pts: [                         /* 圖D：主秀，左高右低 */
-        [-2.10, 0.80, -2.55], [-1.15, 0.50, -1.05], [-0.30, 0.14, 0.55],
-        [ 0.45, -0.30, 0.90], [ 1.25, -0.72, -1.05], [ 2.10, -1.08, -2.55] ] },
-      { p: 0.68, pts: [                         /* 圖E：往上甩，左低右高 */
-        [-2.05, -0.42, 0.80], [-1.10, 0.24, 0.35], [-0.28, 0.72, -0.70],
-        [ 0.55, 1.04, -1.60], [ 1.35, 1.20, -2.30], [ 2.10, 1.26, -2.95] ] },
-      { p: 0.82, pts: [                         /* 圖F：轉到上方往右上飛出 */
-        [-1.40, 1.02, 0.55], [-0.48, 1.34, -0.10], [ 0.40, 1.58, -0.95],
-        [ 1.28, 1.74, -1.75], [ 2.15, 1.80, -2.40], [ 3.00, 1.76, -3.00] ] },
-      { p: 0.95, pts: [                         /* 已經出框 */
-        [ 0.20, 2.42, 0.55], [ 1.12, 2.74, -0.10], [ 2.00, 2.98, -0.95],
-        [ 2.88, 3.14, -1.75], [ 3.75, 3.20, -2.40], [ 4.60, 3.16, -3.00] ] }
-    ];
-
     const pfSpan = (v, a, b) => clamp((v - a) / (b - a), 0, 1);
     const pfEaseOut = (x) => 1 - Math.pow(1 - x, 3);
     const pfEaseIn = (x) => x * x * x;
     const pfSmooth = (x) => x * x * (3 - 2 * x);   /* 兩端都緩，中段才是主要行程 */
     const pfEase = pfEaseOut;
-
-    /* 每張卡片固定的小傾角與視差速度：用編號算，重新整理也不會變 */
-    function pfTilt(i) { return (i * 37 % 25) / 12 - 1; }   /* -1 ~ 1 */
-    function pfYaw(i) { return (i * 53 % 25) / 12 - 1; }
-    function pfSpeed(i) { return 0.8 + (i * 29 % 11) / 10 * 0.5; }
 
     /* 拼貼卡片的說明跟著語言走 */
     pfSync = function () {
@@ -4163,8 +4145,7 @@
       if (pfHoverIndex >= 0) { pfShowHover(pfHoverIndex); }
     };
 
-    let pfBand = null;          /* WebGL 版的卡片帶（第二段 + 第三段） */
-    let pfCss = null;           /* 沒有 WebGL 時的 CSS 3D 退路（只有第二段） */
+    let pfRib = null;           /* 第二段的 CSS 3D 圓柱緞帶 */
     let pfIntroRaf = 0;
     let pfLast = 0;             /* 最後一次算過的 progress */
     let pfHoverIndex = -1;      /* 滑鼠停在哪一張卡片上 */
@@ -4214,759 +4195,240 @@
       pfKicker.style.opacity = (inn * (1 - gone)).toFixed(3);
       pfHead.style.opacity = '1';
 
-      if (pfBand) {
-        /* 第二段與第三段是同一批卡片，交給它自己補間 */
-        pfBand.set(p);
-      } else {
-        /* 退路：CSS 3D 的緞帶 + DOM 的拼貼 */
-        if (pfCss) { pfCss.set(p); }
-        const g = pfSpan(p, PF_T.morphA, 1);
-        pfCards.forEach((el, i) => {
-          const sp = parseFloat(el.dataset.speed) || 1;
-          const k = pfEase(clamp((g - i * .05) / .42, 0, 1));
-          el.style.opacity = k.toFixed(3);
-          el.style.transform = 'translate3d(0,' + ((1 - g) * 170 * sp).toFixed(2) + 'px,0) scale(' + (.9 + .1 * k).toFixed(3) + ')';
-          el.classList.toggle('is-live', k > .6);
-        });
-      }
+      /* 第二段：緞帶自己有阻尼迴圈，這裡只把目標值交給它 */
+      if (pfRib) { pfRib.set(p); }
+
+      /* 第三段：拼貼牆是真的 DOM，逐張淡進來、各自不同的視差速度 */
+      const g = pfSpan(p, PF_T.morphA, 1);
+      pfCards.forEach((el, i) => {
+        const sp = parseFloat(el.dataset.speed) || 1;
+        const k = pfEase(clamp((g - i * .05) / .42, 0, 1));
+        el.style.opacity = k.toFixed(3);
+        el.style.transform = 'translate3d(0,' + ((1 - g) * 170 * sp).toFixed(2) + 'px,0) scale(' + (.9 + .1 * k).toFixed(3) + ')';
+        el.classList.toggle('is-live', k > .6);
+      });
 
       pfMeter.style.transform = 'scaleX(' + p.toFixed(4) + ')';
     }
 
-    /* ── 著色器 ────────────────────────────────────────────
-       頂點：把平面繞著自己的中心彎起來。uBend 是彎曲度，
-       1 代表完全貼合半徑 uR 的圓柱，0.15 幾乎是平的。
-       卡片擺在哪裡由 JS 的 mesh.position / quaternion 決定。 */
-    const PF_VERT = `
-      uniform float uR;
-      uniform float uBend;
-      varying vec2 vUv;
-      void main() {
-        vUv = uv;
-        vec3 p = position;
-        if (uBend > 0.0005) {
-          float rEff = uR / uBend;
-          float a = p.x / rEff;
-          p = vec3(sin(a) * rEff, p.y, cos(a) * rEff - rEff);
-        }
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
-      }
-    `;
+    /* ── 第二段：純 CSS 3D 的圓柱緞帶 ─────────────────────── */
+    function pfMakeRibbon() {
+      if (pfRib || reduce) { return; }
 
-    /* 平面比卡片大一圈，多出來的那一圈拿來畫圓角外的柔影 */
-    const PF_FRAG = `
-      precision mediump float;
-      uniform sampler2D uMap;
-      uniform vec2 uPlane;
-      uniform vec2 uCard;
-      uniform float uRad;
-      uniform float uOpacity;
-      uniform float uShade;
-      uniform vec2 uCover;      /* 貼圖以 cover 方式裁切，照片比例不被卡片比例拉歪 */
-      uniform vec2 uClip;       /* 左右垂直裁切框，單位是裝置像素；x >= y 代表不裁 */
-      varying vec2 vUv;
+      const backIn = document.getElementById('pfRibBackIn');
+      const frontIn = document.getElementById('pfRibFrontIn');
+      const ribBack = document.getElementById('pfRibBack');
+      const ribFront = document.getElementById('pfRibFront');
+      const rails = document.getElementById('pfRails');
+      const rail1 = document.getElementById('pfRail1');
+      const rail2 = document.getElementById('pfRail2');
+      if (!backIn || !frontIn) { return; }
 
-      float roundBox(vec2 p, vec2 b, float r) {
-        vec2 q = abs(p) - b + r;
-        return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;
+      let panels = [];
+      let Ww = 320, Wh = 266, RC = 1150, DPHI = 0.28;
+      let stageW = 1440, stageH = 900;
+      let flow = 0, flowTarget = 0, raf = 0, live = false, prog = 0;
+
+      /* 面板 = 圓的一條弦。弦長等於面板寬，所以張角固定，
+         相鄰面板首尾自動貼齊，一條縫都不會有。 */
+      function measure() {
+        stageW = pfStage.clientWidth || innerWidth;
+        stageH = pfStage.clientHeight || innerHeight;
+        Ww = clamp(RIB.cwFrac * stageW, RIB.cwMin, RIB.cwMax);
+        Wh = Ww * 5 / 6;                       /* 對上 CSS 的 aspect-ratio: 6/5 */
+        RC = RIB.RCF * Ww;
+        DPHI = 2 * Math.asin(1 / (2 * RIB.RCF));
+        rails.setAttribute('viewBox', '0 0 ' + stageW + ' ' + stageH);
       }
 
-      void main() {
-        /* 切口是畫面上的垂直直線，所以直接用片段的螢幕座標判斷 */
-        if (uClip.y > uClip.x && (gl_FragCoord.x < uClip.x || gl_FragCoord.x > uClip.y)) { discard; }
-
-        vec2 pos = (vUv - 0.5) * uPlane;
-        float d = roundBox(pos, uCard * 0.5, uRad);
-        float aa = uCard.x * 0.004;
-        float inside = 1.0 - smoothstep(-aa, aa, d);
-
-        /* 影子往下偏一點，光源才像是從上面來的 */
-        float ds = roundBox(pos + vec2(0.0, uCard.y * 0.05), uCard * 0.5, uRad);
-        float shade = (1.0 - smoothstep(0.0, uCard.y * 0.12, ds)) * uShade * (1.0 - inside);
-
-        vec2 uvCard = (vUv * uPlane - (uPlane - uCard) * 0.5) / uCard;
-        if (!gl_FrontFacing) { uvCard.x = 1.0 - uvCard.x; }
-        uvCard = (uvCard - 0.5) * uCover + 0.5;
-        /* 直接輸出貼圖原本的值：沒有色調映射、沒有往紙色融，照片就是照片 */
-        vec3 col = texture2D(uMap, clamp(uvCard, 0.0, 1.0)).rgb;
-        gl_FragColor = vec4(col * inside, (inside + shade) * uOpacity);
-      }
-    `;
-
-    /* ── WebGL 版：套在大標外面的封閉圓環 ─────────────────────
-       14 張卡片均分在一個圓柱面上，圓心落在大標中心，卡片面朝外、
-       沿圓柱面彎曲。圓環的軸心斜著，像斜套在文字上的呼拉圈。
-
-       三明治：同一個場景、同一台相機，每一幀畫兩次——
-       後半圈畫到 back 畫布（壓在大標下面），前半圈畫到 front 畫布
-       （疊在大標上面）。跨越分界的那一刻卡片正好側面朝鏡頭、
-       面積最小，再加一段交叉淡出，所以不會閃。 */
-    /* ── 緞帶著色器 ────────────────────────────────────────
-       頂點已經在 JS 裡貼到曲線上了，這裡只負責投影，
-       外加把「在曲線座標裡的深度」傳給片段，用來分前後兩層。 */
-    const PF_RVERT = `
-      varying vec2 vUv;
-      varying float vZ;
-      void main() {
-        vUv = uv;
-        vZ = position.z;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `;
-
-    const PF_RFRAG = `
-      precision mediump float;
-      uniform sampler2D uMap;
-      uniform float uTiles;     /* 整條緞帶上排幾格照片 */
-      uniform float uCells;     /* 長條貼圖裡有幾格 */
-      uniform float uFlow;      /* 照片沿緞帶流動的位移，單位是「格」 */
-      uniform float uAlpha;
-      uniform float uSide;      /* 1 = 前層，0 = 後層 */
-      uniform float uSplit;
-      uniform float uSoft;
-      uniform float uShade;
-      uniform vec2 uClip;
-      varying vec2 vUv;
-      varying float vZ;
-
-      void main() {
-        if (uClip.y > uClip.x && (gl_FragCoord.x < uClip.x || gl_FragCoord.x > uClip.y)) { discard; }
-
-        /* 前後疊層：同一塊網格畫兩次，各自丟掉另一半，交界處交叉淡出 */
-        float wF = clamp((vZ - uSplit) / uSoft * 0.5 + 0.5, 0.0, 1.0);
-        float side = uSide > 0.5 ? wF : 1.0 - wF;
-        if (side < 0.004) { discard; }
-
-        vec2 uvA = vec2((vUv.x * uTiles + uFlow) / uCells, vUv.y);
-        vec3 col = texture2D(uMap, uvA).rgb;
-
-        /* 長邊留一點很淡的暗邊，讓布有厚度，不做重陰影 */
-        float edge = 1.0 - smoothstep(0.34, 0.5, abs(vUv.y - 0.5));
-        col *= 1.0 - uShade * (1.0 - edge) * 0.8;
-
-        gl_FragColor = vec4(col, side * uAlpha);
-      }
-    `;
-
-    function pfMakeBand() {
-      if (pfBand || reduce) { return; }
-
-      if (!window.THREE) {
-        console.warn('[chengyun] 活動成果：找不到 Three.js（cdnjs 與 jsdelivr 都沒回來），' +
-          '第二段改用 CSS 3D 退路，第三段用 DOM 拼貼。');
-        return;
+      function pose(t) {
+        const phi = RIB.PHI0 + (t - .5) * RIB.NP * DPHI;
+        const x = RC * Math.sin(phi);
+        return {
+          x: x,
+          y: x * RIB.SLOPE,
+          z: RIB.CZ - RC * (1 - Math.cos(phi)),
+          ry: phi * 180 / Math.PI
+        };
       }
 
-      let rBack, rFront;
-      try {
-        rBack = new THREE.WebGLRenderer({ canvas: pfCanvasBack, alpha: true, antialias: true });
-        rFront = new THREE.WebGLRenderer({ canvas: pfCanvasFront, alpha: true, antialias: true });
-      } catch (err) {
-        console.warn('[chengyun] 活動成果：WebGL 建不起來（顯示卡被瀏覽器停用，或硬體加速關閉），' +
-          '改用 CSS 3D 退路。原因：', err);
-        return;
-      }
-      [rBack, rFront].forEach((r) => {
-        r.setClearColor(0x000000, 0);
-        /* 色調映射會把照片壓灰；ShaderMaterial 直接輸出貼圖值，
-           不做編碼轉換就是「所見即原圖」 */
-        r.toneMapping = THREE.NoToneMapping;
-        r.outputEncoding = THREE.LinearEncoding;
-      });
-
-      const scene = new THREE.Scene();
-      /* 鏡頭擺在原點朝 -Z 看，深度就直接是「離鏡頭多遠」 */
-      const camera = new THREE.PerspectiveCamera(PF.fov, 1, .1, 400);
-
-      /* ── 長條貼圖：六張照片橫著排成一條，照片之間留一點紙色的縫 ──
-         緞帶是一整塊網格，所以貼圖也必須是一整條，不能一張一張貼。 */
-      const ATLAS_CELL = 512, ATLAS_H = 320, ATLAS_GAP = 5;
-      const atlasCanvas = document.createElement('canvas');
-      atlasCanvas.width = ATLAS_CELL * PF_SHOTS.length;
-      atlasCanvas.height = ATLAS_H;
-      const actx = atlasCanvas.getContext('2d');
-      const atlasImgs = [];
-      function paintAtlas() {
-        actx.fillStyle = '#e8e8e6';
-        actx.fillRect(0, 0, atlasCanvas.width, atlasCanvas.height);
-        for (let i = 0; i < PF_SHOTS.length; i++) {
-          const img = atlasImgs[i];
-          if (!img || !img.naturalWidth) { continue; }
-          const x = i * ATLAS_CELL + ATLAS_GAP, y = 0;
-          const w = ATLAS_CELL - ATLAS_GAP * 2, h = ATLAS_H;
-          /* cover：照片比例不被格子比例拉歪 */
-          const sc = Math.max(w / img.naturalWidth, h / img.naturalHeight);
-          const dw = img.naturalWidth * sc, dh = img.naturalHeight * sc;
-          actx.save();
-          actx.beginPath(); actx.rect(x, y, w, h); actx.clip();
-          actx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
-          actx.restore();
-        }
-        atlasTex.needsUpdate = true;
-      }
-      const atlasTex = new THREE.CanvasTexture(atlasCanvas);
-      atlasTex.wrapS = THREE.RepeatWrapping;
-      atlasTex.wrapT = THREE.ClampToEdgeWrapping;
-      atlasTex.minFilter = THREE.LinearFilter;
-      atlasTex.magFilter = THREE.LinearFilter;
-      atlasTex.generateMipmaps = false;
-      PF_SHOTS.forEach((src, i) => {
-        const img = new Image();
-        img.onload = () => { atlasImgs[i] = img; paintAtlas(); };
-        img.onerror = () => console.warn('[chengyun] 活動成果：貼圖載不到 —', src);
-        img.src = src;
-      });
-      paintAtlas();
-
-      /* 拼貼牆那一段還是用一張一張的卡片，所以照片也各自載一份 */
-      const loader = new THREE.TextureLoader();
-      const texAspect = PF_SHOTS.map(() => 4 / 3);
-      const textures = PF_SHOTS.map((src, i) => loader.load(src, (tex) => {
-        tex.minFilter = THREE.LinearFilter;
-        tex.generateMipmaps = false;
-        if (tex.image && tex.image.height) { texAspect[i] = tex.image.width / tex.image.height; }
-        applyCover();
-      }));
-
-      let geo = null;
-      let cards = [];
-      let tracks = [];
-      let halfH = 1, halfW = 1;
-      let gridH = 1, gridW = 1, gridBase = 3;
-      let cardW = 2, cardH = 1.2;
-      let raf = 0, live = false, dead = false, p = 0, soloMode = false;
-
-      const qGrid = new THREE.Quaternion();
-      const eGrid = new THREE.Euler();
-      const vGrid = new THREE.Vector3();
-      const raycaster = new THREE.Raycaster();
-      const ndc = new THREE.Vector2();
-
-      /* ── 緞帶本體：一塊長條網格，沿一條 3D 曲線彎起來 ────────
-         長度方向切很多段，邊緣才是連續曲線而不是折線。 */
-      const SEG_L = 360, SEG_W = 3;
-      const ribbonGeo = new THREE.PlaneGeometry(1, 1, SEG_L, SEG_W);
-      const ribbonPos = ribbonGeo.attributes.position;
-      const ribbonUv = ribbonGeo.attributes.uv;
-      let ribbonMesh = null, ribbonMat = null;
-      let ribbonWidth = 3, ribbonTiles = 8;
-
-      /* 曲線的控制點：每幀從關鍵影格補間出來 */
-      const CTRL = PF_KEYS[0].pts.length;
-      const ctrlPts = [];
-      for (let i = 0; i < CTRL; i++) { ctrlPts.push(new THREE.Vector3()); }
-      const curve = new THREE.CatmullRomCurve3(ctrlPts, false, 'catmullrom', .5);
-      let curvePts = [];
-      const vT = new THREE.Vector3();
-      const vB = new THREE.Vector3();
-      const vN = new THREE.Vector3();
-      const vW = new THREE.Vector3();
-      /* 寬度方向 = t 與世界 Z 的外積，投影下來永遠接近畫面的垂直方向。
-         緞帶因此是一面「立著的布」，沿曲線蜿蜒時自然轉向、收窄。 */
-      function widthBasis(t, outB, outN) {
-        outB.set(t.y, -t.x, 0);
-        if (outB.lengthSq() < 1e-8) { outB.set(0, 1, 0); }
-        outB.normalize();
-        outN.crossVectors(outB, t).normalize();
+      /* 兩端淡出，蓋掉繞回來的那個接點 */
+      function fadeAtEnds(t) {
+        if (t < .08) { return Math.max(0, t / .08); }
+        if (t > .94) { return Math.max(0, (1 - t) / .06); }
+        return 1;
       }
 
-      /* progress → 控制點。關鍵影格之間用 smoothstep 補間 */
-      function ctrlAt(prog) {
-        let k = 0;
-        while (k < PF_KEYS.length - 2 && prog > PF_KEYS[k + 1].p) { k++; }
-        const a = PF_KEYS[k], b = PF_KEYS[k + 1];
-        const u = pfSmooth(clamp((prog - a.p) / (b.p - a.p), 0, 1));
-        for (let i = 0; i < CTRL; i++) {
-          ctrlPts[i].set(
-            lerp(a.pts[i][0], b.pts[i][0], u) * halfW,
-            lerp(a.pts[i][1], b.pts[i][1], u) * halfH,
-            lerp(a.pts[i][2], b.pts[i][2], u) * halfW
-          );
-        }
-        curve.updateArcLengths();
-      }
+      /* 扭轉：週期 1，繞回 0 時連續。翻滾角依縱條在整條緞帶上的位置
+         決定，不是在自己面板裡的位置，接合處才對得起來。
+         角度每幀都在變，但只寫在面板上，縱條用 calc() 搭自己的 --u
+         自己內插，所以每幀只要寫 NP 次。 */
+      function roll(t) { return RIB.TWIST * Math.sin(t * Math.PI * 2); }
 
-      /* 把網格的每個頂點放到曲線上：位置取曲線點，寬度方向取法線，沿路加扭轉 */
-      function shapeRibbon() {
-        curvePts = curve.getSpacedPoints(SEG_L);
-        const half = ribbonWidth * .5;
-        for (let i = 0; i <= SEG_L; i++) {
-          const pt = curvePts[i];
-          const pPrev = curvePts[Math.max(i - 1, 0)];
-          const pNext = curvePts[Math.min(i + 1, SEG_L)];
-          vT.subVectors(pNext, pPrev);
-          if (vT.lengthSq() < 1e-9) { vT.set(1, 0, 0); }
-          vT.normalize();
-          widthBasis(vT, vB, vN);
-          const tw = PF.twist0 + PF.twist * (i / SEG_L - .5);
-          vW.copy(vB).multiplyScalar(Math.cos(tw)).addScaledVector(vN, Math.sin(tw));
-          for (let j = 0; j <= SEG_W; j++) {
-            const idx = j * (SEG_L + 1) + i;
-            const off = (j / SEG_W - .5) * 2 * half;
-            ribbonPos.setXYZ(idx, pt.x + vW.x * off, pt.y + vW.y * off, pt.z + vW.z * off);
-            ribbonUv.setXY(idx, i / SEG_L, 1 - j / SEG_W);
-          }
-        }
-        ribbonPos.needsUpdate = true;
-        ribbonUv.needsUpdate = true;
-        ribbonGeo.computeBoundingSphere();
-      }
-
-      function buildRibbon() {
-        if (ribbonMesh) { return; }
-        ribbonMat = new THREE.ShaderMaterial({
-          vertexShader: PF_RVERT,
-          fragmentShader: PF_RFRAG,
-          transparent: true,
-          depthWrite: false,
-          side: THREE.DoubleSide,
-          uniforms: {
-            uMap: { value: atlasTex },
-            uTiles: { value: 8 },
-            uCells: { value: PF_SHOTS.length },
-            uFlow: { value: 0 },
-            uAlpha: { value: 1 },
-            uSide: { value: 1 },
-            uSplit: { value: 0 },
-            uSoft: { value: 1 },
-            uShade: { value: PF.shade },
-            uClip: { value: new THREE.Vector2(0, -1) }
-          }
-        });
-        ribbonMesh = new THREE.Mesh(ribbonGeo, ribbonMat);
-        ribbonMesh.frustumCulled = false;
-        ribbonMesh.renderOrder = 1;
-        scene.add(ribbonMesh);
-      }
-
-      /* ── 拼貼牆的卡片：第三段才登場，第二段整批隱形 ───────── */
-      function build() {
-        cards.forEach((c) => { scene.remove(c.mesh); c.mat.dispose(); });
-        if (geo) { geo.dispose(); }
-        cards = [];
-
-        const N = Math.min(PF.gridCards, PF_SPOTS.length);
-        cardH = ribbonWidth;
-        cardW = cardH * 1.6;
-        const planeW = cardW * 1.14;
-        const planeH = cardH * 1.16;
-        geo = new THREE.PlaneGeometry(planeW, planeH, 2, 1);
-
+      /* 縱條：同一張圖切成 N 條，用 background-position 錯開拼回來。
+         這段每張面板只算一次，之後不動。 */
+      function buildStrips(panel, src) {
+        panel.innerHTML = '';
+        const N = Math.max(4, Math.round(RIB.N));
+        const sw = Ww / N;
+        const THETA = DPHI;                    /* 面板彎曲角度 = 路徑張角 */
+        /* cover：照片比例不被面板比例拉歪 */
+        const ar = panel._ar || 1.5;
+        let bw = Ww, bh = Ww / ar;
+        if (bh < Wh) { bh = Wh; bw = Wh * ar; }
+        const ox = (Ww - bw) / 2, oy = (Wh - bh) / 2;
         for (let i = 0; i < N; i++) {
-          const mat = new THREE.ShaderMaterial({
-            vertexShader: PF_VERT,
-            fragmentShader: PF_FRAG,
-            transparent: true,
-            depthWrite: false,
-            side: THREE.DoubleSide,
-            uniforms: {
-              uMap: { value: textures[i % textures.length] },
-              uR: { value: 1e6 },
-              uBend: { value: 1 },
-              uPlane: { value: new THREE.Vector2(planeW, planeH) },
-              uCard: { value: new THREE.Vector2(cardW, cardH) },
-              uRad: { value: cardH * .04 },
-              uOpacity: { value: 0 },
-              uShade: { value: PF.shade },
-              uCover: { value: new THREE.Vector2(1, 1) },
-              uClip: { value: new THREE.Vector2(0, -1) }
-            }
-          });
-          const mesh = new THREE.Mesh(geo, mat);
-          mesh.frustumCulled = false;
-          mesh.userData.i = i;
-          mesh.visible = false;
-          scene.add(mesh);
-          cards.push({
-            mesh, mat, spot: PF_SPOTS[i % PF_SPOTS.length],
-            tilt: pfTilt(i), yaw: pfYaw(i), speed: pfSpeed(i),
-            wFront: 1
-          });
+          const u = (i + .5) / N;
+          const a = (u - .5) * THETA;
+          const flatX = (u - .5) * Ww;
+          const x0 = i * sw - RIB.OVERLAP / 2;
+          const st = document.createElement('div');
+          st.className = 'pf-strip';
+          st.style.left = x0.toFixed(2) + 'px';
+          st.style.width = (sw + RIB.OVERLAP).toFixed(2) + 'px';
+          st.style.backgroundImage = 'url(' + src + ')';
+          st.style.backgroundSize = bw.toFixed(1) + 'px ' + bh.toFixed(1) + 'px';
+          st.style.backgroundPosition = (-x0 + ox).toFixed(1) + 'px ' + oy.toFixed(1) + 'px';
+          st.style.setProperty('--u', u.toFixed(4));
+          st.style.setProperty('--dx', (RC * Math.sin(a) - flatX).toFixed(2) + 'px');
+          st.style.setProperty('--dz', (RC * Math.cos(a) - RC).toFixed(2) + 'px');
+          st.style.setProperty('--a', (a * 180 / Math.PI).toFixed(3) + 'deg');
+          panel.appendChild(st);
         }
-        buildTracks();
-        applyCover();
       }
 
-      function applyCover() {
-        cards.forEach((c, i) => {
-          const want = cardW / cardH;
-          const has = texAspect[i % texAspect.length];
-          const u = c.mat.uniforms.uCover.value;
-          if (has > want) { u.set(want / has, 1); } else { u.set(1, has / want); }
+      function build() {
+        panels.forEach((q) => q.el.remove());
+        panels = [];
+        measure();
+        const NP = Math.max(3, Math.round(RIB.NP));
+        for (let i = 0; i < NP; i++) {
+          const el = document.createElement('div');
+          el.className = 'pf-panel';
+          el.style.setProperty('--cw', Ww.toFixed(1) + 'px');
+          const src = PF_SHOTS[i % PF_SHOTS.length];
+          const rec = { el, i, side: -1, src };
+          const img = new Image();
+          img.onload = () => {
+            el._ar = img.naturalWidth / img.naturalHeight;
+            buildStrips(el, src);
+          };
+          img.src = src;
+          buildStrips(el, src);
+          frontIn.appendChild(el);
+          panels.push(rec);
+        }
+      }
+
+      /* 軌跡條的版面：三個階段之間補間 */
+      function bandAt(t) {
+        const S = RIB_STAGE;
+        const keys = [
+          { p: Math.min(PF_T.ringInA, S[0].at - .04),
+            v: { x: S[0].x + RIB_LEAD.x, y: S[0].y + RIB_LEAD.y, rot: S[0].rot, clip: S[0].clip } },
+          { p: S[0].at, v: S[0] },
+          { p: S[1].at, v: S[1] },
+          { p: S[2].at, v: S[2] },
+          { p: Math.max(PF_T.morphA, S[2].at + .04),
+            v: { x: S[2].x + RIB_TAIL.x, y: S[2].y + RIB_TAIL.y, rot: S[2].rot, clip: S[2].clip } }
+        ];
+        let k = 0;
+        while (k < keys.length - 2 && t > keys[k + 1].p) { k++; }
+        const A = keys[k], B = keys[k + 1];
+        const u = pfSmooth(clamp((t - A.p) / Math.max(B.p - A.p, 1e-4), 0, 1));
+        return {
+          x: lerp(A.v.x, B.v.x, u),
+          y: lerp(A.v.y, B.v.y, u),
+          rot: lerp(A.v.rot, B.v.rot, u),
+          clip: lerp(A.v.clip, B.v.clip, u)
+        };
+      }
+
+      /* 每幀只更新 NP 張面板，不是每條縱條 */
+      function layout() {
+        const b = bandAt(prog);
+        const tf = 'translate3d(' + b.x.toFixed(2) + 'vw,' + b.y.toFixed(2) + 'vh,0)' +
+          ' rotate(' + b.rot.toFixed(2) + 'deg)';
+        backIn.style.transform = tf;
+        frontIn.style.transform = tf;
+        rails.style.transform = tf;
+
+        const inset = b.clip < .003 ? 'none'
+          : 'inset(0 ' + (b.clip * 100).toFixed(1) + '% 0 ' + (b.clip * 100).toFixed(1) + '%)';
+        ribBack.style.clipPath = inset;
+        ribFront.style.clipPath = inset;
+
+        const alpha = 1 - pfSmooth(pfSpan(prog, PF_T.morphA, PF_T.morphA + .07));
+        const rzDeg = Math.atan(RIB.SLOPE) * 180 / Math.PI;
+        const span = 1 / Math.max(3, Math.round(RIB.NP));
+
+        for (let i = 0; i < panels.length; i++) {
+          const q = panels[i];
+          const t = ((q.i / panels.length + flow) % 1 + 1) % 1;
+          const ps = pose(t);
+          const el = q.el;
+          el.style.setProperty('--x', ps.x.toFixed(2) + 'px');
+          el.style.setProperty('--y', ps.y.toFixed(2) + 'px');
+          el.style.setProperty('--z', ps.z.toFixed(2) + 'px');
+          el.style.setProperty('--ry', ps.ry.toFixed(3) + 'deg');
+          el.style.setProperty('--rz', rzDeg.toFixed(3) + 'deg');
+          el.style.setProperty('--o', (fadeAtEnds(t) * alpha).toFixed(3));
+          const tw0 = roll(t - span / 2);
+          el.style.setProperty('--tw0', tw0.toFixed(3));
+          el.style.setProperty('--twSpan', (roll(t + span / 2) - tw0).toFixed(3));
+          /* 三明治：深度大於分界的疊到大標上面 */
+          const side = ps.z > RIB.splitZ ? 1 : 0;
+          if (side !== q.side) {
+            q.side = side;
+            (side ? frontIn : backIn).appendChild(el);
+          }
+        }
+
+        /* 軌道細線：同一個圓柱，自己算 CSS 的透視投影 */
+        const cx = stageW * .5, cy = stageH * .46;
+        const railA = RIB.railAlpha * alpha;
+        [rail1, rail2].forEach((el, n) => {
+          const off = (n ? -1 : 1) * RIB.railOff * Wh;
+          let d = '';
+          for (let j = 0; j <= 120; j++) {
+            const t = -.14 + (j / 120) * 1.28;
+            const ps = pose(t);
+            const k = RIB.P / (RIB.P - ps.z);
+            d += (j ? 'L' : 'M') + (cx + ps.x * k).toFixed(1) + ',' +
+              (cy + (ps.y + off) * k).toFixed(1);
+          }
+          el.setAttribute('d', d);
+          el.style.opacity = railA.toFixed(3);
         });
       }
 
-      /* ── 軌道細線：跟著同一條曲線，往兩側各偏一點 ─────────── */
-      function buildTracks() {
-        tracks.forEach((l) => { scene.remove(l); l.geometry.dispose(); l.material.dispose(); });
-        tracks = [];
-        [PF.trackOff1, PF.trackOff2].forEach((k, n) => {
-          const g = new THREE.BufferGeometry();
-          g.setAttribute('position', new THREE.BufferAttribute(new Float32Array((SEG_L + 1) * 3), 3));
-          const m = new THREE.LineBasicMaterial({
-            color: 0x8d8d8d, transparent: true, opacity: PF.trackAlpha, depthTest: false
-          });
-          const line = new THREE.Line(g, m);
-          line.frustumCulled = false;
-          line.renderOrder = -10 + n;     /* 先畫，永遠在緞帶後面 */
-          line.userData.off = k;
-          scene.add(line);
-          tracks.push(line);
-        });
+      /* 捲動值不直接套上去：這個 lerp 產生的慣性就是「順」的來源 */
+      function frame(ts) {
+        if (!live) { return; }
+        flowTarget = RIB.flow0 + pfSpan(prog, PF_T.ringInA, PF_T.ringOutB) * RIB.flowSpan +
+          (document.hidden ? 0 : ts * 0.0000075);
+        flow += (flowTarget - flow) * RIB.damp;
+        layout();
+        raf = requestAnimationFrame(frame);
       }
 
-      function shapeTracks() {
-        for (let n = 0; n < tracks.length; n++) {
-          const arr = tracks[n].geometry.attributes.position.array;
-          const off = tracks[n].userData.off * ribbonWidth;
-          for (let i = 0; i <= SEG_L; i++) {
-            const pt = curvePts[i];
-            const pPrev = curvePts[Math.max(i - 1, 0)];
-            const pNext = curvePts[Math.min(i + 1, SEG_L)];
-            vT.subVectors(pNext, pPrev);
-            if (vT.lengthSq() < 1e-9) { vT.set(1, 0, 0); }
-            vT.normalize();
-            widthBasis(vT, vB, vN);
-            arr[i * 3] = pt.x + vB.x * off;
-            arr[i * 3 + 1] = pt.y + vB.y * off;
-            arr[i * 3 + 2] = pt.z + vB.z * off;
-          }
-          tracks[n].geometry.attributes.position.needsUpdate = true;
-          tracks[n].geometry.computeBoundingSphere();
-        }
-      }
+      build();
+      addEventListener('resize', () => { build(); layout(); });
 
-      function resize() {
-        const w = pfCanvasFront.clientWidth || innerWidth;
-        const h = pfCanvasFront.clientHeight || innerHeight;
-        const dpr = Math.min(devicePixelRatio || 1, 2);
-        [rBack, rFront].forEach((r) => { r.setPixelRatio(dpr); r.setSize(w, h, false); });
-        camera.aspect = w / h;
-        camera.position.set(0, 0, 0);
-        camera.fov = PF.fov;
-        camera.updateProjectionMatrix();
-        const tanHalf = Math.tan(camera.fov * Math.PI / 360);
-        halfH = tanHalf * PF.ringDist;
-        halfW = halfH * camera.aspect;
-        ribbonWidth = PF.ribbonW * halfH;
-
-        buildRibbon();
-        /* 照片格數由「主秀那一版曲線的長度 ÷ 一格該有的長度」決定，
-           固定住之後補間才不會讓照片忽長忽短 */
-        ctrlAt(PF_KEYS[PF_KEYS.length >> 1].p);
-        ribbonTiles = Math.max(3, Math.round(curve.getLength() / (ribbonWidth * 1.6)));
-        ribbonMat.uniforms.uTiles.value = ribbonTiles;
-
-        gridH = Math.tan(PF.gridFov * Math.PI / 360) * PF.gridDist;
-        gridW = gridH * camera.aspect;
-        build();
-        const across = camera.aspect > 1 ? 7 : 3.4;
-        gridBase = (gridW * 2) / (cardW * across);
-      }
-
-      function draw() {
-        if (dead) { return; }
-
-        const span = pfSpan(p, PF_T.ringInA, PF_T.ringOutB);
-        const morph = pfEaseOut(pfSpan(p, PF_T.morphA, PF_T.morphB));
-
-        /* 廣角是為了緞帶的透視；補間到拼貼牆時收回正常視角 */
-        const fovNow = lerp(PF.fov, PF.gridFov, morph);
-        if (Math.abs(camera.fov - fovNow) > .01) {
-          camera.fov = fovNow;
-          camera.updateProjectionMatrix();
-        }
-
-        /* 裁切框：主秀期間切成垂直兩刀，離場時放開讓緞帶飛出框外 */
-        const relax = pfSmooth(pfSpan(p, PF_T.ringOutA + .06, PF_T.ringOutB));
-        const wpx = pfCanvasFront.width;
-        const clipL = (PF.clipL - relax * .7) * wpx;
-        const clipR = (PF.clipR + relax * .7) * wpx;
-        const clipOff = relax > .995 || morph > .001;
-
-        /* 曲線隨捲動在關鍵形狀之間補間，網格每幀重新貼上去 */
-        ctrlAt(p);
-        shapeRibbon();
-        shapeTracks();
-
-        const ribbonAlpha = 1 - pfSmooth(pfSpan(p, PF_T.morphA, PF_T.morphA + .07));
-        ribbonMesh.position.set(0, 0, -PF.ringDist);
-        ribbonMat.uniforms.uAlpha.value = ribbonAlpha;
-        ribbonMat.uniforms.uShade.value = PF.shade;
-        ribbonMat.uniforms.uSplit.value = PF.splitZ;
-        ribbonMat.uniforms.uSoft.value = Math.max(halfW * PF.splitSoft, 1e-3);
-        ribbonMat.uniforms.uFlow.value = PF.flow0 + PF.flowCells * span;
-        ribbonMat.uniforms.uClip.value.set(clipOff ? 0 : clipL, clipOff ? -1 : clipR);
-        ribbonMesh.visible = ribbonAlpha > .004;
-
-        for (let i = 0; i < tracks.length; i++) {
-          const l = tracks[i];
-          l.position.set(0, 0, -PF.ringDist);
-          l.material.opacity = PF.trackAlpha * ribbonAlpha *
-            pfSmooth(pfSpan(p, PF_T.ringInA, PF_T.ringInA + .08));
-        }
-
-        /* 拼貼牆：卡片直接站在自己的位置上，靠透明度登場 */
-        const drift = (1 - pfSpan(p, PF_T.morphA, 1)) * gridH * .55;
-        const cardAlpha = pfSmooth(pfSpan(p, PF_T.morphA + .01, PF_T.morphA + .16));
-        for (let i = 0; i < cards.length; i++) {
-          const c = cards[i];
-          vGrid.set(c.spot[0] * gridW, c.spot[1] * gridH + drift * c.speed, -PF.gridDist);
-          eGrid.set(c.tilt * PF.gridTilt, c.yaw * PF.gridTilt, c.tilt * PF.gridTilt * .4);
-          qGrid.setFromEuler(eGrid);
-          c.mesh.position.copy(vGrid);
-          c.mesh.quaternion.copy(qGrid);
-          const sc = gridBase * PF.gridScale * c.spot[2];
-          c.mesh.scale.set(sc, sc, sc);
-          c.mat.uniforms.uShade.value = PF.shade;
-          c.alpha = cardAlpha;
-          c.wFront = 1;
-        }
-
-        /* 一幀畫兩次：先後半段，再前半段 */
-        drawPass(rBack, false);
-        drawPass(rFront, true);
-        pfCanvasFront.classList.toggle('is-live', morph > .6);
-      }
-
-      function drawPass(renderer, front) {
-        for (let i = 0; i < cards.length; i++) {
-          const c = cards[i];
-          let w = front ? c.alpha || 0 : 0;
-          if (soloMode && !c.solo) { w = 0; }
-          c.mat.uniforms.uOpacity.value = w;
-          c.mesh.visible = w > .004;
-        }
-        if (ribbonMat) {
-          /* 同一塊網格畫兩次，著色器依頂點深度丟掉另一半 */
-          ribbonMat.uniforms.uSide.value = front ? 1 : 0;
-        }
-        for (let i = 0; i < tracks.length; i++) {
-          tracks[i].visible = !front && !soloMode && tracks[i].material.opacity > .01;
-        }
-        renderer.render(scene, camera);
-      }
-
-      function loop() {
-        if (dead) { return; }
-        draw();
-        raf = requestAnimationFrame(loop);
-      }
-
-      function pick(ev) {
-        if (dead || !pfCanvasFront.classList.contains('is-live')) { return -1; }
-        const r = pfCanvasFront.getBoundingClientRect();
-        ndc.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
-        ndc.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
-        raycaster.setFromCamera(ndc, camera);
-        const hit = raycaster.intersectObjects(cards.map((c) => c.mesh), false)[0];
-        return hit ? hit.object.userData.i : -1;
-      }
-
-      pfCanvasFront.addEventListener('pointermove', (ev) => {
-        const i = pick(ev);
-        pfCanvasFront.classList.toggle('hover-target', i >= 0);
-        if (i !== pfHoverIndex) { pfShowHover(i); }
-      });
-      pfCanvasFront.addEventListener('pointerleave', () => {
-        pfCanvasFront.classList.remove('hover-target');
-        pfShowHover(-1);
-      });
-      pfCanvasFront.addEventListener('click', (ev) => {
-        const i = pick(ev);
-        if (i >= 0) { openDetail('work', i % PF_SHOTS.length, pfCards[i % pfCards.length]); }
-      });
-
-      function dispose() {
-        dead = true;
-        cancelAnimationFrame(raf);
-        cards.forEach((c) => c.mat.dispose());
-        textures.forEach((tex) => tex.dispose());
-        atlasTex.dispose();
-        if (ribbonMat) { ribbonMat.dispose(); }
-        ribbonGeo.dispose();
-        if (geo) { geo.dispose(); }
-        rBack.dispose(); rFront.dispose();
-        pfBand = null;
-        root.classList.remove('pf-gl-on');
-        pfCanvasBack.style.display = 'none';
-        pfCanvasFront.style.display = 'none';
-        console.warn('[chengyun] 活動成果：WebGL 顯示卡內容被回收，改用 CSS 3D 退路。');
-        pfMakeCss();
-        pfRender(pfLast);
-      }
-
-      [pfCanvasBack, pfCanvasFront].forEach((c) =>
-        c.addEventListener('webglcontextlost', (e) => { e.preventDefault(); dispose(); }));
-
-      resize();
-      addEventListener('resize', resize);
-      root.classList.add('pf-gl-on');
-
-      /* ?debug：把曲線與控制點畫出來，並且可以逐點調 */
-      let dbgCurve = null, dbgDots = null;
-      function pfDebugCurve(on) {
-        if (!on) {
-          if (dbgCurve) { scene.remove(dbgCurve); scene.remove(dbgDots); dbgCurve = dbgDots = null; }
-          return;
-        }
-        if (dbgCurve) { return; }
-        const g = new THREE.BufferGeometry();
-        g.setAttribute('position', new THREE.BufferAttribute(new Float32Array((SEG_L + 1) * 3), 3));
-        dbgCurve = new THREE.Line(g, new THREE.LineBasicMaterial({ color: 0xff3b1f, depthTest: false }));
-        dbgCurve.frustumCulled = false; dbgCurve.renderOrder = 50;
-        const g2 = new THREE.BufferGeometry();
-        g2.setAttribute('position', new THREE.BufferAttribute(new Float32Array(CTRL * 3), 3));
-        dbgDots = new THREE.Points(g2, new THREE.PointsMaterial({ color: 0x1f6bff, size: 10, sizeAttenuation: false, depthTest: false }));
-        dbgDots.frustumCulled = false; dbgDots.renderOrder = 51;
-        scene.add(dbgCurve); scene.add(dbgDots);
-        const tick = () => {
-          if (!dbgCurve || dead) { return; }
-          const a = dbgCurve.geometry.attributes.position.array;
-          for (let i = 0; i <= SEG_L; i++) {
-            const q = curvePts[i] || ctrlPts[0];
-            a[i * 3] = q.x; a[i * 3 + 1] = q.y; a[i * 3 + 2] = q.z;
-          }
-          dbgCurve.geometry.attributes.position.needsUpdate = true;
-          const b = dbgDots.geometry.attributes.position.array;
-          for (let i = 0; i < CTRL; i++) {
-            b[i * 3] = ctrlPts[i].x; b[i * 3 + 1] = ctrlPts[i].y; b[i * 3 + 2] = ctrlPts[i].z;
-          }
-          dbgDots.geometry.attributes.position.needsUpdate = true;
-          dbgCurve.position.set(0, 0, -PF.ringDist);
-          dbgDots.position.set(0, 0, -PF.ringDist);
-          requestAnimationFrame(tick);
-        };
-        tick();
-      }
-
-      /* ?probe：量緞帶的上下兩條邊，確認是連續曲線而不是折線 */
-      if (/(^|[?&])probe\b/.test(location.search)) {
-        const vTmp = new THREE.Vector3();
-        window.__pfRibbon = () => {
-          const top = [], bot = [];
-          for (let i = 0; i <= SEG_L; i += 2) {
-            for (const [row, arr] of [[0, top], [SEG_W, bot]]) {
-              const idx = row * (SEG_L + 1) + i;
-              vTmp.set(ribbonPos.getX(idx), ribbonPos.getY(idx), ribbonPos.getZ(idx));
-              vTmp.z -= PF.ringDist;
-              const depth = -vTmp.z;
-              vTmp.project(camera);
-              arr.push([vTmp.x, vTmp.y, depth]);
-            }
-          }
-          return { top, bot, clipL: PF.clipL, clipR: PF.clipR };
-        };
-        window.__pfSet = (patch) => { Object.assign(PF, patch); resize(); };
-        window.__pfOnly = (i) => {
-          cards.forEach((c, k) => { c.solo = (i < 0 || k === i); });
-          soloMode = i >= 0;
-        };
-        window.__pfTracks = (on) => { PF.trackAlpha = on ? 0.55 : 0; };
-      }
-
-      pfBand = {
-        set(v) { p = v; },
-        resize,
-        keys: PF_KEYS,
-        showCurve: pfDebugCurve,
-        rebuild() { resize(); },
-        start() { if (!live && !dead) { live = true; loop(); } },
-        stop() { live = false; cancelAnimationFrame(raf); },
-        dispose
+      pfRib = {
+        set(v) { prog = clamp(v, 0, 1); if (!live) { layout(); } },
+        rebuild() { build(); layout(); },
+        relayout: layout,
+        stage: RIB_STAGE,
+        start() {
+          if (live) { return; }
+          live = true;
+          flow = RIB.flow0 + pfSpan(prog, PF_T.ringInA, PF_T.ringOutB) * RIB.flowSpan;
+          raf = requestAnimationFrame(frame);
+        },
+        stop() { live = false; cancelAnimationFrame(raf); }
       };
-    }
-
-    /* ── CSS 3D 退路：沒有 WebGL 時的緞帶 ───────────────────
-       CSS 做不到「一整塊網格沿曲線彎」，所以退路仍然是一張一張卡片
-       排在一段圓弧上，一樣分前後兩層、一樣有左右裁切框，
-       大標照樣被套住。參數自己一份，不跟 WebGL 版共用。 */
-    const PF_CSS = {
-      cards: 9, radiusFrac: 0.76, arcFrac: 0.60, slideTurns: 0.35, slide0: 0,
-      riseFrac: 1.60, outX: 1.60, outY: 1.55,
-      tiltX: 0.08, tiltZIn: 0.30, tiltZShow: -0.24, tiltZOut: 0.34, outTilt: 0.10
-    };
-
-    function pfMakeCss() {
-      if (pfCss || reduce) { return; }
-      pfCssBack.hidden = false;
-      pfCssFront.hidden = false;
-      pfCssBack.innerHTML = '';
-      pfCssFront.innerHTML = '';
-
-      const cards = [];
-      for (let i = 0; i < PF_CSS.cards; i++) {
-        const el = document.createElement('div');
-        el.className = 'pf-bcard';
-        el.style.backgroundImage = 'url(' + PF_SHOTS[i % PF_SHOTS.length] + ')';
-        pfCssFront.appendChild(el);
-        cards.push({ el, side: 1 });
-      }
-
-      let halfW = 700, halfH = 450, R = 420, cw = 190, ch = 120;
-
-      function resize() {
-        halfW = (pfCssFront.clientWidth || innerWidth) / 2;
-        halfH = (pfCssFront.clientHeight || innerHeight) / 2;
-        R = PF_CSS.radiusFrac * halfW;
-        cw = (2 * Math.PI * R * PF_CSS.arcFrac / PF_CSS.cards);
-        ch = cw / 1.6;
-        cards.forEach((c) => {
-          c.el.style.width = cw + 'px';
-          c.el.style.height = ch + 'px';
-          c.el.style.marginLeft = (-cw / 2) + 'px';
-          c.el.style.marginTop = (-ch / 2) + 'px';
-        });
-      }
-
-      function set(p) {
-        const rise = pfSmooth(pfSpan(p, PF_T.ringInA, PF_T.ringInB));
-        const out = pfEaseIn(pfSpan(p, PF_T.ringOutA, PF_T.ringOutB));
-        const alpha = rise * (1 - pfSpan(p, PF_T.ringOutB - .04, PF_T.ringOutB + .04));
-        [pfCssBack, pfCssFront].forEach((h) => {
-          h.style.opacity = alpha.toFixed(3);
-          h.style.visibility = alpha < .004 ? 'hidden' : 'visible';
-        });
-        if (alpha < .004) { return; }
-
-        const ringX = out * PF_CSS.outX * halfW;
-        const ringY = (rise - 1) * PF_CSS.riseFrac * halfH + out * PF_CSS.outY * halfH;
-        const sc = clamp(lerp(1, 1.12, out), .8, 1.2);
-        const tx = PF_CSS.tiltX + out * PF_CSS.outTilt;
-        const tz = lerp(lerp(PF_CSS.tiltZIn, PF_CSS.tiltZShow,
-          pfSmooth(pfSpan(p, PF_T.ringInB - .04, PF_T.showA))), PF_CSS.tiltZOut, out);
-        /* 開放緞帶：卡片只佔圓周的 arcFrac，整條沿著軌道往前滑 */
-        const step = Math.PI * 2 * PF_CSS.arcFrac / PF_CSS.cards;
-        const slide = (pfSpan(p, PF_T.ringInA, PF_T.ringOutB) - .5 + PF_CSS.slide0) *
-          PF_CSS.slideTurns * Math.PI * 2;
-        const relax = pfSmooth(pfSpan(p, PF_T.ringOutA + .06, PF_T.ringOutB));
-        const inset = relax > .995 ? 'none'
-          : 'inset(0 ' + ((1 - PF.clipR + relax * .7) * 100).toFixed(1) + '% 0 ' +
-            ((PF.clipL - relax * .7) * 100).toFixed(1) + '%)';
-        [pfCssBack, pfCssFront].forEach((h) => { h.style.clipPath = inset; });
-
-        for (let i = 0; i < cards.length; i++) {
-          const c = cards[i];
-          const a = (i - (cards.length - 1) / 2) * step + slide;
-          /* 只算「在圓環座標裡的深度」，決定放前層還是後層 */
-          const zRel = Math.cos(a) * Math.cos(tx) * R;
-          const side = zRel >= PF.splitZ ? 1 : 0;
-          if (side !== c.side) {
-            c.side = side;
-            (side ? pfCssFront : pfCssBack).appendChild(c.el);
-          }
-          c.el.style.transform =
-            'translate3d(' + (halfW + ringX).toFixed(1) + 'px,' + (halfH + ringY).toFixed(1) + 'px,0)' +
-            ' scale(' + sc.toFixed(3) + ')' +
-            ' rotateX(' + tx.toFixed(3) + 'rad) rotateZ(' + tz.toFixed(3) + 'rad)' +
-            ' rotateY(' + a.toFixed(3) + 'rad) translateZ(' + R.toFixed(1) + 'px)';
-          c.el.style.opacity = '1';
-        }
-      }
-
-      resize();
-      addEventListener('resize', resize);
-      pfCss = { set, resize, rebuild() { resize(); } };
+      layout();
     }
 
     /* ── 進度來源：Lenis + ScrollTrigger，兩者都缺就讀 scrollTop ── */
@@ -5042,48 +4504,6 @@
        面板開著的時候，畫面上同時畫出曲線與控制點。 */
     let pfGuiState = { open: false, loading: false };
 
-    /* 每組的滑桿都是「一顆鈕動整個階段」：以關鍵影格原本的形狀為底，
-       再套上高度、傾斜、跨距、深度這幾個位移，所以一組只要六顆。 */
-    PF_KEYS.forEach((k) => { k.base = k.pts.map((q) => q.slice()); });
-
-    const PF_STAGE = [
-      { name: '進場', key: 1, also: [[0, 0, -2.0, 0]], at: 0.26 },
-      { name: '主秀', key: 3, also: [], at: 0.50 },
-      { name: '離場', key: 5, also: [[6, 1.6, 1.4, 0]], at: 0.82 }
-    ].map((st) => Object.assign(st, {
-      dial: { y: 0, tilt: 0, span: 1, x: 0, near: 0, far: 0 }
-    }));
-
-    function pfApplyStage(st) {
-      const k = PF_KEYS[st.key];
-      const zs = k.base.map((q) => q[2]);
-      const zMin = Math.min(...zs), zMax = Math.max(...zs);
-      const range = Math.max(zMax - zMin, 1e-4);
-      const n = k.base.length;
-      for (let i = 0; i < n; i++) {
-        const b = k.base[i];
-        const nearW = (b[2] - zMin) / range;          /* 1 = 最靠近鏡頭的那一端 */
-        k.pts[i][0] = b[0] * st.dial.span + st.dial.x;
-        k.pts[i][1] = b[1] + st.dial.y + st.dial.tilt * (i / (n - 1) - .5) * 2;
-        k.pts[i][2] = b[2] + st.dial.near * nearW - st.dial.far * (1 - nearW);
-      }
-      /* 相鄰的「還沒進場 / 已經出框」那兩格跟著走，銜接才不會跳 */
-      st.also.forEach(([ki, dx, dy, dz]) => {
-        for (let i = 0; i < n; i++) {
-          PF_KEYS[ki].pts[i][0] = k.pts[i][0] + dx;
-          PF_KEYS[ki].pts[i][1] = k.pts[i][1] + dy;
-          PF_KEYS[ki].pts[i][2] = k.pts[i][2] + dz;
-        }
-      });
-    }
-    PF_STAGE.forEach(pfApplyStage);
-
-    /* 跳到某個階段的捲動位置 */
-    function pfJumpTo(at) {
-      const max = pfWrap.scrollHeight - pfWrap.clientHeight;
-      pfWrap.scrollTo({ top: max * at, behavior: 'smooth' });
-    }
-
     let pfToastTimer = 0;
     function pfToast(msg) {
       let el = document.getElementById('pfToast');
@@ -5099,12 +4519,16 @@
       pfToastTimer = setTimeout(() => el.classList.remove('is-on'), 1600);
     }
 
+    /* 跳到某個階段的捲動位置 */
+    function pfJumpTo(at) {
+      const max = pfWrap.scrollHeight - pfWrap.clientHeight;
+      pfWrap.scrollTo({ top: max * at, behavior: 'smooth' });
+    }
+
     function pfCopyValues() {
       const payload = JSON.stringify({
-        PF: PF,
-        PF_T: PF_T,
-        PF_KEYS: PF_KEYS.map((k) => ({ p: k.p, pts: k.pts })),
-        STAGE: PF_STAGE.map((st) => ({ name: st.name, dial: st.dial }))
+        RIB: RIB, RIB_STAGE: RIB_STAGE, RIB_LEAD: RIB_LEAD, RIB_TAIL: RIB_TAIL,
+        PF: PF, PF_T: PF_T
       }, null, 2);
       const done = () => pfToast('已複製');
       const fallback = () => {
@@ -5128,41 +4552,51 @@
     function pfBuildGui() {
       const gui = new lil.GUI({ title: '活動成果 · 緞帶（按 D 開關）' });
       window.__pfGui = gui;
-      const hard = () => { if (pfBand) { pfBand.rebuild(); } if (pfCss) { pfCss.rebuild(); } pfRender(pfLast); };
-      const soft = () => pfRender(pfLast);
+      /* hard：幾何變了要重切縱條；soft：只要重排一次 */
+      const hard = () => { if (pfRib) { pfRib.rebuild(); } pfRender(pfLast); };
+      const soft = () => { if (pfRib) { pfRib.relayout(); } pfRender(pfLast); };
 
       gui.add({ copy: pfCopyValues }, 'copy').name('複製目前數值');
 
-      const fAll = gui.addFolder('整體');
-      fAll.add(PF, 'ribbonW', .2, 1.6, .01).name('緞帶寬度').onChange(hard);
-      fAll.add(PF, 'twist', -2, 2, .01).name('沿路扭轉量').onChange(soft);
-      fAll.add(PF, 'flowCells', -8, 8, .05).name('照片流動格數').onChange(soft);
-      fAll.add(PF, 'ringDist', 8, 50, .5).name('相機距離').onChange(hard);
-      fAll.add(PF, 'fov', 14, 70, 1).name('相機視角 FOV').onChange(hard);
-      fAll.add({ clip: PF.clipL }, 'clip', 0, .4, .005).name('左右裁切框').onChange((v) => {
-        PF.clipL = v; PF.clipR = 1 - v; soft();
-      });
+      const f1 = gui.addFolder('緞帶形狀');
+      f1.add(RIB, 'cwFrac', .15, .7, .01).name('面板寬（舞台寬倍數）').onChange(hard);
+      f1.add(RIB, 'NP', 4, 16, 1).name('面板數').onChange(hard);
+      f1.add(RIB, 'RCF', 1.6, 8, .05).name('圓柱半徑（面板寬倍數）').onChange(hard);
+      f1.add(RIB, 'PHI0', -1.4, 1.4, .01).name('視窗中心角').onChange(soft);
+      f1.add(RIB, 'CZ', -600, 700, 5).name('最近點深度').onChange(soft);
+      f1.add(RIB, 'SLOPE', -.8, .8, .01).name('往右抬升斜率').onChange(soft);
 
-      PF_STAGE.forEach((st) => {
-        const f = gui.addFolder(st.name);
+      const f2 = gui.addFolder('弧面與流動');
+      f2.add(RIB, 'N', 6, 40, 1).name('每張切幾條').onChange(hard);
+      f2.add(RIB, 'TWIST', 0, 40, .5).name('扭轉角度').onChange(soft);
+      f2.add(RIB, 'OVERLAP', 0, 16, .5).name('縱條重疊 px').onChange(hard);
+      f2.add(RIB, 'flowSpan', -2, 2, .01).name('流動圈數').onChange(soft);
+      f2.add(RIB, 'damp', .01, .3, .005).name('阻尼').onChange(soft);
+      f2.add(RIB, 'splitZ', -900, 700, 5).name('前後分界深度').onChange(soft);
+
+      /* 軌跡條的版面：每個階段各自的位移、旋轉、裁切框 */
+      RIB_STAGE.forEach((st) => {
+        const f = gui.addFolder('軌跡 · ' + st.name);
         f.add({ go: () => pfJumpTo(st.at) }, 'go').name('跳到此階段');
-        f.add(st.dial, 'y', -3, 3, .01).name('整條高度')
-          .onChange(() => { pfApplyStage(st); soft(); });
-        f.add(st.dial, 'tilt', -2.5, 2.5, .01).name('傾斜（右端抬高）')
-          .onChange(() => { pfApplyStage(st); soft(); });
-        f.add(st.dial, 'span', .3, 2.2, .01).name('橫向跨距')
-          .onChange(() => { pfApplyStage(st); soft(); });
-        f.add(st.dial, 'near', -1.5, 2, .01).name('最近端再靠近')
-          .onChange(() => { pfApplyStage(st); soft(); });
-        f.add(st.dial, 'far', -1.5, 3, .01).name('兩端再後退')
-          .onChange(() => { pfApplyStage(st); soft(); });
+        f.add(st, 'x', -80, 80, .5).name('左右位移 vw').onChange(soft);
+        f.add(st, 'y', -80, 80, .5).name('上下位移 vh').onChange(soft);
+        f.add(st, 'rot', -45, 45, .5).name('旋轉角度').onChange(soft);
+        f.add(st, 'clip', 0, .4, .005).name('左右裁切框').onChange(soft);
+        f.add(st, 'at', 0, 1, .01).name('這一階段的 progress').onChange(soft);
       });
 
-      const fT = gui.addFolder('時間軸 progress');
+      const f3 = gui.addFolder('軌道細線');
+      f3.add(RIB, 'railOff', 0, 3, .02).name('離中心線多遠').onChange(soft);
+      f3.add(RIB, 'railAlpha', 0, 1, .01).name('濃度').onChange(soft);
+      f3.add(RIB_LEAD, 'y', 0, 160, 1).name('進場前藏多低').onChange(soft);
+      f3.add(RIB_TAIL, 'x', -20, 120, 1).name('離場後飛多右').onChange(soft);
+      f3.add(RIB_TAIL, 'y', -160, 20, 1).name('離場後飛多高').onChange(soft);
+
+      const f4 = gui.addFolder('時間軸 progress');
       [['ringInA', '進場 起'], ['ringInB', '進場 訖'],
        ['ringOutA', '離場 起'], ['ringOutB', '離場 訖'],
        ['morphA', '接拼貼牆 起'], ['titleSweepB', '大標橫越 訖']
-      ].forEach(([k, label]) => fT.add(PF_T, k, 0, 1, .01).name(label).onChange(soft));
+      ].forEach(([k, label]) => f4.add(PF_T, k, 0, 1, .01).name(label).onChange(soft));
 
       return gui;
     }
@@ -5172,7 +4606,8 @@
       if (window.__pfGui) {
         window.__pfGui.domElement.style.display = on ? '' : 'none';
       }
-      if (pfBand && pfBand.showCurve) { pfBand.showCurve(on); }
+      if (pfRailsEl) { pfRailsEl.classList.toggle('is-debug', on); }
+      if (pfStage) { pfStage.classList.toggle('is-debug-rib', on); }
     }
 
     function pfToggleGui(force) {
@@ -5217,19 +4652,17 @@
 
     addEventListener('cy:scene', (e) => {
       if (e.detail === 'portfolio') {
-        pfMakeBand();
-        if (!pfBand) { pfMakeCss(); }
+        pfMakeRibbon();
         pfWire();
         pfDebugPanel();
         pfHeadIntro();
-        if (pfBand) { pfBand.resize(); pfBand.start(); }
-        if (pfCss) { pfCss.resize(); }
+        if (pfRib) { pfRib.rebuild(); pfRib.start(); }
         if (pfLenis) { pfLenis.resize(); pfLenis.start(); }
         /* 分鏡剛顯示出來，量測要重做一次，否則行程長度是舊的 */
         if (window.ScrollTrigger) { requestAnimationFrame(() => ScrollTrigger.refresh()); }
         else { requestAnimationFrame(() => pfRender(pfProgress())); }
       } else {
-        if (pfBand) { pfBand.stop(); }
+        if (pfRib) { pfRib.stop(); }
         if (pfLenis) { pfLenis.stop(); }
         pfShowHover(-1);
       }

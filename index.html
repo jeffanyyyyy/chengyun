@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>默者文畫 無聲風格聚落｜招商規章與品牌進駐</title>
 <meta name="description" content="《默者文畫》無聲風格聚落招商規章與品牌進駐專區。新北市板橋區雙十廣場，擺攤 15:00–20:30，全期 6 場，招商中。" />
-<meta name="theme-color" content="#21324a" />
+<meta name="theme-color" content="#5f3a1c" />
 <meta property="og:type" content="website" />
 <meta property="og:title" content="默者文畫 無聲風格聚落｜招商規章與品牌進駐" />
 <meta property="og:description" content="現場零擴音、零叫賣，聲音的空間留給對話與作品。招商規章、費用方案、進駐流程與品牌報名。" />
@@ -18,29 +18,35 @@
 <meta property="og:site_name" content="默者文畫 無聲風格聚落" />
 <meta property="og:locale" content="zh_TW" />
 <meta name="twitter:card" content="summary" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2321324a'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='%23c8a86b' font-family='serif'%3E默%3C/text%3E%3C/svg%3E" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%235f3a1c'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='%23c8763a' font-family='serif'%3E默%3C/text%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
+  /* 色票取自宣傳海報 assets/poster.jpg：暖米紙底、深棕標題、陶土筆刷、標誌青綠 */
   :root {
-    --navy: #21324a;
-    --navy-soft: #2c4462;
-    --cream: #f7f4ec;
-    --paper: #fffdf7;
-    --panel: #f2ecdd;
-    --ink: #1f2a3c;
-    --body: #3a4557;
-    --muted: #6d7787;
-    --line: #e2dbc9;
-    --field: #d8d1bf;
-    --gold: #c8a86b;
-    --gold-deep: #9a7b3f;
-    --gold-soft: #e8ddc6;
+    --earth: #5f3a1c;
+    --earth-soft: #7a4e2a;
+    --cream: #f5efe1;
+    --paper: #fffaf0;
+    --panel: #ece0cb;
+    --ink: #33261a;
+    --body: #4e4034;
+    --muted: #8a7862;
+    --line: #e3d6c0;
+    --field: #d5c4a8;
+    --clay: #c8763a;
+    --clay-deep: #a2551f;
+    --clay-soft: #f0dcc4;
+    --jade: #2f6b63;
     --alert: #9a3f3f;
-    --on-navy: #f7f4ec;
+    --on-earth: #fdf8ee;
     --serif: "Noto Serif TC", "PingFang TC", "Songti TC", "Microsoft JhengHei", serif;
     --sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    /* 海報上的卡片都是大圓角，統一收在這裡 */
+    --r-lg: 22px;
+    --r-md: 14px;
+    --r-sm: 10px;
   }
 
   * { box-sizing: border-box; }
@@ -59,22 +65,25 @@
     overflow-wrap: break-word;
   }
 
-  a { color: #1f3a5f; text-decoration: none; }
-  a:hover { color: var(--gold-deep); }
+  a { color: var(--clay-deep); text-decoration: none; }
+  a:hover { color: var(--earth); }
   img { max-width: 100%; height: auto; display: block; }
   p { margin: 0; }
   h1, h2, h3 { margin: 0; }
-  :focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 3px; }
+  :focus-visible { outline: 2px solid var(--clay-deep); outline-offset: 3px; }
 
   .page { min-height: 100vh; background: var(--cream); }
 
-  /* ── 頁首 ───────────────────────────── */
+  /* ── 頁首 ───────────────────────────
+     海報的開場是暖米紙底 + 深棕標題 + 陶土色筆刷橫幅，不是深色色塊 */
   .hero {
-    background: var(--navy);
-    color: var(--on-navy);
+    background:
+      radial-gradient(120% 90% at 50% 0%, #fffaf0 0%, rgba(255, 250, 240, 0) 62%),
+      linear-gradient(180deg, #f7f1e4 0%, var(--cream) 100%);
+    color: var(--earth);
     padding: 72px 32px 56px;
     text-align: center;
-    border-bottom: 4px solid var(--gold);
+    border-bottom: 4px solid var(--clay);
   }
   .hero-inner {
     max-width: 900px;
@@ -88,7 +97,7 @@
     font-size: 13px;
     letter-spacing: 0.5em;
     text-indent: 0.5em;
-    color: var(--gold);
+    color: var(--clay-deep);
   }
   .hero h1 {
     font-family: var(--serif);
@@ -97,15 +106,29 @@
     line-height: 1.25;
     letter-spacing: 0.04em;
     text-wrap: balance;
+    color: var(--earth);
   }
-  .hero .sub { font-size: 19px; color: rgba(247, 244, 236, 0.72); letter-spacing: 0.2em; }
+  /* 海報上「新北市板橋區雙十廣場」是一道陶土色筆刷，這裡用圓角色塊對應 */
+  .hero .sub {
+    font-size: 19px;
+    /* 19px 粗體屬於 WCAG 的大型文字，白字配 --clay 的 3.4:1 通過 AA */
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.2em;
+    text-indent: 0.2em;
+    background: var(--clay);
+    border-radius: 999px;
+    padding: 9px 26px;
+    box-shadow: 0 2px 8px rgba(162, 85, 31, 0.22);
+  }
   .hero .chips { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 8px; }
   .hero .chip {
-    border: 1px solid rgba(200, 168, 107, 0.5);
+    border: 1px solid rgba(200, 118, 58, 0.45);
+    background: rgba(255, 255, 255, 0.72);
     border-radius: 999px;
     padding: 8px 18px;
     font-size: 14px;
-    color: var(--gold-soft);
+    color: var(--earth);
   }
 
   /* ── 分頁導覽 ───────────────────────── */
@@ -115,7 +138,7 @@
     z-index: 20;
     background: var(--paper);
     border-bottom: 1px solid var(--line);
-    box-shadow: 0 1px 3px rgba(33, 50, 74, 0.06);
+    box-shadow: 0 1px 3px rgba(95, 58, 28, 0.06);
   }
   .tabs-inner {
     max-width: 940px;
@@ -147,7 +170,7 @@
     white-space: nowrap;
   }
   .tabs a:hover { color: var(--ink); }
-  .tabs a[aria-current="page"] { color: var(--ink); font-weight: 700; border-bottom-color: var(--gold); }
+  .tabs a[aria-current="page"] { color: var(--ink); font-weight: 700; border-bottom-color: var(--clay); }
 
   /* ── 主內容 ─────────────────────────── */
   main { max-width: 940px; margin: 0 auto; padding: 56px 32px 96px; }
@@ -162,10 +185,10 @@
   .block.wide { gap: 30px; }
   .sub-block { display: flex; flex-direction: column; gap: 14px; }
 
-  .head { display: flex; align-items: center; gap: 14px; border-bottom: 2px solid var(--navy); padding-bottom: 12px; }
+  .head { display: flex; align-items: center; gap: 14px; border-bottom: 2px solid var(--earth); padding-bottom: 12px; }
   .head .num {
-    background: var(--navy);
-    color: var(--on-navy);
+    background: var(--earth);
+    color: var(--on-earth);
     width: 30px;
     height: 30px;
     flex: 0 0 30px;
@@ -174,37 +197,41 @@
     justify-content: center;
     font-size: 15px;
     font-family: var(--serif);
+    border-radius: 50%;
   }
   .head h2 { font-family: var(--serif); font-size: clamp(21px, 4vw, 25px); letter-spacing: 0.06em; }
   h3 { font-size: 18px; color: var(--ink); }
 
-  .pull { font-family: var(--serif); font-size: clamp(21px, 4.4vw, 27px); line-height: 1.75; color: var(--navy); letter-spacing: 0.03em; }
+  .pull { font-family: var(--serif); font-size: clamp(21px, 4.4vw, 27px); line-height: 1.75; color: var(--earth); letter-spacing: 0.03em; }
   .prose { display: flex; flex-direction: column; gap: 18px; font-size: 16px; line-height: 2; color: var(--ink); }
   ul { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 12px; font-size: 16px; line-height: 1.9; color: var(--ink); }
-  li::marker { color: var(--gold-deep); }
+  li::marker { color: var(--clay-deep); }
 
   .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
   .card {
     background: var(--paper);
     border: 1px solid var(--line);
-    border-top: 3px solid var(--gold);
+    border-top: 3px solid var(--clay);
+    border-radius: var(--r-lg);
+    box-shadow: 0 2px 10px rgba(95, 58, 28, 0.05);
     padding: 24px;
     display: flex;
     flex-direction: column;
     gap: 10px;
   }
-  .card .t { font-family: var(--serif); font-size: 19px; color: var(--navy); }
-  .card p { font-size: 15px; line-height: 1.9; color: #4a5567; }
+  .card .t { font-family: var(--serif); font-size: 19px; color: var(--earth); }
+  .card p { font-size: 15px; line-height: 1.9; color: var(--body); }
 
   .note {
     background: var(--paper);
-    border-left: 4px solid var(--gold);
+    border-left: 4px solid var(--clay);
+    border-radius: var(--r-md);
     padding: 26px 30px;
     font-size: 16px;
     line-height: 1.95;
-    box-shadow: 0 1px 2px rgba(33, 50, 74, 0.06);
+    box-shadow: 0 1px 2px rgba(95, 58, 28, 0.06);
   }
-  .note strong { color: var(--navy); }
+  .note strong { color: var(--earth); }
 
   .table-scroll { overflow-x: auto; }
   table { border-collapse: collapse; width: 100%; min-width: 460px; background: var(--paper); font-size: 16px; }
@@ -216,27 +243,29 @@
   .price {
     background: var(--paper);
     border: 1px solid var(--line);
-    border-top: 3px solid var(--gold);
+    border-top: 3px solid var(--clay);
+    border-radius: var(--r-lg);
+    box-shadow: 0 2px 10px rgba(95, 58, 28, 0.05);
     padding: 24px 20px;
     text-align: center;
     display: flex;
     flex-direction: column;
     gap: 12px;
   }
-  .price .label { font-size: 16px; font-weight: 700; color: var(--navy); }
-  .price .amount { font-family: var(--serif); font-size: 26px; color: var(--navy); font-variant-numeric: tabular-nums; }
+  .price .label { font-size: 16px; font-weight: 700; color: var(--earth); }
+  .price .amount { font-family: var(--serif); font-size: 26px; color: var(--earth); font-variant-numeric: tabular-nums; }
   .price .unit { font-family: var(--sans); font-size: 14px; color: var(--muted); }
-  .price.feature { background: var(--navy); border-color: var(--navy); }
-  .price.feature .label { color: var(--gold-soft); }
+  .price.feature { background: var(--earth); border-color: var(--earth); }
+  .price.feature .label { color: var(--clay-soft); }
   .price.feature .amount { color: var(--paper); }
-  .price.feature .unit { color: rgba(247, 244, 236, 0.6); }
+  .price.feature .unit { color: rgba(253, 248, 238, 0.6); }
 
-  .figure { background: var(--paper); border: 1px solid var(--line); padding: 20px; display: flex; flex-direction: column; gap: 14px; margin: 0; }
+  .figure { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 20px; display: flex; flex-direction: column; gap: 14px; margin: 0; }
   .figure figcaption { font-size: 14px; color: var(--muted); line-height: 1.8; }
 
   /* 四個項目：桌機一排四格，平板 2x2，手機單欄，不留孤兒格 */
   .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-  .tile { background: var(--paper); border: 1px solid var(--line); padding: 18px 20px; font-size: 15px; line-height: 1.8; }
+  .tile { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px 20px; font-size: 15px; line-height: 1.8; }
 
   .steps { display: flex; flex-direction: column; }
   .step {
@@ -250,11 +279,12 @@
     line-height: 1.9;
   }
   .step:last-child { border-bottom: 1px solid var(--line); }
-  .step .n { font-family: var(--serif); font-size: 22px; color: var(--gold); font-variant-numeric: tabular-nums; }
+  .step .n { font-family: var(--serif); font-size: 22px; color: var(--jade); font-variant-numeric: tabular-nums; }
 
   .cta-band {
-    background: var(--navy);
-    color: var(--on-navy);
+    background: var(--earth);
+    color: var(--on-earth);
+    border-radius: var(--r-lg);
     padding: 34px 32px;
     display: flex;
     flex-wrap: wrap;
@@ -263,12 +293,12 @@
     justify-content: space-between;
   }
   .cta-band .t { font-family: var(--serif); font-size: 21px; }
-  .cta-band .s { font-size: 15px; color: rgba(247, 244, 236, 0.7); }
+  .cta-band .s { font-size: 15px; color: rgba(253, 248, 238, 0.7); }
 
   .btn {
     display: inline-block;
-    background: var(--gold);
-    color: var(--navy);
+    background: var(--clay-deep);
+    color: #fff;
     border: 0;
     padding: 14px 30px;
     font-size: 16px;
@@ -277,13 +307,14 @@
     letter-spacing: 0.08em;
     cursor: pointer;
     text-decoration: none;
+    border-radius: 999px;
   }
-  .btn:hover { background: #d9bd85; color: var(--navy); }
-  .btn-navy { background: var(--navy); color: var(--on-navy); padding: 16px 40px; letter-spacing: 0.1em; }
-  .btn-navy:hover { background: var(--navy-soft); color: var(--on-navy); }
+  .btn:hover { background: var(--earth); color: #fff; }
+  .btn-earth { background: var(--earth); color: var(--on-earth); padding: 16px 40px; letter-spacing: 0.1em; }
+  .btn-earth:hover { background: var(--earth-soft); color: var(--on-earth); }
 
-  .panel { background: var(--paper); border: 1px solid var(--line); padding: 30px; display: flex; flex-direction: column; gap: 20px; }
-  .panel .k { font-size: 15px; font-weight: 700; color: var(--gold-deep); letter-spacing: 0.1em; }
+  .panel { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: 0 2px 10px rgba(95, 58, 28, 0.05); padding: 30px; display: flex; flex-direction: column; gap: 20px; }
+  .panel .k { font-size: 15px; font-weight: 700; color: var(--clay-deep); letter-spacing: 0.1em; }
   .panel p { font-size: 15px; line-height: 1.95; color: var(--body); }
   .req { color: var(--alert); }
 
@@ -304,9 +335,10 @@
     font-size: 15px;
     color: var(--ink);
     width: 100%;
+    border-radius: var(--r-sm);
   }
   .field textarea { min-height: 96px; resize: vertical; line-height: 1.8; }
-  .field input:focus, .field textarea:focus { border-color: var(--gold-deep); outline: 2px solid rgba(200, 168, 107, 0.35); outline-offset: 1px; }
+  .field input:focus, .field textarea:focus { border-color: var(--clay-deep); outline: 2px solid rgba(200, 118, 58, 0.35); outline-offset: 1px; }
   .field input[aria-invalid="true"], .field textarea[aria-invalid="true"] { border-color: var(--alert); background: #fdf7f7; }
 
   .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
@@ -320,15 +352,17 @@
     font-size: 15px;
     cursor: pointer;
     line-height: 1.6;
+    border-radius: var(--r-sm);
   }
-  .choice:hover { border-color: var(--gold); }
-  .choice input { accent-color: var(--gold-deep); width: 18px; height: 18px; flex: 0 0 auto; }
+  .choice:hover { border-color: var(--clay); }
+  .choice input { accent-color: var(--clay-deep); width: 18px; height: 18px; flex: 0 0 auto; }
   .choice.plain { border: 0; background: none; padding: 6px 0; }
   .choice.plain:hover { border: 0; }
 
   .file-drop {
     border: 1px dashed var(--field);
     background: #fff;
+    border-radius: var(--r-md);
     padding: 22px;
     display: flex;
     flex-direction: column;
@@ -336,11 +370,12 @@
     align-items: flex-start;
   }
   .file-drop input[type="file"] { font-size: 15px; font-family: inherit; }
-  .file-list { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--gold-deep); }
+  .file-list { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--clay-deep); }
   .file-list .bad { color: var(--alert); }
 
   .form-error {
     background: #fdf3f3;
+    border-radius: var(--r-sm);
     border-left: 4px solid var(--alert);
     color: var(--alert);
     padding: 16px 20px;
@@ -356,21 +391,22 @@
   .form-done {
     background: var(--paper);
     border: 1px solid var(--line);
-    border-top: 3px solid var(--gold);
+    border-top: 3px solid var(--clay);
+    border-radius: var(--r-lg);
     padding: 40px 32px;
     display: flex;
     flex-direction: column;
     gap: 16px;
     align-items: flex-start;
   }
-  .form-done .t { font-family: var(--serif); font-size: 23px; color: var(--navy); }
+  .form-done .t { font-family: var(--serif); font-size: 23px; color: var(--earth); }
   .form-done p { font-size: 16px; line-height: 1.9; color: var(--body); }
 
-  .form-frame { border: 1px solid var(--line); background: var(--paper); padding: 10px; }
+  .form-frame { border: 1px solid var(--line); background: var(--paper); border-radius: var(--r-lg); padding: 10px; }
   .form-frame iframe { width: 100%; height: 1500px; border: 0; display: block; background: var(--paper); }
 
   .faq-list { display: flex; flex-direction: column; gap: 14px; }
-  details.faq { background: var(--paper); border: 1px solid var(--line); padding: 0 26px; }
+  details.faq { background: var(--paper); border: 1px solid var(--line); border-radius: var(--r-md); box-shadow: 0 2px 10px rgba(95, 58, 28, 0.05); padding: 0 26px; }
   details.faq summary {
     display: flex;
     gap: 12px;
@@ -379,39 +415,39 @@
     cursor: pointer;
     font-size: 17px;
     font-weight: 700;
-    color: var(--navy);
+    color: var(--earth);
     line-height: 1.7;
     list-style: none;
   }
   details.faq summary::-webkit-details-marker { display: none; }
-  details.faq summary::before { content: "Q"; font-family: var(--serif); color: var(--gold); font-weight: 500; }
+  details.faq summary::before { content: "Q"; font-family: var(--serif); color: var(--clay); font-weight: 500; }
   details.faq .a { display: flex; gap: 12px; align-items: baseline; padding: 0 0 24px; font-size: 16px; line-height: 1.95; color: var(--body); }
-  details.faq .a::before { content: "A"; font-family: var(--serif); color: var(--muted); font-size: 17px; flex: 0 0 auto; }
+  details.faq .a::before { content: "A"; font-family: var(--serif); color: var(--jade); font-size: 17px; flex: 0 0 auto; }
   /* 多段落的答案：A 標記留在最上方，段落自己垂直排列 */
   details.faq .a-body { display: flex; flex-direction: column; gap: 12px; }
-  details.faq[open] summary { color: var(--gold-deep); }
+  details.faq[open] summary { color: var(--clay-deep); }
 
   .tail { border-top: 1px dashed var(--field); padding-top: 26px; font-size: 15px; color: var(--muted); line-height: 1.9; }
 
   /* ── 頁尾 ───────────────────────────── */
-  footer { background: var(--navy); color: var(--on-navy); padding: 56px 32px 48px; }
+  footer { background: var(--earth); color: var(--on-earth); padding: 56px 32px 48px; }
   .foot-inner { max-width: 940px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
   .foot-head { display: flex; align-items: center; gap: 14px; }
   .foot-head h2 { font-family: var(--serif); font-size: 22px; letter-spacing: 0.06em; color: var(--paper); }
-  .foot-head .rule { flex: 1; height: 1px; background: rgba(200, 168, 107, 0.4); }
+  .foot-head .rule { flex: 1; height: 1px; background: rgba(200, 118, 58, 0.4); }
   /* 四欄固定 2x2，避免出現「3+1」的孤兒欄 */
   .foot-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 48px; }
   .foot-col { display: flex; flex-direction: column; gap: 8px; }
-  .foot-col .k { font-size: 13px; letter-spacing: 0.2em; color: var(--gold); }
-  .foot-col a { color: var(--on-navy); font-size: 16px; word-break: break-all; }
-  .foot-col a:hover { color: var(--gold-soft); }
+  .foot-col .k { font-size: 13px; letter-spacing: 0.2em; color: var(--clay); }
+  .foot-col a { color: var(--on-earth); font-size: 16px; word-break: break-all; }
+  .foot-col a:hover { color: var(--clay-soft); }
   .foot-col .v { font-size: 16px; }
-  .foot-col .s { font-size: 14px; color: rgba(247, 244, 236, 0.6); line-height: 1.8; }
+  .foot-col .s { font-size: 14px; color: rgba(253, 248, 238, 0.6); line-height: 1.8; }
   .foot-end {
-    border-top: 1px solid rgba(247, 244, 236, 0.15);
+    border-top: 1px solid rgba(253, 248, 238, 0.15);
     padding-top: 26px;
     text-align: center;
-    color: rgba(247, 244, 236, 0.6);
+    color: rgba(253, 248, 238, 0.6);
     font-size: 15px;
     letter-spacing: 0.1em;
   }
@@ -645,7 +681,7 @@
             </div>
           </div>
           <ul>
-            <li><strong>早鳥優惠：</strong>於 <strong>2026 年 9 月 10 日前</strong> 完成報名與全額匯款，總費用享 <strong style="color: var(--gold-deep);">95 折</strong>。</li>
+            <li><strong>早鳥優惠：</strong>於 <strong>2026 年 9 月 10 日前</strong> 完成報名與全額匯款，總費用享 <strong style="color: var(--clay-deep);">95 折</strong>。</li>
             <li><strong>品牌拼圖專屬福利：</strong>參展滿 3 場（週）以上之品牌，免費贈送「客製品牌拼圖」，憑此拼圖享未來檔期攤租折抵優惠。</li>
           </ul>
         </div>
@@ -721,7 +757,7 @@
         <ul>
           <li>阿里山帳、桌椅、氣氛燈串與 <strong>客製品牌招牌</strong>，不需自備硬體。</li>
           <li>基本照明與 3C 用電（200W 以內）與現場清潔費，皆由大會負擔。</li>
-          <li>2026 年 9 月 10 日前完成報名與全額匯款享 <strong style="color: var(--gold-deep);">95 折</strong> 早鳥價。</li>
+          <li>2026 年 9 月 10 日前完成報名與全額匯款享 <strong style="color: var(--clay-deep);">95 折</strong> 早鳥價。</li>
           <li>參展滿 3 場以上，獲贈客製品牌拼圖，可折抵未來檔期攤租。</li>
           <li>大會官方網站與社群（IG/FB/LINE）曝光，及無聲互動遊戲帶來的停留人流。</li>
         </ul>
@@ -881,7 +917,7 @@
         <div class="block">
           <div class="form-error" id="formError" hidden></div>
           <div class="submit-row">
-            <button type="submit" class="btn btn-navy" id="submitBtn">提交報名</button>
+            <button type="submit" class="btn btn-earth" id="submitBtn">提交報名</button>
             <span class="hint" id="submitHint"></span>
           </div>
         </div>

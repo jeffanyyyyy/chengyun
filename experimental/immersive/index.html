@@ -2188,6 +2188,7 @@
           <p class="pf-status-read"><span id="pfOverlap"></span></p>
           <button class="pf-status-btn" id="pfHome" type="button">回到畫面中</button>
           <button class="pf-status-btn" id="pfReset" type="button">還原預設</button>
+          <button class="pf-status-btn" id="pfUndo" type="button">取回上次</button>
         </div>
         <span class="pf-eyebrow" data-i18n="pf.eyebrow">04 — Portfolio</span>
         <div class="pf-meter" aria-hidden="true"><i id="pfMeter"></i></div>
@@ -4329,57 +4330,75 @@
     /* 路徑座標的設計基準框。實際舞台不是這個尺寸時，整個 3D 場景
        （x / y / z / perspective）等比縮放，構圖才不會在窄螢幕上垮掉 */
     const RIB_REF = { w: 1440, h: 900 };
+    const RIB_BAK = 'chengyun.pf.path.bak';   /* 還原預設之前的備份，只會被下一次備份蓋掉 */
     const RIB_DEFAULT = JSON.stringify({ RIB, RIB_STAGE, RIB_LEAD, RIB_TAIL });
-    /* 預設值的指紋。改了預設值就代表版面重新設計過，這時候舊裝置上
-       存的路徑要自動作廢，否則那台機器會一直停在上一版的構圖 */
-    const RIB_SIG = (() => {
-      let h = 5381;
-      for (let i = 0; i < RIB_DEFAULT.length; i++) {
-        h = ((h * 33) ^ RIB_DEFAULT.charCodeAt(i)) >>> 0;
-      }
-      return h.toString(36);
-    })();
 
+    /* 存檔時一併記下「這份是以哪一版預設值為基準」。讀回來時就分得出
+       每一個值是使用者自己拖出來的，還是只是當時的預設值——前者永遠
+       保留，後者跟著新的預設值走。存檔在任何情況下都不會被自動刪除。 */
     function ribSave() {
       try {
         localStorage.setItem(RIB_KEY, JSON.stringify({
-          sig: RIB_SIG,
+          v: 2,
+          base: JSON.parse(RIB_DEFAULT),
           RIB: RIB, RIB_STAGE: RIB_STAGE, RIB_LEAD: RIB_LEAD, RIB_TAIL: RIB_TAIL
         }));
       } catch (err) { /* 無痕視窗或封鎖 localStorage：不存就算了 */ }
     }
 
-    function ribLoad() {
-      let raw = null;
-      try { raw = localStorage.getItem(RIB_KEY); } catch (err) { return; }
-      if (!raw) { return; }
-      try {
-        const d = JSON.parse(raw);
-        /* 不是這一版預設值存下來的，就丟掉重來 */
-        if (d.sig !== RIB_SIG) {
-          try { localStorage.removeItem(RIB_KEY); } catch (err2) { /* 清不掉就算了 */ }
-          return;
-        }
-        if (d.RIB) { Object.keys(RIB).forEach((k) => { if (typeof d.RIB[k] === 'number') { RIB[k] = d.RIB[k]; } }); }
-        if (Array.isArray(d.RIB_STAGE)) {
-          d.RIB_STAGE.forEach((st, i) => {
-            const t = RIB_STAGE[i];
-            if (!t || !st) { return; }
-            if (typeof st.at === 'number') { t.at = st.at; }
-            if (typeof st.clip === 'number') { t.clip = st.clip; }
-            if (Array.isArray(st.pts) && st.pts.length === t.pts.length) {
-              st.pts.forEach((q, j) => { if (Array.isArray(q) && q.length === 3) { t.pts[j] = q.slice(); } });
-            }
-          });
-        }
-        ['x', 'y'].forEach((k) => {
-          if (d.RIB_LEAD && typeof d.RIB_LEAD[k] === 'number') { RIB_LEAD[k] = d.RIB_LEAD[k]; }
-          if (d.RIB_TAIL && typeof d.RIB_TAIL[k] === 'number') { RIB_TAIL[k] = d.RIB_TAIL[k]; }
+    function ribApply(d) {
+      if (!d) { return; }
+      /* 沒有 base 的是舊版存檔：無從分辨，一律當成使用者調過的，全部保留 */
+      const base = d.base || null;
+      /* 這個值跟存檔當下的預設值一樣 → 使用者沒動過它 */
+      const kept = (v, b) => !(base && b !== undefined && v === b);
+
+      if (d.RIB) {
+        Object.keys(RIB).forEach((k) => {
+          /* 存檔裡沒有的鍵＝這一版新加的參數，用新的預設值 */
+          if (typeof d.RIB[k] !== 'number') { return; }
+          if (kept(d.RIB[k], base && base.RIB ? base.RIB[k] : undefined)) { RIB[k] = d.RIB[k]; }
         });
-      } catch (err) {
+      }
+
+      if (Array.isArray(d.RIB_STAGE)) {
+        d.RIB_STAGE.forEach((st, i) => {
+          const t = RIB_STAGE[i];
+          const b = base && base.RIB_STAGE ? base.RIB_STAGE[i] : null;
+          if (!t || !st) { return; }
+          if (typeof st.at === 'number' && kept(st.at, b ? b.at : undefined)) { t.at = st.at; }
+          if (typeof st.clip === 'number' && kept(st.clip, b ? b.clip : undefined)) { t.clip = st.clip; }
+          if (Array.isArray(st.pts) && st.pts.length === t.pts.length) {
+            st.pts.forEach((q, j) => {
+              if (!Array.isArray(q) || q.length !== 3) { return; }
+              const bq = b && b.pts ? b.pts[j] : null;
+              /* 逐點比對：這一點是拖過的就留下，沒拖過的跟著新預設值 */
+              if (base && bq && q[0] === bq[0] && q[1] === bq[1] && q[2] === bq[2]) { return; }
+              t.pts[j] = q.slice();
+            });
+          }
+        });
+      }
+
+      ['x', 'y'].forEach((k) => {
+        const bl = base && base.RIB_LEAD ? base.RIB_LEAD[k] : undefined;
+        const bt = base && base.RIB_TAIL ? base.RIB_TAIL[k] : undefined;
+        if (d.RIB_LEAD && typeof d.RIB_LEAD[k] === 'number' && kept(d.RIB_LEAD[k], bl)) { RIB_LEAD[k] = d.RIB_LEAD[k]; }
+        if (d.RIB_TAIL && typeof d.RIB_TAIL[k] === 'number' && kept(d.RIB_TAIL[k], bt)) { RIB_TAIL[k] = d.RIB_TAIL[k]; }
+      });
+    }
+
+    function ribRead(key) {
+      let raw = null;
+      try { raw = localStorage.getItem(key); } catch (err) { return null; }
+      if (!raw) { return null; }
+      try { return JSON.parse(raw); } catch (err) {
         console.warn('[chengyun] 活動成果：存起來的路徑讀不回來，用預設值。', err);
+        return null;
       }
     }
+
+    function ribLoad() { ribApply(ribRead(RIB_KEY)); }
 
     function ribReset() {
       const d = JSON.parse(RIB_DEFAULT);
@@ -4391,7 +4410,21 @@
       });
       RIB_LEAD.x = d.RIB_LEAD.x; RIB_LEAD.y = d.RIB_LEAD.y;
       RIB_TAIL.x = d.RIB_TAIL.x; RIB_TAIL.y = d.RIB_TAIL.y;
-      try { localStorage.removeItem(RIB_KEY); } catch (err) { /* 沒存過就算了 */ }
+      /* 清掉之前先留一份，按錯了還有「取回上次」可以按 */
+      try {
+        const cur = localStorage.getItem(RIB_KEY);
+        if (cur) { localStorage.setItem(RIB_BAK, cur); }
+        localStorage.removeItem(RIB_KEY);
+      } catch (err) { /* 沒存過就算了 */ }
+    }
+
+    /* 把備份讀回來。有東西就回 true */
+    function ribRestore() {
+      const d = ribRead(RIB_BAK);
+      if (!d) { return false; }
+      ribApply(d);
+      ribSave();
+      return true;
     }
 
     ribLoad();
@@ -4550,6 +4583,7 @@
       const elOverlap = document.getElementById('pfOverlap');
       const elReset = document.getElementById('pfReset');
       const elHome = document.getElementById('pfHome');
+      const elUndo = document.getElementById('pfUndo');
 
       const CN = RIB_STAGE[0].pts.length;   /* 控制點數 */
       const M = 200;                        /* 路徑取樣數 */
@@ -5110,6 +5144,16 @@
           ribReset();
           syncTools();
           rebuild();
+          pfToast('已還原預設，按「取回上次」可以拿回來');
+        });
+        elUndo.addEventListener('click', () => {
+          if (ribRestore()) {
+            syncTools();
+            rebuild();
+            pfToast('已取回還原之前的路徑');
+          } else {
+            pfToast('沒有可以取回的備份');
+          }
         });
       }
 

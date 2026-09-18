@@ -1568,6 +1568,11 @@
     color: var(--pf-dim);
   }
 
+  /* class 裡的 display:flex 會蓋掉瀏覽器預設的 [hidden]{display:none}，
+     所以要自己補回來，不然這兩條列會一直留在畫面上 */
+  .pf-tools[hidden],
+  .pf-status[hidden] { display: none; }
+
   .pf-status p { margin: 0; }
   .pf-status b { color: var(--pf-ink); font-weight: 500; }
   .pf-status-tip { flex: 1 1 260px; line-height: 1.5; }

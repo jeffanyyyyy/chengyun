@@ -1365,6 +1365,7 @@
     --pf-bg: #e8e8e6;
     --pf-ink: #1a1a1a;
     --pf-dim: rgba(26, 26, 26, .52);
+    --pf-ghost: rgba(26, 26, 26, .17);   /* 大標：在背景當底紋，不搶照片 */
     --pf-font: 'Inter Tight', 'Inter', 'Noto Sans TC', sans-serif;
   }
 
@@ -1663,7 +1664,7 @@
     letter-spacing: -.04em;
     line-height: .92;
     white-space: nowrap;
-    color: var(--pf-ink);
+    color: var(--pf-ghost);
     will-change: transform, opacity;
   }
 
@@ -2157,16 +2158,15 @@
           <span class="pf-shot" style="background-image: url(../../assets/work/07.jpg)"></span>
           <figcaption class="pf-cap"><b data-i18n="pf.t4">Weaving Dreams</b><span data-i18n="pf.m4">Hsing Wu University, Dept. of Fashion Design · 2026</span></figcaption>
         </figure>
-        <!-- 第五、六組的照片還沒到，先留著版位不顯示 -->
-        <figure class="pf-card" data-i="4" data-speed="0.82" hidden
+        <figure class="pf-card" data-i="4" data-speed="0.82"
                 style="left: 34%; top: 58%; width: 28%">
-          <span class="pf-shot"></span>
-          <figcaption class="pf-cap"><b data-i18n="pf.t5">Photos to come</b><span data-i18n="pf.m5">Client and date to be confirmed</span></figcaption>
+          <span class="pf-shot" style="background-image: url(../../assets/work/09.jpg)"></span>
+          <figcaption class="pf-cap"><b data-i18n="pf.t5">YoungOptics spring party</b><span data-i18n="pf.m5">YoungOptics · 2026</span></figcaption>
         </figure>
-        <figure class="pf-card" data-i="5" data-speed="1.28" hidden
+        <figure class="pf-card" data-i="5" data-speed="1.28"
                 style="left: 70%; top: 46%; width: 24%">
-          <span class="pf-shot"></span>
-          <figcaption class="pf-cap"><b data-i18n="pf.t6">Photos to come</b><span data-i18n="pf.m6">Client and date to be confirmed</span></figcaption>
+          <span class="pf-shot" style="background-image: url(../../assets/work/10.jpg)"></span>
+          <figcaption class="pf-cap"><b data-i18n="pf.t6">Children's Day award rally</b><span data-i18n="pf.m6">Mimosa Association × Dahe Village Office · 2026</span></figcaption>
         </figure>
         </div>
 
@@ -2474,7 +2474,7 @@
         'pf.eyebrow': '04 — Portfolio',
         'pf.scope': 'Scope',
         'pf.t1': 'Year-end gala', 'pf.t2': 'Brand interview', 'pf.t3': 'Sisley annual party',
-        'pf.t4': 'Weaving Dreams', 'pf.t5': 'Photos to come', 'pf.t6': 'Photos to come',
+        'pf.t4': 'Weaving Dreams', 'pf.t5': 'YoungOptics spring party', 'pf.t6': 'Children\'s Day award rally',
         'pf.d1': 'A curated market built on one rule: silence. No loudspeakers, no PA, no microphones \u2014 hand-held signs, boards and purpose-built props carry the exchange instead, so attention stays on the work and the person who made it.',
         'pf.d2': 'A black-and-gold backdrop wall, geometric side panels, a sequin column and gilded florals turn a hotel lobby into an entrance sequence \u2014 so the first thing a guest sees is already the brand.',
         'pf.d3': 'A five-piece African drum troupe met guests at the door and carried the room from the lift lobby into the hall. The act at the door is cast, rehearsed and cued the same way the stage inside is.',
@@ -2491,8 +2491,8 @@
         'pf.m2': 'Client and date to be confirmed',
         'pf.m3': 'Sisley · 2026',
         'pf.m4': 'Hsing Wu University, Dept. of Fashion Design · 2026',
-        'pf.m5': 'Client and date to be confirmed',
-        'pf.m6': 'Client and date to be confirmed',
+        'pf.m5': 'YoungOptics · 2026',
+        'pf.m6': 'Mimosa Association × Dahe Village Office · 2026',
         'menu.portfolio': 'Portfolio',
         'menu.faq': 'Q&A',
         'menu.contact': 'Contact Us',
@@ -2551,7 +2551,7 @@
         'pf.eyebrow': '04 — 活動成果',
         'pf.scope': '服務範圍',
         'pf.t1': '年終感恩晚會', 'pf.t2': '品牌訪談側拍', 'pf.t3': 'Sisley 年會',
-        'pf.t4': '織景 畢業展演', 'pf.t5': '照片待補', 'pf.t6': '照片待補',
+        'pf.t4': '織景 畢業展演', 'pf.t5': '揚明光學春酒晚會', 'pf.t6': '歡慶兒童節表揚大會',
         'pf.d1': '一場以「安靜」為唯一規則的策展市集。沒有大聲公、沒有音響、沒有麥克風——手舉牌、看板與專屬道具接手叫賣這件事，注意力才留得住在作品與做作品的人身上。',
         'pf.d2': '黑金主視覺背板、兩側幾何立牌、亮片柱與金色花藝，把飯店大廳圍成一段入場序列——賓客第一眼看見的，已經是品牌本身。',
         'pf.d3': '五人非洲鼓團在門口迎賓，把場子從電梯口一路帶進會場。門口這一段，和場內的舞台一樣要選角、排練、下 cue。',
@@ -2568,8 +2568,8 @@
         'pf.m2': '客戶與日期待補',
         'pf.m3': 'Sisley · 2026',
         'pf.m4': '醒吾科技大學 時尚造形設計系 · 2026',
-        'pf.m5': '客戶與日期待補',
-        'pf.m6': '客戶與日期待補',
+        'pf.m5': '揚明光學 · 2026',
+        'pf.m6': '含羞草協會 × 大和里里辦公處 · 2026',
         'menu.portfolio': '活動成果',
         'menu.faq': '常見問題',
         'menu.contact': '聯繫我們',
@@ -2720,7 +2720,7 @@
         'pf.eyebrow': '04 — 実績',
         'pf.scope': '対応範囲',
         'pf.t1': '年末感謝パーティー', 'pf.t2': 'ブランド取材', 'pf.t3': 'Sisley 年次パーティー',
-        'pf.t4': '織景 卒業展', 'pf.t5': '写真は準備中', 'pf.t6': '写真は準備中',
+        'pf.t4': '織景 卒業展', 'pf.t5': 'YoungOptics 新春パーティー', 'pf.t6': 'こどもの日表彰大会',
         'pf.d1': '「静けさ」をただ一つのルールにしたキュレーション・マーケット。拡声器も、PAも、マイクもありません。手持ちの札や看板、専用の小道具がやり取りを引き受け、注意は作品とつくった人のもとに留まります。',
         'pf.d2': '黒と金のメインバックパネル、両脇の幾何学スタンド、スパンコールの柱、金色のフラワー。ホテルのロビーが入場のシークエンスになり、来場者が最初に目にするものがすでにブランドになります。',
         'pf.d3': '5人編成のアフリカン・ドラム隊が入口で出迎え、エレベーターホールから会場まで空気を運びます。入口の演出も、場内の舞台と同じようにキャスティングし、リハーサルし、キューを出します。',
@@ -2737,8 +2737,8 @@
         'pf.m2': 'クライアントと日付は未定',
         'pf.m3': 'Sisley · 2026',
         'pf.m4': '醒吾科技大学 ファッションデザイン学科 · 2026',
-        'pf.m5': 'クライアントと日付は未定',
-        'pf.m6': 'クライアントと日付は未定',
+        'pf.m5': 'YoungOptics · 2026',
+        'pf.m6': '含羞草協会 × 大和里里事務所 · 2026',
         'menu.portfolio': '実績',
         'menu.faq': 'よくある質問',
         'menu.contact': 'お問い合わせ',
@@ -4259,13 +4259,19 @@
     const pfHover = document.getElementById('pfHover');
     const pfCards = [...document.querySelectorAll('.pf-card')];
 
-    /* 一個主題兩張，依提供順序排。緞帶會照這個順序流過去 */
+    /* 依提供順序排，緞帶會照這個順序流過去。
+       前四組各兩張，後兩組目前各一張。 */
     const PF_SHOTS = [
       '../../assets/work/01.jpg', '../../assets/work/02.jpg',   /* 年終感恩晚會 */
       '../../assets/work/03.jpg', '../../assets/work/04.jpg',   /* 品牌訪談側拍 */
       '../../assets/work/05.jpg', '../../assets/work/06.jpg',   /* Sisley 年會 */
-      '../../assets/work/07.jpg', '../../assets/work/08.jpg'    /* 醒吾時尚系畢業展演 */
+      '../../assets/work/07.jpg', '../../assets/work/08.jpg',   /* 醒吾時尚系畢業展演 */
+      '../../assets/work/09.jpg',                               /* 揚明光學春酒晚會 */
+      '../../assets/work/10.jpg'                                /* 童心熱血 x 浪浪關懷 */
     ];
+
+    /* 拼貼牆每一格的主圖＝該組的第一張 */
+    const PF_COVER = [0, 2, 4, 6, 8, 9];
 
     /* 三段的區間 */
 
@@ -4401,6 +4407,7 @@
     let pfIntroRaf = 0;
     let pfLast = 0;             /* 最後一次算過的 progress */
     let pfHoverIndex = -1;      /* 滑鼠停在哪一張卡片上 */
+    let pfHandoff = null;       /* 交棒那一刻，緞帶上第一張照片的位置 */
 
     /* 進到這一章時重畫一次，讓畫面對上目前的捲動位置。
        大標的進場本身交給 progress（0.00–0.25），不再另外播一次 */
@@ -4450,11 +4457,46 @@
       /* 第二段：緞帶自己有阻尼迴圈，這裡只把目標值交給它 */
       if (pfRib) { pfRib.set(p); }
 
-      /* 第三段：拼貼牆是真的 DOM，逐張淡進來、各自不同的視差速度 */
+      /* 第三段：拼貼牆是真的 DOM，逐張淡進來、各自不同的視差速度。
+         第一張不淡入——它從緞帶上同一張照片的位置直接接手飛過來，
+         兩段動畫是同一個動作的上下半場。 */
       const g = pfSpan(p, PF_T.morphA, 1);
+      if (g <= 0) { pfHandoff = null; }
+      else if (!pfHandoff) {
+        const from = (pfRib && pfRib.rectOf) ? pfRib.rectOf(PF_SHOTS[0]) : null;
+        if (!from) {
+          pfHandoff = 'none';
+        } else {
+          /* 量自己「沒有 transform」時的版位，只量這一次 */
+          const el0 = pfCards[0];
+          const keep = el0.style.transform;
+          el0.style.transform = 'none';
+          const to = el0.getBoundingClientRect();
+          el0.style.transform = keep;
+          pfHandoff = (to.width > 4) ? { from, to } : 'none';
+        }
+      }
+
       pfCards.forEach((el, i) => {
         const sp = parseFloat(el.dataset.speed) || 1;
         const k = pfEase(clamp((g - i * .05) / .42, 0, 1));
+
+        if (i === 0 && pfHandoff && pfHandoff !== 'none') {
+          /* FLIP：從緞帶那張的外接框，補間回自己的版位 */
+          const to = pfHandoff.to, from = pfHandoff.from;
+          const w = to.width || 1;
+          const kk = pfEaseOut(clamp(g / .55, 0, 1));
+          const dx = (from.left + from.width / 2) - (to.left + to.width / 2);
+          const dy = (from.top + from.height / 2) - (to.top + to.height / 2);
+          const sc = from.width / w;
+          el.style.opacity = clamp(g / .08, 0, 1).toFixed(3);
+          el.style.transform = 'translate3d(' + (dx * (1 - kk)).toFixed(1) + 'px,' +
+            (dy * (1 - kk)).toFixed(1) + 'px,0) scale(' +
+            (1 + (sc - 1) * (1 - kk)).toFixed(3) + ')';
+          el.classList.toggle('is-live', k > .6);
+          return;
+        }
+
         el.style.opacity = k.toFixed(3);
         el.style.transform = 'translate3d(0,' + ((1 - g) * 170 * sp).toFixed(2) + 'px,0) scale(' + (.9 + .1 * k).toFixed(3) + ')';
         el.classList.toggle('is-live', k > .6);
@@ -5075,6 +5117,13 @@
 
       pfRib = {
         set(v) { prog = clamp(v, 0, 1); if (!live) { layout(); } },
+        /* 交棒用：某一張照片此刻在螢幕上的外接框 */
+        rectOf(src) {
+          const rec = panels.find((q) => q.src === src);
+          if (!rec) { return null; }
+          const r = rec.el.getBoundingClientRect();
+          return (r.width > 4 && r.height > 4) ? r : null;
+        },
         rebuild,
         relayout: layout,
         edit(on) { showPanel(on); showEdit(on); },

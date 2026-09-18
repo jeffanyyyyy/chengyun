@@ -1387,7 +1387,7 @@
   .pf-rib {
     position: absolute;
     inset: 0;
-    perspective: 1200px;             /* 必須跟 JS 的 RIB.P 同值 */
+    perspective: var(--pf-persp, 1200px);  /* 由 JS 依畫面大小等比縮放 */
     perspective-origin: 50% 46%;
     pointer-events: none;
     will-change: opacity;
@@ -4296,7 +4296,8 @@
       rollOn: 1,      /* 傾斜：面板跟著路徑的升降傾斜 */
       splitZ: -420,   /* 前後分界：深度大於這個值的面板疊到大標上面 */
       railOff: 0.62,  /* 軌道細線離路徑多遠（面板高的倍數） */
-      railAlpha: 0.50
+      railAlpha: 0.50,
+      fit: 0.80       /* 窄畫面怎麼塞：0 全部塞進來、1 以高度為準讓兩側跑出去 */
     };
 
     /* ── 緞帶跑的路徑 ────────────────────────────────────────
@@ -4325,11 +4326,24 @@
 
     /* 改動存在這台裝置的瀏覽器裡，重新整理還在 */
     const RIB_KEY = 'chengyun.pf.path.v1';
+    /* 路徑座標的設計基準框。實際舞台不是這個尺寸時，整個 3D 場景
+       （x / y / z / perspective）等比縮放，構圖才不會在窄螢幕上垮掉 */
+    const RIB_REF = { w: 1440, h: 900 };
     const RIB_DEFAULT = JSON.stringify({ RIB, RIB_STAGE, RIB_LEAD, RIB_TAIL });
+    /* 預設值的指紋。改了預設值就代表版面重新設計過，這時候舊裝置上
+       存的路徑要自動作廢，否則那台機器會一直停在上一版的構圖 */
+    const RIB_SIG = (() => {
+      let h = 5381;
+      for (let i = 0; i < RIB_DEFAULT.length; i++) {
+        h = ((h * 33) ^ RIB_DEFAULT.charCodeAt(i)) >>> 0;
+      }
+      return h.toString(36);
+    })();
 
     function ribSave() {
       try {
         localStorage.setItem(RIB_KEY, JSON.stringify({
+          sig: RIB_SIG,
           RIB: RIB, RIB_STAGE: RIB_STAGE, RIB_LEAD: RIB_LEAD, RIB_TAIL: RIB_TAIL
         }));
       } catch (err) { /* 無痕視窗或封鎖 localStorage：不存就算了 */ }
@@ -4341,6 +4355,11 @@
       if (!raw) { return; }
       try {
         const d = JSON.parse(raw);
+        /* 不是這一版預設值存下來的，就丟掉重來 */
+        if (d.sig !== RIB_SIG) {
+          try { localStorage.removeItem(RIB_KEY); } catch (err2) { /* 清不掉就算了 */ }
+          return;
+        }
         if (d.RIB) { Object.keys(RIB).forEach((k) => { if (typeof d.RIB[k] === 'number') { RIB[k] = d.RIB[k]; } }); }
         if (Array.isArray(d.RIB_STAGE)) {
           d.RIB_STAGE.forEach((st, i) => {
@@ -4538,6 +4557,7 @@
       let panels = [];
       let Ww = 320, Wh = 266;
       let stageW = 1440, stageH = 900;
+      let sc = 1, Pn = RIB.P;   /* 場景等比縮放倍率，以及跟著縮的透視距離 */
       let flow = 0, flowTarget = 0, raf = 0, live = false, prog = 0;
       let curve = [], arcTab = [], arcTotal = 1;
       let editing = false;
@@ -4545,8 +4565,21 @@
       function measure() {
         stageW = pfStage.clientWidth || innerWidth;
         stageH = pfStage.clientHeight || innerHeight;
+        /* 寬、高各自塞得下基準框的倍率。RIB.fit=0 完全塞進畫面，
+           =1 則以高度為準、任由緞帶往左右兩側跑出去（原本的構圖就是
+           要跑出去的）。1440x900 時兩者都是 1，桌機完全不受影響 */
+        const fw = stageW / RIB_REF.w, fh = stageH / RIB_REF.h;
+        sc = clamp(lerp(Math.min(fw, fh), fh, clamp(RIB.fit, 0, 1)), .2, 1.8);
+        Pn = RIB.P * sc;
+        pfStage.style.setProperty('--pf-persp', Pn.toFixed(1) + 'px');
         rails.setAttribute('viewBox', '0 0 ' + stageW + ' ' + stageH);
       }
+
+      /* 路徑座標（以基準框為單位）跟場景像素之間的換算 */
+      const uX = (v) => v * RIB_REF.w * sc;
+      const uY = (v) => v * RIB_REF.h * sc;
+      const iX = (v) => v / (RIB_REF.w * sc);
+      const iY = (v) => v / (RIB_REF.h * sc);
 
       /* progress → 這一刻的控制點（三個階段之間逐點補間，
          進場之前與離場之後再整條偏移，讓它滑進滑出畫面） */
@@ -4569,9 +4602,9 @@
           const ax = a[0] + (A.off ? A.off.x : 0), ay = a[1] + (A.off ? A.off.y : 0);
           const bx = b[0] + (B.off ? B.off.x : 0), by = b[1] + (B.off ? B.off.y : 0);
           out.push({
-            x: lerp(ax, bx, u) * stageW,
-            y: lerp(ay, by, u) * stageH,
-            z: lerp(a[2], b[2], u)
+            x: uX(lerp(ax, bx, u)),
+            y: uY(lerp(ay, by, u)),
+            z: lerp(a[2], b[2], u) * sc
           });
         }
         return { pts: out, clip: lerp(A.st.clip, B.st.clip, u) };
@@ -4789,7 +4822,7 @@
           el.style.setProperty('--twSpan',
             (RIB.twistOn ? roll(t + span / 2) - tw0 : 0).toFixed(3));
 
-          const side = pm.z > RIB.splitZ ? 1 : 0;
+          const side = pm.z > RIB.splitZ * sc ? 1 : 0;   /* 分界跟著場景一起縮 */
           if (side !== rec.side) {
             rec.side = side;
             (side ? frontIn : backIn).appendChild(el);
@@ -4835,7 +4868,7 @@
       function homePath() {
         const st = dragStage || nearestStage();
         const sb = safeBox();
-        const pts = st.pts.map((q) => proj({ x: q[0] * stageW, y: q[1] * stageH, z: q[2] }, 0));
+        const pts = st.pts.map((q) => proj({ x: uX(q[0]), y: uY(q[1]), z: q[2] * sc }, 0));
         const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
         const x0 = Math.min(...xs), x1 = Math.max(...xs);
         const y0 = Math.min(...ys), y1 = Math.max(...ys);
@@ -4848,12 +4881,12 @@
         const wantX = ((sb.left + sb.right) / 2 - stageW * .5);
         const wantY = ((sb.top + sb.bottom) / 2 - stageH * .46);
         st.pts.forEach((q, i) => {
-          const kk = RIB.P / (RIB.P - q[2]);
+          const kk = Pn / (Pn - q[2] * sc);
           /* 先以投影後的中心為原點縮放，再整條平移到安全區中央 */
           const sx = (pts[i][0] - stageW * .5 - cxN) * k + cxN + (wantX - cxN);
           const sy = (pts[i][1] - stageH * .46 - cyN) * k + cyN + (wantY - cyN);
-          q[0] = (sx / kk) / stageW;
-          q[1] = (sy / kk) / stageH;
+          q[0] = iX(sx / kk);
+          q[1] = iY(sy / kk);
         });
         ribSave();
         rebuild();
@@ -4862,7 +4895,7 @@
 
       /* 軌道細線：跟路徑同一條，往上下各偏一點，自己算 CSS 的透視投影 */
       function proj(q, offY) {
-        const k = RIB.P / (RIB.P - q.z);
+        const k = Pn / (Pn - q.z);
         return [stageW * .5 + q.x * k, stageH * .46 + (q.y + offY) * k];
       }
 
@@ -4917,11 +4950,11 @@
             if (c.classList.contains('is-clamped') && !ev.shiftKey) {
               const pt = dragStage.pts[i];
               const r = rails.getBoundingClientRect();
-              const k = RIB.P / (RIB.P - pt[2]);
+              const k = Pn / (Pn - pt[2] * sc);
               const sx = (ev.clientX - r.left) / r.width * stageW;
               const sy = (ev.clientY - r.top) / r.height * stageH;
-              pt[0] = ((sx - stageW * .5) / k) / stageW;
-              pt[1] = ((sy - stageH * .46) / k) / stageH;
+              pt[0] = iX((sx - stageW * .5) / k);
+              pt[1] = iY((sy - stageH * .46) / k);
               if (!live) { layout(); }
             }
             /* 有些引擎對 SVG 的 setPointerCapture 不穩，所以同時把
@@ -4940,9 +4973,9 @@
               const r = rails.getBoundingClientRect();
               const sx = (ev.clientX - lastX) / r.width * stageW;
               const sy = (ev.clientY - lastY) / r.height * stageH;
-              const k = RIB.P / (RIB.P - pt[2]);
-              pt[0] += (sx / k) / stageW;
-              pt[1] += (sy / k) / stageH;
+              const k = Pn / (Pn - pt[2] * sc);
+              pt[0] += iX(sx / k);
+              pt[1] += iY(sy / k);
             }
             lastX = ev.clientX; lastY = ev.clientY;
             if (!live) { layout(); }
@@ -4987,7 +5020,7 @@
            被夾住的換個顏色提示 */
         const sb = safeBox();
         for (let i = 0; i < CN; i++) {
-          const q = proj({ x: st.pts[i][0] * stageW, y: st.pts[i][1] * stageH, z: st.pts[i][2] }, 0);
+          const q = proj({ x: uX(st.pts[i][0]), y: uY(st.pts[i][1]), z: st.pts[i][2] * sc }, 0);
           const cx = clamp(q[0], sb.left, sb.right);
           const cy = clamp(q[1], sb.top, sb.bottom);
           const off = Math.abs(cx - q[0]) > .5 || Math.abs(cy - q[1]) > .5;

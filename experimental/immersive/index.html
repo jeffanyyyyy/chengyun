@@ -1423,7 +1423,7 @@
     background-repeat: no-repeat;
     backface-visibility: hidden;
     transform-origin: 50% 50%;
-    transform: translate3d(var(--dx), 0, var(--dz))
+    transform: translate3d(var(--dx), var(--dy, 0px), var(--dz))
                rotateY(var(--a))
                rotateX(calc((var(--tw0) + var(--u) * var(--twSpan)) * 1deg));
   }
@@ -1464,6 +1464,18 @@
     opacity: 0;
     pointer-events: none;
   }
+
+  /* 看不見的大命中圈，小白點才不會難點 */
+  .pf-hit {
+    fill: transparent;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .pf-rails.is-edit .pf-hit { opacity: 1; pointer-events: auto; cursor: grab; touch-action: none; }
+
+  /* 控制點原本落在畫面外，夾回邊界時換個樣子提示 */
+  .pf-handle.is-clamped { fill: #1f6bff; stroke: #fff; }
 
   /* 編輯時把路徑層抬到面板上面，中段的控制點才看得到也拖得到 */
   .pf-rails.is-edit { z-index: 7; pointer-events: none; }
@@ -1587,6 +1599,12 @@
   }
 
   .pf-status-btn:hover { border-color: rgba(26, 26, 26, .45); }
+
+  .pf-status-btn.is-on {
+    background: #1f6bff;
+    border-color: #1f6bff;
+    color: #fff;
+  }
 
   /* 滑到某一張卡片時，左下角報出它是哪一件 */
   .pf-hover {
@@ -2149,6 +2167,7 @@
         <div class="pf-status" id="pfStatus" hidden>
           <p class="pf-status-tip">拖曳控制點改路徑；按住 <b>Shift</b> 上下拖改深度（遠近）。改動會存在這台裝置的瀏覽器裡。</p>
           <span class="pf-status-jump" id="pfJump"></span>
+          <p class="pf-status-read">編輯中：<b id="pfStageName">主秀</b></p>
           <label class="pf-status-slider">並排間距
             <input type="range" id="pfGap" min="0.6" max="1.4" step="0.01" value="1">
             <b id="pfGapVal">1.00</b>
@@ -4454,6 +4473,7 @@
       const elGapVal = document.getElementById('pfGapVal');
       const elNP = document.getElementById('pfNP');
       const elJump = document.getElementById('pfJump');
+      const elStageName = document.getElementById('pfStageName');
       const elOverlap = document.getElementById('pfOverlap');
       const elReset = document.getElementById('pfReset');
 
@@ -4596,21 +4616,50 @@
           st.style.backgroundPosition = (-x0 + ox).toFixed(1) + 'px ' + oy.toFixed(1) + 'px';
           st._flat = (st._u - .5) * Ww;
         }
-        rec.R = 0;
+        rec.flat = null;
       }
 
-      /* 把這張面板彎到半徑 R（帶正負號＝凹凸方向）。
-         弧長對應攤平寬度，所以兩端剛好落在路徑上。 */
-      function bendPanel(rec, R, sign) {
-        if (!RIB.bend) { R = Ww * 4000; sign = 1; }
-        if (rec.R && Math.abs(R / rec.R - 1) < .01 && rec.sign === sign) { return; }
-        rec.R = R; rec.sign = sign;
-        for (let i = 0; i < rec.strips.length; i++) {
-          const st = rec.strips[i];
-          const a = st._flat / R;
-          st.style.setProperty('--dx', (R * Math.sin(a) - st._flat).toFixed(2) + 'px');
-          st.style.setProperty('--dz', (sign * (R * Math.cos(a) - R)).toFixed(2) + 'px');
-          st.style.setProperty('--a', (sign * a * 180 / Math.PI).toFixed(3) + 'deg');
+      /* 把這張面板貼到路徑上：每一條縱條各自去路徑上取自己的點與切線，
+         再換算成面板自己的座標。不是「一張一個圓弧」，所以同一張面板裡
+         可以有反曲點——路徑彎幾次就跟著彎幾次。 */
+      const eX = { x: 0, y: 0, z: 0 }, eY = { x: 0, y: 0, z: 0 }, eZ = { x: 0, y: 0, z: 0 };
+
+      function bendPanel(rec, pm, ry, rz, sMid) {
+        const strips = rec.strips;
+        if (!RIB.bend) {
+          if (rec.flat) { return; }
+          rec.flat = true;
+          for (let i = 0; i < strips.length; i++) {
+            strips[i].style.setProperty('--dx', '0px');
+            strips[i].style.setProperty('--dy', '0px');
+            strips[i].style.setProperty('--dz', '0px');
+            strips[i].style.setProperty('--a', '0deg');
+          }
+          return;
+        }
+        rec.flat = false;
+        /* 面板的三根軸（CSS 是先 rotateY(ry) 再 rotateZ(rz)） */
+        const cy = Math.cos(ry), sy = Math.sin(ry);
+        const cz = Math.cos(rz), sz = Math.sin(rz);
+        eX.x = cz * cy; eX.y = sz; eX.z = -cz * sy;
+        eY.x = -sz * cy; eY.y = cz; eY.z = sz * sy;
+        eZ.x = sy; eZ.y = 0; eZ.z = cy;
+        const h = Math.max(Ww / (strips.length * 2), 1);
+        for (let i = 0; i < strips.length; i++) {
+          const st = strips[i];
+          const fx = st._flat;
+          const q = pathAt(sMid + fx);
+          const dx = q.x - pm.x, dy = q.y - pm.y, dz = q.z - pm.z;
+          const lx = dx * eX.x + dy * eX.y + dz * eX.z;
+          const ly = dx * eY.x + dy * eY.y + dz * eY.z;
+          const lz = dx * eZ.x + dy * eZ.y + dz * eZ.z;
+          const qa = pathAt(sMid + fx - h), qb = pathAt(sMid + fx + h);
+          const tx = (qb.x - qa.x) * eX.x + (qb.y - qa.y) * eX.y + (qb.z - qa.z) * eX.z;
+          const tz = (qb.x - qa.x) * eZ.x + (qb.y - qa.y) * eZ.y + (qb.z - qa.z) * eZ.z;
+          st.style.setProperty('--dx', (lx - fx).toFixed(2) + 'px');
+          st.style.setProperty('--dy', ly.toFixed(2) + 'px');
+          st.style.setProperty('--dz', lz.toFixed(2) + 'px');
+          st.style.setProperty('--a', (Math.atan2(-tz, tx) * 180 / Math.PI).toFixed(3) + 'deg');
         }
       }
 
@@ -4626,7 +4675,7 @@
         for (let i = 0; i < NP; i++) {
           const el = document.createElement('div');
           el.className = 'pf-panel';
-          const rec = { el, i, side: -1, src: PF_SHOTS[i % PF_SHOTS.length], strips: [], ar: 1.5, R: 0, sign: 1 };
+          const rec = { el, i, side: -1, src: PF_SHOTS[i % PF_SHOTS.length], strips: [], ar: 1.5, flat: null };
           const img = new Image();
           img.onload = () => { rec.ar = img.naturalWidth / img.naturalHeight; buildStrips(rec); };
           img.src = rec.src;
@@ -4671,14 +4720,7 @@
           const ry = RIB.yawOn ? Math.atan2(-dz, dx) * 180 / Math.PI : 0;
           const rz = RIB.rollOn ? Math.atan2(dy, dxz) * 180 / Math.PI : 0;
 
-          /* 外接圓半徑 = 通過首中尾三點的圓（取 x–z 平面的曲率） */
-          const cross = (pm.x - p0.x) * (p1.z - p0.z) - (pm.z - p0.z) * (p1.x - p0.x);
-          const area2 = Math.abs(cross);
-          const R = area2 > 1e-3
-            ? Math.min(Math.hypot(pm.x - p0.x, pm.z - p0.z) * Math.hypot(p1.x - pm.x, p1.z - pm.z) *
-                Math.hypot(dx, dz) / (2 * area2), Ww * 80)
-            : Ww * 80;
-          bendPanel(rec, Math.max(R, Ww * .55), cross > 0 ? 1 : -1);
+          bendPanel(rec, pm, ry * Math.PI / 180, rz * Math.PI / 180, sMid);
 
           const el = rec.el;
           el.style.setProperty('--x', pm.x.toFixed(2) + 'px');
@@ -4741,7 +4783,7 @@
       }
 
       /* ── 可以拖的控制點 ──────────────────────────────────── */
-      let handles = [], tags = [], pathLine = null, dragI = -1, dragStage = null;
+      let handles = [], hits = [], tags = [], pathLine = null, dragI = -1, dragStage = null;
 
       function nearestStage() {
         let best = RIB_STAGE[0], bd = 9;
@@ -4759,33 +4801,48 @@
           const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
           c.setAttribute('class', 'pf-handle');
           c.setAttribute('r', 9);
-          c.dataset.i = i;
+          const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          hit.setAttribute('class', 'pf-hit');
+          hit.setAttribute('r', 22);
           const tag = document.createElementNS('http://www.w3.org/2000/svg', 'text');
           tag.setAttribute('class', 'pf-handle-tag');
-          let lastY = 0;
-          c.addEventListener('pointerdown', (ev) => {
+          let lastX = 0, lastY = 0;
+          hit.addEventListener('pointerdown', (ev) => {
             ev.preventDefault();
             dragI = i;
+            /* 只能編輯「目前停在哪個階段」的那條路徑，拖了才會 1:1 跟手 */
             dragStage = nearestStage();
-            lastY = ev.clientY;
-            c.setPointerCapture(ev.pointerId);
+            lastX = ev.clientX; lastY = ev.clientY;
+            /* 原本被夾在邊界的點：一抓就把它拉到游標底下，
+               否則會覺得「拖了沒反應」——其實是真值還在畫面外 */
+            if (c.classList.contains('is-clamped') && !ev.shiftKey) {
+              const pt = dragStage.pts[i];
+              const r = rails.getBoundingClientRect();
+              const k = RIB.P / (RIB.P - pt[2]);
+              const sx = (ev.clientX - r.left) / r.width * stageW;
+              const sy = (ev.clientY - r.top) / r.height * stageH;
+              pt[0] = ((sx - stageW * .5) / k) / stageW;
+              pt[1] = ((sy - stageH * .46) / k) / stageH;
+              if (!live) { layout(); }
+            }
+            hit.setPointerCapture(ev.pointerId);
           });
-          c.addEventListener('pointermove', (ev) => {
+          hit.addEventListener('pointermove', (ev) => {
             if (dragI !== i || !dragStage) { return; }
             const pt = dragStage.pts[i];
             if (ev.shiftKey) {
               /* 按住 Shift：上下拖改深度，往上＝往鏡頭靠近 */
               pt[2] = clamp(pt[2] - (ev.clientY - lastY) * 4, -2600, RIB.P - 160);
-              lastY = ev.clientY;
             } else {
+              /* 用位移不是絕對位置，所以就算控制點被夾在邊界上也不會跳 */
               const r = rails.getBoundingClientRect();
-              const sx = (ev.clientX - r.left) / r.width * stageW;
-              const sy = (ev.clientY - r.top) / r.height * stageH;
+              const sx = (ev.clientX - lastX) / r.width * stageW;
+              const sy = (ev.clientY - lastY) / r.height * stageH;
               const k = RIB.P / (RIB.P - pt[2]);
-              pt[0] = ((sx - stageW * .5) / k) / stageW;
-              pt[1] = ((sy - stageH * .46) / k) / stageH;
-              lastY = ev.clientY;
+              pt[0] += (sx / k) / stageW;
+              pt[1] += (sy / k) / stageH;
             }
+            lastX = ev.clientX; lastY = ev.clientY;
             if (!live) { layout(); }
           });
           const done = () => {
@@ -4794,11 +4851,13 @@
             ribSave();
             rebuild();
           };
-          c.addEventListener('pointerup', done);
-          c.addEventListener('pointercancel', done);
+          hit.addEventListener('pointerup', done);
+          hit.addEventListener('pointercancel', done);
           rails.appendChild(c);
           rails.appendChild(tag);
+          rails.appendChild(hit);
           handles.push(c);
+          hits.push(hit);
           tags.push(tag);
         }
       }
@@ -4812,13 +4871,26 @@
         }
         pathLine.setAttribute('d', d);
         const st = dragStage || nearestStage();
+        /* 控制點有可能投影到畫面外（舞台是 overflow:hidden，會被裁掉），
+           所以一律夾進可視範圍，被夾住的換個顏色提示 */
+        const pad = 26;
         for (let i = 0; i < CN; i++) {
           const q = proj({ x: st.pts[i][0] * stageW, y: st.pts[i][1] * stageH, z: st.pts[i][2] }, 0);
-          handles[i].setAttribute('cx', q[0].toFixed(1));
-          handles[i].setAttribute('cy', q[1].toFixed(1));
-          tags[i].setAttribute('x', (q[0] + 13).toFixed(1));
-          tags[i].setAttribute('y', (q[1] + 4).toFixed(1));
-          tags[i].textContent = Math.round(st.pts[i][2]);
+          const cx = clamp(q[0], pad, stageW - pad);
+          const cy = clamp(q[1], pad, stageH - pad - 96);
+          const off = Math.abs(cx - q[0]) > .5 || Math.abs(cy - q[1]) > .5;
+          handles[i].setAttribute('cx', cx.toFixed(1));
+          handles[i].setAttribute('cy', cy.toFixed(1));
+          handles[i].classList.toggle('is-clamped', off);
+          hits[i].setAttribute('cx', cx.toFixed(1));
+          hits[i].setAttribute('cy', cy.toFixed(1));
+          tags[i].setAttribute('x', (cx + 14).toFixed(1));
+          tags[i].setAttribute('y', (cy + 4).toFixed(1));
+          tags[i].textContent = 'P' + i + ' ' + Math.round(st.pts[i][2]);
+        }
+        if (elStageName) {
+          elStageName.textContent = st.name;
+          [...elJump.children].forEach((b) => b.classList.toggle('is-on', b.textContent === st.name));
         }
       }
 
@@ -4899,7 +4971,13 @@
         statusOn = on;
         elTools.hidden = !on;
         elStatus.hidden = !on;
-        if (on) { buildTools(); syncTools(); }
+        if (!on) { return; }
+        buildTools();
+        syncTools();
+        /* 停在兩個階段中間時，路徑是補間出來的，拖控制點只會動一部分。
+           所以開編輯器時先自動靠到最近的那個階段。 */
+        const st = nearestStage();
+        if (Math.abs(st.at - prog) > .02) { pfJumpTo(st.at); }
       }
 
       function showEdit(on) {

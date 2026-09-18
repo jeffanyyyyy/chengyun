@@ -4266,9 +4266,12 @@
     const pfHover = document.getElementById('pfHover');
     const pfCards = [...document.querySelectorAll('.pf-card')];
 
+    /* 一個主題兩張，依提供順序排。緞帶會照這個順序流過去 */
     const PF_SHOTS = [
-      '../../assets/work/01.jpg', '../../assets/work/02.jpg', '../../assets/work/03.jpg',
-      '../../assets/work/04.jpg', '../../assets/work/05.jpg', '../../assets/work/06.jpg'
+      '../../assets/work/01.jpg', '../../assets/work/02.jpg',   /* 年終感恩晚會 */
+      '../../assets/work/03.jpg', '../../assets/work/04.jpg',   /* 品牌訪談側拍 */
+      '../../assets/work/05.jpg', '../../assets/work/06.jpg',   /* Sisley 年會 */
+      '../../assets/work/07.jpg', '../../assets/work/08.jpg'    /* 醒吾時尚系畢業展演 */
     ];
 
     /* 三段的區間 */

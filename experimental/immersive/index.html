@@ -1465,14 +1465,21 @@
     pointer-events: none;
   }
 
-  /* 看不見的大命中圈，小白點才不會難點 */
+  /* 看不見的大命中圈，小白點才不會難點。
+     fill 給一個幾乎全透明的顏色 + pointer-events:all：
+     WebKit 在預設的 visiblePainted 下，對 fill:transparent 不一定打得中。 */
   .pf-hit {
-    fill: transparent;
+    fill: rgba(31, 107, 255, .001);
     opacity: 0;
     pointer-events: none;
   }
 
-  .pf-rails.is-edit .pf-hit { opacity: 1; pointer-events: auto; cursor: grab; touch-action: none; }
+  .pf-rails.is-edit .pf-hit {
+    opacity: 1;
+    pointer-events: all;
+    cursor: grab;
+    touch-action: none;
+  }
 
   /* 控制點原本落在畫面外，夾回邊界時換個樣子提示 */
   .pf-handle.is-clamped { fill: #1f6bff; stroke: #fff; }
@@ -1512,12 +1519,15 @@
     flex-wrap: wrap;
     gap: 8px;
     justify-content: flex-end;
+    pointer-events: none;      /* 容器本身不吃點擊，只有按鈕吃 */
   }
 
   .pf-tool {
+    pointer-events: auto;
     appearance: none;
     border: 1px solid rgba(26, 26, 26, .18);
     background: rgba(255, 255, 255, .72);
+    -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
     border-radius: 999px;
     padding: 7px 15px;
@@ -1551,6 +1561,7 @@
     border-radius: 14px;
     border: 1px solid rgba(26, 26, 26, .12);
     background: rgba(255, 255, 255, .78);
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     font-size: 12px;
     letter-spacing: .04em;
@@ -2168,7 +2179,7 @@
         <!-- 路徑編輯器：按 D 才出現 -->
         <div class="pf-tools" id="pfTools" hidden></div>
         <div class="pf-status" id="pfStatus" hidden>
-          <p class="pf-status-tip">拖曳控制點改路徑；按住 <b>Shift</b> 上下拖改深度（遠近）。改動會存在這台裝置的瀏覽器裡。</p>
+          <p class="pf-status-tip">拖曳控制點改路徑；按住 <b>Shift</b> 上下拖改深度（遠近）。<b>編輯時捲動是鎖住的</b>，要換段請按下面三顆。改動會存在這台裝置的瀏覽器裡。</p>
           <span class="pf-status-jump" id="pfJump"></span>
           <p class="pf-status-read">編輯中：<b id="pfStageName">主秀</b></p>
           <label class="pf-status-slider">並排間距
@@ -4874,9 +4885,12 @@
               pt[1] = ((sy - stageH * .46) / k) / stageH;
               if (!live) { layout(); }
             }
-            hit.setPointerCapture(ev.pointerId);
+            /* 有些引擎對 SVG 的 setPointerCapture 不穩，所以同時把
+               pointermove / pointerup 掛到 window 上，兩條路都留著 */
+            try { hit.setPointerCapture(ev.pointerId); } catch (err) { /* 沒有就算了 */ }
+            hit._begin();
           });
-          hit.addEventListener('pointermove', (ev) => {
+          const onMove = (ev) => {
             if (dragI !== i || !dragStage) { return; }
             const pt = dragStage.pts[i];
             if (ev.shiftKey) {
@@ -4893,13 +4907,22 @@
             }
             lastX = ev.clientX; lastY = ev.clientY;
             if (!live) { layout(); }
-          });
+          };
           const done = () => {
             if (dragI !== i) { return; }
             dragI = -1;
+            removeEventListener('pointermove', onMove);
+            removeEventListener('pointerup', done);
+            removeEventListener('pointercancel', done);
             ribSave();
             rebuild();
           };
+          hit._begin = () => {
+            addEventListener('pointermove', onMove, { passive: false });
+            addEventListener('pointerup', done);
+            addEventListener('pointercancel', done);
+          };
+          hit.addEventListener('pointermove', onMove);
           hit.addEventListener('pointerup', done);
           hit.addEventListener('pointercancel', done);
           rails.appendChild(c);
@@ -5188,8 +5211,28 @@
       }
     }
 
+    /* 編輯時把這一章的捲動鎖起來。捲動會改 progress，路徑跟著補間，
+       拖到一半畫面跑掉就永遠對不準。要換階段請用狀態列那三顆。 */
+    let pfLockOn = false;
+    const pfNoScroll = (e) => e.preventDefault();
+
+    function pfScrollLock(on) {
+      if (on === pfLockOn) { return; }
+      pfLockOn = on;
+      if (on) {
+        if (pfLenis) { pfLenis.stop(); }
+        pfWrap.addEventListener('wheel', pfNoScroll, { passive: false });
+        pfWrap.addEventListener('touchmove', pfNoScroll, { passive: false });
+      } else {
+        if (pfLenis) { pfLenis.start(); }
+        pfWrap.removeEventListener('wheel', pfNoScroll);
+        pfWrap.removeEventListener('touchmove', pfNoScroll);
+      }
+    }
+
     function pfShowGui(on) {
       pfGuiState.open = on;
+      pfScrollLock(on);
       if (pfRailsEl) { pfRailsEl.classList.toggle('is-debug', on); }
       if (pfStage) { pfStage.classList.toggle('is-debug-rib', on); }
       if (pfRib && pfRib.edit) { pfRib.edit(on); }
@@ -5225,7 +5268,8 @@
         pfDebugPanel();
         pfHeadIntro();
         if (pfRib) { pfRib.rebuild(); pfRib.start(); }
-        if (pfLenis) { pfLenis.resize(); pfLenis.start(); }
+        /* 編輯器開著時捲動是鎖住的，回到這一章也不要偷偷解開 */
+        if (pfLenis) { pfLenis.resize(); if (!pfLockOn) { pfLenis.start(); } }
         /* 分鏡剛顯示出來，量測要重做一次，否則行程長度是舊的 */
         if (window.ScrollTrigger) { requestAnimationFrame(() => ScrollTrigger.refresh()); }
         else { requestAnimationFrame(() => pfRender(pfProgress())); }

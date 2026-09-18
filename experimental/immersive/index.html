@@ -1764,6 +1764,9 @@
 
   .pf-toast.is-on { opacity: 1; transform: translate(-50%, 0); }
 
+  /* 編輯器開著時往上讓，不要壓在狀態列上 */
+  .pf-toast.is-high { bottom: clamp(120px, 16vh, 168px); }
+
   .pf-eyebrow {
     position: absolute;
     z-index: 5;
@@ -2176,6 +2179,7 @@
             <input type="number" id="pfNP" min="4" max="16" step="1" value="8">張
           </label>
           <p class="pf-status-read"><span id="pfOverlap"></span></p>
+          <button class="pf-status-btn" id="pfHome" type="button">回到畫面中</button>
           <button class="pf-status-btn" id="pfReset" type="button">還原預設</button>
         </div>
         <span class="pf-eyebrow" data-i18n="pf.eyebrow">04 — Portfolio</span>
@@ -4476,6 +4480,7 @@
       const elStageName = document.getElementById('pfStageName');
       const elOverlap = document.getElementById('pfOverlap');
       const elReset = document.getElementById('pfReset');
+      const elHome = document.getElementById('pfHome');
 
       const CN = RIB_STAGE[0].pts.length;   /* 控制點數 */
       const M = 200;                        /* 路徑取樣數 */
@@ -4761,6 +4766,50 @@
         }
       }
 
+      /* 控制點可以放的範圍：扣掉上排開關列與下排狀態列實際佔的高度 */
+      function safeBox() {
+        const pad = 26;
+        const tools = (!elTools.hidden && elTools.offsetHeight) ? elTools.offsetHeight : 0;
+        const status = (!elStatus.hidden && elStatus.offsetHeight) ? elStatus.offsetHeight : 0;
+        const topGap = tools ? elTools.offsetTop + tools + 14 : pad;
+        const botGap = status ? stageH - elStatus.offsetTop + 14 : pad;
+        return {
+          left: pad, right: stageW - pad,
+          top: Math.min(topGap, stageH * .5),
+          bottom: Math.max(stageH - botGap, stageH * .5)
+        };
+      }
+
+      /* 把目前這條路徑整條搬回畫面中間，形狀不變。
+         拖到看不見的地方之後靠這個救回來。 */
+      function homePath() {
+        const st = dragStage || nearestStage();
+        const sb = safeBox();
+        const pts = st.pts.map((q) => proj({ x: q[0] * stageW, y: q[1] * stageH, z: q[2] }, 0));
+        const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
+        const x0 = Math.min(...xs), x1 = Math.max(...xs);
+        const y0 = Math.min(...ys), y1 = Math.max(...ys);
+        const boxW = Math.max(x1 - x0, 1), boxH = Math.max(y1 - y0, 1);
+        const fitW = sb.right - sb.left, fitH = sb.bottom - sb.top;
+        /* 太大就先往中心收，收到塞得進安全區為止 */
+        const k = Math.min(1, fitW / boxW, fitH / boxH);
+        const cxN = ((x0 + x1) / 2 - stageW * .5);
+        const cyN = ((y0 + y1) / 2 - stageH * .46);
+        const wantX = ((sb.left + sb.right) / 2 - stageW * .5);
+        const wantY = ((sb.top + sb.bottom) / 2 - stageH * .46);
+        st.pts.forEach((q, i) => {
+          const kk = RIB.P / (RIB.P - q[2]);
+          /* 先以投影後的中心為原點縮放，再整條平移到安全區中央 */
+          const sx = (pts[i][0] - stageW * .5 - cxN) * k + cxN + (wantX - cxN);
+          const sy = (pts[i][1] - stageH * .46 - cyN) * k + cyN + (wantY - cyN);
+          q[0] = (sx / kk) / stageW;
+          q[1] = (sy / kk) / stageH;
+        });
+        ribSave();
+        rebuild();
+        pfToast('已把「' + st.name + '」的路徑搬回畫面中');
+      }
+
       /* 軌道細線：跟路徑同一條，往上下各偏一點，自己算 CSS 的透視投影 */
       function proj(q, offY) {
         const k = RIB.P / (RIB.P - q.z);
@@ -4872,12 +4921,13 @@
         pathLine.setAttribute('d', d);
         const st = dragStage || nearestStage();
         /* 控制點有可能投影到畫面外（舞台是 overflow:hidden，會被裁掉），
-           所以一律夾進可視範圍，被夾住的換個顏色提示 */
-        const pad = 26;
+           或是躲到上下兩條列底下被按鈕吃掉點擊，所以一律夾進安全區，
+           被夾住的換個顏色提示 */
+        const sb = safeBox();
         for (let i = 0; i < CN; i++) {
           const q = proj({ x: st.pts[i][0] * stageW, y: st.pts[i][1] * stageH, z: st.pts[i][2] }, 0);
-          const cx = clamp(q[0], pad, stageW - pad);
-          const cy = clamp(q[1], pad, stageH - pad - 96);
+          const cx = clamp(q[0], sb.left, sb.right);
+          const cy = clamp(q[1], sb.top, sb.bottom);
           const off = Math.abs(cx - q[0]) > .5 || Math.abs(cy - q[1]) > .5;
           handles[i].setAttribute('cx', cx.toFixed(1));
           handles[i].setAttribute('cy', cy.toFixed(1));
@@ -4960,6 +5010,7 @@
           b.addEventListener('click', () => pfJumpTo(st.at));
           elJump.appendChild(b);
         });
+        elHome.addEventListener('click', homePath);
         elReset.addEventListener('click', () => {
           ribReset();
           syncTools();
@@ -5101,6 +5152,7 @@
         document.body.appendChild(el);
       }
       el.textContent = msg;
+      el.classList.toggle('is-high', !!(pfGuiState && pfGuiState.open));
       el.classList.add('is-on');
       clearTimeout(pfToastTimer);
       pfToastTimer = setTimeout(() => el.classList.remove('is-on'), 1600);

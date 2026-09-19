@@ -80,12 +80,10 @@
   ::selection { background: #fff; color: #000; }
   :focus-visible { outline: 1px solid #fff; outline-offset: 6px; }
 
-  /* 象牙白的幾章：白色聚焦框與白色選取色壓在白紙上等於沒有，翻成墨色 */
-  .scene[data-scene="about"] :focus-visible,
+  /* 象牙白的兩章：白色聚焦框與白色選取色壓在白紙上等於沒有，翻成墨色 */
   .scene[data-scene="teams"] :focus-visible,
   .scene[data-scene="portfolio"] :focus-visible { outline-color: var(--ink); }
 
-  .scene[data-scene="about"] ::selection,
   .scene[data-scene="teams"] ::selection,
   .scene[data-scene="portfolio"] ::selection { background: var(--ink); color: var(--ivory); }
 
@@ -108,6 +106,14 @@
 
   /* 壓暗層：白字要壓在影片上仍需要一層底，但比先前淡，讓影片看得出來。
      邊緣收一圈暗角，視線收在中央 */
+  /* 兩層背景交叉溶接。兩層都是半透明的（.78），所以不能只把上層淡進來——
+     那樣下層會從上層後面透出來，內頁的水晶上會浮著首頁那段舞台戲。
+     一層進、另一層就得出。 */
+  .stage-video { transition: opacity .9s var(--ease); }
+  .stage-rest { opacity: 0; }
+  .is-inner .stage-rest { opacity: .78; }
+  .is-inner #bgVideo { opacity: 0; }
+
   .stage-veil {
     position: absolute;
     inset: 0;
@@ -168,7 +174,6 @@
   }
 
   /* 底板的顏色要跟各自 .scene-inner 的底色一致，否則交界會出現一條色差 */
-  .scene[data-scene="about"]     { --cover-bg: var(--ivory); }
   .scene[data-scene="teams"]     { --cover-bg: var(--ivory); }
   .scene[data-scene="portfolio"] { --cover-bg: #e8e8e6; }
   .scene[data-scene="intro"]     { --cover-bg: #05060a; }
@@ -656,21 +661,6 @@
     line-height: 1.9;
     color: rgba(255, 255, 255, .7);
   }
-
-  /* ── 01 關於我們：明亮版 ───────────────
-     和團隊、活動成果用同一套暖白，文字翻成墨色。頁首頁尾與游標都是
-     mix-blend-difference，白底會自己翻成黑字，不必另外處理。
-     這一章內容會捲，所以不像團隊那樣設 overflow: hidden。 */
-  .scene[data-scene="about"] .scene-inner {
-    background: var(--ivory);
-    color: var(--ink);
-  }
-
-  .scene[data-scene="about"] .eyebrow { color: rgba(20, 19, 15, .45); }
-  .scene[data-scene="about"] .scene-body { color: rgba(20, 19, 15, .62); }
-  .scene[data-scene="about"] .term { color: rgba(20, 19, 15, .88); }
-  .scene[data-scene="about"] .desc { color: rgba(20, 19, 15, .5); }
-  .scene[data-scene="about"] .note { color: rgba(20, 19, 15, .4); }
 
   /* ── 團隊：Three.js 膠卷 ───────────────
      WebGL 可用時由畫布接手，CSS 3D 那版整個收起來；
@@ -1901,7 +1891,13 @@
 
 <div class="stage" id="stage" aria-hidden="true">
   <video class="stage-video" id="bgVideo" autoplay muted loop playsinline preload="auto">
-    <source src="../../assets/bg-obsidian.mp4" type="video/mp4" />
+    <source src="../../assets/crystal-hero.mp4" type="video/mp4" />
+  </video>
+  <!-- 內頁的背景：水晶落定之後的那一段，倒放接正放，循環點看不出來。
+       首頁不顯示，離開首頁才淡進來；過場結束進到關於我們時從第 0 秒起播，
+       而第 0 秒正是過場影片的最後一格，所以水晶是「停在那裡」而不是重來一次 -->
+  <video class="stage-video stage-rest" id="restVideo" muted loop playsinline preload="auto">
+    <source src="../../assets/crystal-rest.mp4" type="video/mp4" />
   </video>
   <div class="stage-veil"></div>
 </div>
@@ -3214,6 +3210,28 @@
     addEventListener('pointerdown', resumeVideo);
     addEventListener('keydown', resumeVideo);
 
+    /* 內頁背景：只在離開首頁時跑，首頁時停著不佔解碼資源。
+       每次從首頁側進到內頁都倒回第 0 秒——那一格正是過場影片的最後一格，
+       所以從過場落到關於我們時，水晶是接著停在那裡，不是重新播一次。 */
+    const restVideo = document.getElementById('restVideo');
+    let restOn = false;
+
+    function syncRest(inner) {
+      if (inner === restOn) { return; }
+      restOn = inner;
+      if (reduce) { return; }
+      if (inner) {
+        try { restVideo.currentTime = 0; } catch (err) { /* 還沒載好就下一次再說 */ }
+        restVideo.play().catch(() => { /* 擋自動播放就維持靜幀 */ });
+        /* 首頁那層已經淡到看不見，沒有必要繼續解碼。
+           等淡出跑完才停，中途停會在溶接途中卡住一格 */
+        setTimeout(() => { if (restOn) { bgVideo.pause(); } }, 900);
+      } else {
+        restVideo.pause();
+        if (!reduce) { bgVideo.play().catch(() => {}); }
+      }
+    }
+
     /* ══ 分鏡切換 ══════════════════════════════════════════════ */
     const scenes = new Map();
     document.querySelectorAll('[data-scene]').forEach((el) => scenes.set(el.dataset.scene, el));
@@ -3287,6 +3305,7 @@
       current = name;
       if (name === 'hero') { setProgress(0); }
       root.classList.toggle('is-inner', name !== 'hero');
+      syncRest(name !== 'hero');
       syncChrome();
       watchScene(to);
       backBtn.hidden = name === 'hero' || menuOverlay.classList.contains('is-open');
@@ -4529,22 +4548,16 @@
 
     const INTRO_SPAN = 2200;                           /* 捲動多少 px 走完整支 */
 
-    /* 影片從第幾秒開始播。首頁背景（bg-loop.mp4）已經是同一顆水晶在慢慢轉，
-       過場影片開頭又有 1.6 秒完整的水晶，接起來等於同一顆看兩次。
-       所以跳過那一段，滑完滾輪進來的第一格就已經在裂了。
+    /* 影片從第幾秒開始播。第一支（首頁背景）最後是人沉出畫面、只剩氣泡與光束，
+       第二支正好從同樣的氣泡光束開場——兩邊已經咬合，不需要跳過任何東西，
+       所以這裡是 0。（前一支水晶影片要跳過開頭重複的 1.6 秒，才設成 1.63。） */
+    const INTRO_START = 0;
 
-       逐格量出來的：0～1.58 秒水晶完整，1.63 秒出現第一道裂痕、中心開始發光，
-       1.67 秒畫面平均亮度從 20 跳到 44，1.92 秒達峰值 128。
-       取 1.63 —— 裂開的第一格，不是還沒裂、也不是已經炸開一半。
-
-       設成 0 就是從頭播完整支。 */
-    const INTRO_START = 1.63;
-
-    /* 進場後自動播到第幾秒。停在一格裂掉的水晶上等人捲動，看起來就只是
-       「又一顆水晶」——要的是一進場它就自己炸開。到這一秒為止自動播完，
+    /* 進場後自動播到第幾秒。被捲動拖著播的影片在沒人動它時是完全靜止的，
+       一進場就停在一格氣泡上，看起來像圖不像影片。先自動播一小段讓氣泡浮起來，
        之後才交還給捲動。設成跟 INTRO_START 同值就取消這個自動段。
-       2.5 秒＝閃光退去、碎片已經飛出、金色光帶開始繞上來。 */
-    const INTRO_BURST = 2.5;
+       1.5 秒＝氣泡明顯在動、碎片還沒開始聚攏，剛好留整個凝聚過程給捲動。 */
+    const INTRO_BURST = 1.5;
     let introP = 0;                                    /* 目前進度 0–1 */
     let introT = 0;                                    /* 目標進度 */
     let introRaf = 0;
@@ -4557,8 +4570,8 @@
     /* 到了要用的時候才載：這支有好幾 MB，不該在首屏就下載。
        使用者一按下長按區就先載，通常在放開手之前就備好了。
 
-       要換回鹿的版本：把下面兩個檔名改成 deer-480.mp4 / deer-720.mp4，
-       檔案都還在，沒有刪掉。
+       要換回別支：deer-480/720.mp4 與 underwater-480/720.mp4 都還在
+       assets/ 裡，沒有刪掉，改檔名即可。
 
        影片是被捲動拖著播的（currentTime 由捲動量決定），所以關鍵影格
        必須夠密，否則每次 seek 都要從前一個關鍵影格重解一大段。
@@ -4567,7 +4580,7 @@
       if (introLoaded || reduce) { return; }
       introLoaded = true;
       const small = innerWidth < 900 || (navigator.connection && navigator.connection.saveData);
-      introVideo.src = small ? '../../assets/underwater-480.mp4' : '../../assets/underwater-720.mp4';
+      introVideo.src = small ? '../../assets/crystal-reveal-480.mp4' : '../../assets/crystal-reveal-720.mp4';
       introVideo.load();
     }
 

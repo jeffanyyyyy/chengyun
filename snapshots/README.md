@@ -6,6 +6,7 @@ Artifact 網址：https://claude.ai/artifact/APm16Q6Cfn1UTGQnKZWetm
 
 | 檔案 | 對應版本 | 內容 |
 |---|---|---|
+| `obsidian-before-stack.html` | 1789801353-7745 | **套用堆疊轉場之前的線上版**，含三語團隊文案。要退回就用這一份。 |
 | `obsidian-v67-before-sticky.html` | V67 | 原始版。緞帶作品集，桌機手機同一套軌跡（8 面板 / 160 縱條）。**加入堆疊轉場之前的狀態。** |
 | `obsidian-v66-mobile-tuned.html` | V66 | 手機獨立軌跡 + 面板縮小 + 自動降級。後來應要求退回 V67，保留在此。 |
 

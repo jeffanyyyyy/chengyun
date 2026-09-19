@@ -138,6 +138,28 @@
   .scene { pointer-events: none; }
   .scene.is-active { pointer-events: auto; }
 
+  /* ══ 堆疊轉場 ═══════════════════════════════════════════════
+     換章時被蓋住的那一段完全靜止，新的一段從畫面下緣升起蓋過去。
+     覆蓋的前提是那一層必須不透明——但分鏡本來就是透明的，
+     背景影片（.stage，z-index 0）正是從它們後面透出來的。
+     直接給分鏡上底色會把影片永久蓋掉，所以改成一塊獨立的底板：
+     只在轉場當下不透明，蓋完就淡掉，影片回得來。 */
+  .scene-cover {
+    position: absolute;
+    inset: 0;
+    z-index: -1;                 /* 壓在分鏡內容底下。.scene 有 will-change:transform，
+                                    已經自成堆疊脈絡，-1 不會掉到影片後面 */
+    background: var(--cover-bg, var(--bg));
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* 底板的顏色要跟各自 .scene-inner 的底色一致，否則交界會出現一條色差 */
+  .scene[data-scene="about"]     { --cover-bg: var(--ivory); }
+  .scene[data-scene="teams"]     { --cover-bg: var(--ivory); }
+  .scene[data-scene="portfolio"] { --cover-bg: #e8e8e6; }
+  .scene[data-scene="intro"]     { --cover-bg: #05060a; }
+
   /* 分鏡內容若超出視窗（窄螢幕、橫躺手機）就自己捲，頁面本身仍然不捲 */
   .scene-inner {
     width: 100%;
@@ -3182,6 +3204,15 @@
     /* ══ 分鏡切換 ══════════════════════════════════════════════ */
     const scenes = new Map();
     document.querySelectorAll('[data-scene]').forEach((el) => scenes.set(el.dataset.scene, el));
+
+    /* 每個分鏡塞一塊覆蓋用的底板。平常 opacity 0，背景影片照樣透出來；
+       只有輪到它當覆蓋層時才點亮，蓋定之後再淡掉 */
+    scenes.forEach((el) => {
+      const c = document.createElement('div');
+      c.className = 'scene-cover';
+      c.setAttribute('aria-hidden', 'true');
+      el.insertBefore(c, el.firstChild);
+    });
     const sceneLabel = document.getElementById('sceneLabel');
     const backBtn = document.getElementById('backBtn');
     const footHint = document.getElementById('footHint');
@@ -3207,6 +3238,21 @@
       footHint.textContent = open ? t('hint.menu')
         : (current === 'portfolio' ? '' : (t('hint.' + current) || t('hint.default')));
     }
+
+    /* ══ 堆疊轉場的旋鈕 ════════════════════════════════════
+       STACK_DUR     覆蓋動畫秒數。想更沉穩就加到 1.1
+       STACK_EASE    覆蓋的加速曲線。實測（0.9 秒、行程 760px，
+                     走完 50% / 95% 距離所需毫秒）：
+                       expo.out     87 / 377   ← 等同瞬移，眼睛跟不上
+                       power3.out  139 / 481
+                       power2.out  178 / 574   ← 目前值，也是本站原有曲線
+                       power1.out  220 / 697   ← 最接近參考影片的等速掃過
+       STACK_RISE    新分鏡內容上浮的距離（px），超過 40 會顯得笨重
+       STACK_STAGGER 內容依序錯開的間隔（秒），超過 .15 會覺得拖 */
+    const STACK_DUR = .9;
+    const STACK_EASE = 'power2.out';
+    const STACK_RISE = 28;
+    const STACK_STAGGER = .08;
 
     function goTo(name) {
       if (busy || name === current || !scenes.has(name)) { return; }
@@ -3239,10 +3285,70 @@
       if (focusable && keyboardNav && name !== 'hero') { focusable.focus({ preventScroll: true }); }
 
       if (hasGsap && !reduce) {
+        const rise = to.querySelectorAll('.stagger > *');
         gsap.killTweensOf([from, to]);
-        gsap.timeline({ onComplete: () => { from.classList.remove('is-active'); busy = false; } })
-          .to(from, { opacity: 0, scale: .99, duration: .55, ease: 'power2.inOut' }, 0)
-          .fromTo(to, { opacity: 0, scale: 1.025 }, { opacity: 1, scale: 1, duration: .8, ease: 'power2.out' }, .2);
+        if (rise.length) { gsap.killTweensOf(rise); }
+
+        /* 堆疊轉場：被蓋住的那一段完全靜止——不位移、不縮放、不淡出。
+           視覺上的「推走」其實是「被蓋掉」；一旦讓底下那層也動，質感就掉了。
+           往下換章：新的從畫面下緣升起蓋上去。
+           往上換章：舊的往下退開，露出底下原本就在的那一段。 */
+        const cover = navDir >= 0;
+        const mover = cover ? to : from;    /* 這次負責移動的那一層 */
+        const still = cover ? from : to;    /* 靜止不動的那一層 */
+
+        /* 分鏡沒有 z-index，平常靠 DOM 順序疊；但選單可以任意跳章，
+           跳到 DOM 順序在前面的分鏡時就會疊反，所以每次明確指定。
+           移動的那一層特意放在選單覆蓋層（z-index 70）之上、頁首（95）之下：
+           從選單點進來時，升起的分鏡會連選單一起抹掉，是一個連續動作。
+           若只放 2，選單收合的模糊會蓋住滑動全程，等於白做。 */
+        gsap.set(still, { opacity: 1, scale: 1, yPercent: 0, zIndex: 1 });
+        gsap.set(mover, { opacity: 1, scale: 1, zIndex: 80 });
+
+        /* 移動中的那一層要不透明，否則滑動過程會透出底下那一層的內容。
+           先把所有底板歸零：連著換章時，上一次的淡出可能還在跑 */
+        const pads = [];
+        scenes.forEach((el) => { const c = el.querySelector('.scene-cover'); if (c) { pads.push(c); } });
+        if (pads.length) { gsap.killTweensOf(pads); gsap.set(pads, { opacity: 0 }); }
+        const pad = mover.querySelector('.scene-cover');
+        const toPad = to.querySelector('.scene-cover');
+        if (pad) { gsap.set(pad, { opacity: 1 }); }
+
+        const tl = gsap.timeline({
+          onComplete: () => {
+            if (rise.length) { gsap.set(rise, { clearProps: 'opacity,transform' }); }
+          }
+        });
+        tl.fromTo(mover,
+          { yPercent: cover ? 100 : 0 },
+          { yPercent: cover ? 0 : 100, duration: STACK_DUR, ease: STACK_EASE }, 0);
+
+        /* 蓋定的那一刻先把底下那一層收掉，再淡掉底板。
+           順序反過來的話，底板淡到一半會透出還沒收掉的舊分鏡，而不是背景影片 */
+        tl.add(() => {
+          from.classList.remove('is-active');
+          gsap.set(from, { opacity: 0, yPercent: 0, clearProps: 'zIndex' });
+          gsap.set(to,   { opacity: 1, scale: 1, yPercent: 0, clearProps: 'zIndex' });
+          const fp = from.querySelector('.scene-cover');
+          if (fp) { gsap.set(fp, { opacity: 0 }); }
+          /* 蓋定就放行。底板淡出還要 0.45 秒，讓它自己跑完，
+             不然按下一章要等快 1.4 秒才有反應 */
+          busy = false;
+        }, STACK_DUR);
+
+        /* 往下換章：底板淡掉，背景影片就回來了。
+           往上換章時移動的是舊分鏡、等一下就整個收掉，不需要也不能淡——
+           淡了會在它滑走的途中透出新分鏡 */
+        if (cover && toPad) {
+          tl.to(toPad, { opacity: 0, duration: .45, ease: 'power1.out' }, STACK_DUR + .02);
+        }
+
+        /* 蓋到一半就讓新內容開始上浮，兩段動作重疊，不要等蓋完才動 */
+        if (rise.length && cover) {
+          tl.fromTo(rise, { opacity: 0, y: STACK_RISE },
+            { opacity: 1, y: 0, duration: .7, ease: 'power3.out', stagger: STACK_STAGGER },
+            STACK_DUR * .45);
+        }
       } else if (hasGsap) {
         gsap.set(from, { opacity: 0 });
         gsap.set(to, { opacity: 1, scale: 1 });
@@ -4409,6 +4515,23 @@
     const introSkip = document.getElementById('introSkip');
 
     const INTRO_SPAN = 2200;                           /* 捲動多少 px 走完整支 */
+
+    /* 影片從第幾秒開始播。首頁背景（bg-loop.mp4）已經是同一顆水晶在慢慢轉，
+       過場影片開頭又有 1.6 秒完整的水晶，接起來等於同一顆看兩次。
+       所以跳過那一段，滑完滾輪進來的第一格就已經在裂了。
+
+       逐格量出來的：0～1.58 秒水晶完整，1.63 秒出現第一道裂痕、中心開始發光，
+       1.67 秒畫面平均亮度從 20 跳到 44，1.92 秒達峰值 128。
+       取 1.63 —— 裂開的第一格，不是還沒裂、也不是已經炸開一半。
+
+       設成 0 就是從頭播完整支。 */
+    const INTRO_START = 1.63;
+
+    /* 進場後自動播到第幾秒。停在一格裂掉的水晶上等人捲動，看起來就只是
+       「又一顆水晶」——要的是一進場它就自己炸開。到這一秒為止自動播完，
+       之後才交還給捲動。設成跟 INTRO_START 同值就取消這個自動段。
+       2.5 秒＝閃光退去、碎片已經飛出、金色光帶開始繞上來。 */
+    const INTRO_BURST = 2.5;
     let introP = 0;                                    /* 目前進度 0–1 */
     let introT = 0;                                    /* 目標進度 */
     let introRaf = 0;
@@ -4418,26 +4541,37 @@
     let introDone = false;                             /* 已經交棒，避免重複觸發 */
     let introLoaded = false;
 
-    /* 到了要用的時候才載：這支有 5MB，不該在首屏就下載。
-       使用者一按下長按區就先載，通常在放開手之前就備好了 */
+    /* 到了要用的時候才載：這支有好幾 MB，不該在首屏就下載。
+       使用者一按下長按區就先載，通常在放開手之前就備好了。
+
+       要換回鹿的版本：把下面兩個檔名改成 deer-480.mp4 / deer-720.mp4，
+       檔案都還在，沒有刪掉。
+
+       影片是被捲動拖著播的（currentTime 由捲動量決定），所以關鍵影格
+       必須夠密，否則每次 seek 都要從前一個關鍵影格重解一大段。
+       這兩支重編成 0.5 秒一個關鍵影格（原始檔是 5 秒一個，會很頓）。 */
     function introPreload() {
       if (introLoaded || reduce) { return; }
       introLoaded = true;
       const small = innerWidth < 900 || (navigator.connection && navigator.connection.saveData);
-      introVideo.src = small ? '../../assets/deer-480.mp4' : '../../assets/deer-720.mp4';
+      introVideo.src = small ? '../../assets/underwater-480.mp4' : '../../assets/underwater-720.mp4';
       introVideo.load();
     }
 
     introVideo.addEventListener('loadeddata', () => {
       introReady = true;
       introScene.classList.remove('is-loading');
+      /* 載好的第一格要直接停在起點，不然會先閃一下被跳過的那顆完整水晶 */
+      introSeek();
+      /* 影片載得比進場還慢時，剛才那次排程會因為還沒 ready 而放棄，這裡補一次 */
+      if (current === 'intro') { introBurst(); }
     });
     introVideo.addEventListener('error', () => { introBroken = true; });
 
     function introSeek() {
       const d = introVideo.duration;
       if (!introReady || !d || !isFinite(d)) { return; }
-      const target = introP * (d - .05);
+      const target = INTRO_START + introP * Math.max(d - INTRO_START - .05, .05);
       /* 差距太小就不要動：每幀都 seek 會讓解碼器一直重來 */
       if (Math.abs(introVideo.currentTime - target) < .02) { return; }
       if (introVideo.fastSeek) { introVideo.fastSeek(target); }
@@ -4481,13 +4615,35 @@
       introBar.style.width = '0%';
       introScene.classList.remove('is-done');
       introScene.classList.toggle('is-loading', !introReady);
-      if (introReady) { introVideo.currentTime = 0; }
+      if (introReady) { introVideo.currentTime = INTRO_START; }
+      introBurst();
 
       /* 等太久就直接進章節：使用者不該被卡在一段載不完的影片前面 */
       clearTimeout(introBail);
       introBail = setTimeout(() => {
         if (!introReady && current === 'intro' && !introDone) { introDone = true; goTo('about'); }
       }, 8000);
+    }
+
+    /* 等堆疊轉場蓋定才開始炸。分鏡還在往上滑的途中就炸完的話，
+       使用者等於沒看到——那正是原本「停著不動」的另一種失敗。 */
+    let introBurstTimer = 0;
+
+    function introBurstP() {
+      const d = introVideo.duration;
+      if (!d || !isFinite(d) || INTRO_BURST <= INTRO_START) { return 0; }
+      return clamp((INTRO_BURST - INTRO_START) / Math.max(d - INTRO_START - .05, .05), 0, 1);
+    }
+
+    function introBurst() {
+      clearTimeout(introBurstTimer);
+      if (reduce || INTRO_BURST <= INTRO_START) { return; }
+      introBurstTimer = setTimeout(() => {
+        if (current !== 'intro' || introDone || !introReady) { return; }
+        if (introT > 0) { return; }          /* 使用者已經自己推過了，不要搶走控制權 */
+        introT = introBurstP();               /* 交給既有的 lerp 去跑，不另外寫一套補間 */
+        introStart();
+      }, STACK_DUR * 1000);
     }
 
     function introPush(dy) {
@@ -4532,7 +4688,7 @@
 
     addEventListener('cy:scene', (e) => {
       if (e.detail === 'intro') { introReset(); introStart(); }
-      else { introStop(); clearTimeout(introBail); }
+      else { introStop(); clearTimeout(introBail); clearTimeout(introBurstTimer); }
     });
 
     /* ══ 聯絡表單 ══════════════════════════════════════════════

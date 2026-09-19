@@ -2067,7 +2067,7 @@
       </div>
 
       <!-- 邊欄計數器：角標壓在黑色底片上等於隱形，改用數字標示目前是第幾位 -->
-      <p class="film-count" aria-hidden="true"><b id="filmCount">01</b><i>/ 10</i></p>
+      <p class="film-count" aria-hidden="true"><b id="filmCount">01</b><i>/ 12</i></p>
 
       <div class="film-stage">
       <!-- 中央聚光：畫在 3D 場景外，免得和正中央那一格同深度互穿 -->
@@ -2105,6 +2105,12 @@
           </article>
           <article class="frame">
             <div class="frame-shot" style="--a:#20405e; --b:#0a131c; background-image: url(../../assets/team/10.jpg); background-size: cover; background-position: center 20%"><span class="num">10</span><span class="frame-role" data-i18n="teams.s10">TongTong — Selected work</span></div>
+          </article>
+          <article class="frame">
+            <div class="frame-shot" style="--a:#3a3550; --b:#111018; background-image: url(../../assets/team/11.jpg); background-size: cover; background-position: center 50%"><span class="num">11</span><span class="frame-role" data-i18n="teams.s11">Host (name to come) — Profile</span></div>
+          </article>
+          <article class="frame">
+            <div class="frame-shot" style="--a:#4a3556; --b:#140f1a; background-image: url(../../assets/team/12.jpg); background-size: cover; background-position: center 40%"><span class="num">12</span><span class="frame-role" data-i18n="teams.s12">Host (name to come) — Selected work</span></div>
           </article>
         </div>
       </div>
@@ -2476,6 +2482,9 @@
         'teams.i2.lang': 'Mandarin, English (fluent live Mandarin\u2013English interpretation; bilingual and all-English hosting).',
         'teams.i2.point': 'Live Mandarin\u2013English interpretation, a bicultural background, and the host international events and large corporates ask for by name.',
         'teams.i2.types': 'Press conferences, launches, international forums, conferences, opening ceremonies, exhibition events, year-end and spring parties.',
+        'teams.b11': 'Name and profile to be supplied',
+        'teams.b12': 'Name and event history to be supplied',
+        'teams.todo': 'The name, profile and event history for this host are still to be supplied.',
         'teams.b9': 'Seven-plus years hosting · leads the Feiyi Dance Troupe',
         'teams.b10': 'Year-end and spring parties · launches · family days',
         'teams.i5.bg': 'Over seven years of professional hosting. Bright, outgoing and easy to warm to, and also the leader of the Feiyi Dance Troupe.',
@@ -2713,6 +2722,9 @@
         'teams.i2.lang': '中文、英文（精通中英即時翻譯與雙語／全英主持）。',
         'teams.i2.point': '中英即時翻譯、具備雙文化背景、國際活動與大型企業欽點主持。',
         'teams.i2.types': '記者會、發表會、國際論壇、研討會、開幕典禮、展場活動、尾牙春酒。',
+        'teams.s11': '主持人（姓名待補）· 介紹', 'teams.b11': '姓名與介紹待提供',
+        'teams.s12': '主持人（姓名待補）· 經歷', 'teams.b12': '姓名與過往經歷待提供',
+        'teams.todo': '這位主持人的姓名、介紹與過往經歷待提供。',
         'teams.s9': 'TongTong 彤彤 · 介紹', 'teams.b9': '7 年以上主持經驗 · 飛藝舞團團長',
         'teams.s10': 'TongTong 彤彤 · 經歷', 'teams.b10': '尾牙春酒 · 記者會 · 家庭日與親子活動',
         'teams.i5.bg': '擁有超過 7 年的專業主持經驗，個性活潑開朗、親和力十足，同時也是「飛藝舞團」的團長。',
@@ -2931,6 +2943,9 @@
         'teams.i2.lang': '中国語、英語（中英同時通訳、バイリンガル／英語のみの司会に精通）。',
         'teams.i2.point': '中英同時通訳、二つの文化を行き来する背景、国際イベントと大手企業からの指名。',
         'teams.i2.types': '記者会見、発表会、国際フォーラム、カンファレンス、開会式、展示会イベント、忘年会・新年会。',
+        'teams.s11': '司会者（氏名は後日）· プロフィール', 'teams.b11': '氏名とプロフィールは後日追加',
+        'teams.s12': '司会者（氏名は後日）· 実績', 'teams.b12': '氏名と実績は後日追加',
+        'teams.todo': 'この司会者の氏名・プロフィール・実績は後日追加します。',
         'teams.s9': 'TongTong · プロフィール', 'teams.b9': '7年以上の司会経験 · 飛藝ダンスチーム代表',
         'teams.s10': 'TongTong · 実績', 'teams.b10': '忘年会・新年会 · 発表会 · ファミリーデー',
         'teams.i5.bg': '7年以上のプロ司会歴。明るく親しみやすい性格で、「飛藝ダンスチーム」の代表も務めます。',
@@ -3396,6 +3411,14 @@
       });
     }
 
+    /* 還沒拿到文案的人：明說待補，不編內容 */
+    function todoNote() {
+      const p = document.createElement('p');
+      p.className = 'note';
+      p.textContent = t('teams.todo');
+      return p;
+    }
+
     /* 介紹：資歷背景、主持風格、語文能力……一組詞條 */
     function fillIntro(box, who) {
       const dl = document.createElement('dl');
@@ -3411,6 +3434,7 @@
         dd.textContent = v;
         dl.append(dt, dd);
       });
+      if (!dl.childElementCount) { box.appendChild(todoNote()); return; }
       box.appendChild(dl);
     }
 
@@ -3434,6 +3458,7 @@
         });
         box.append(h, ul);
       }
+      if (!box.childElementCount) { box.appendChild(todoNote()); }
     }
 
     function renderPerson() {
@@ -3698,7 +3723,9 @@
       { a: '#563d2a', b: '#18100b', src: '../../assets/team/07.jpg', focus: .17 },
       { a: '#4a2a3a', b: '#170d12', src: '../../assets/team/08.jpg', focus: .80 },
       { a: '#25505a', b: '#0a1619', src: '../../assets/team/09.jpg', focus: .12 },
-      { a: '#20405e', b: '#0a131c', src: '../../assets/team/10.jpg', focus: .20 }
+      { a: '#20405e', b: '#0a131c', src: '../../assets/team/10.jpg', focus: .20 },
+      { a: '#3a3550', b: '#111018', src: '../../assets/team/11.jpg', focus: .50 },
+      { a: '#4a3556', b: '#140f1a', src: '../../assets/team/12.jpg', focus: .40 }
     ];
 
     /* 每位主持人佔兩格：第一格是介紹，第二格是過往經歷 */
@@ -3712,7 +3739,10 @@
       { kind: 'intro', who: 4 },
       { kind: 'works', who: 4 },
       { kind: 'intro', who: 5 },
-      { kind: 'works', who: 5 }
+      { kind: 'works', who: 5 },
+      /* 第六位：照片先上，姓名與文案待提供 */
+      { kind: 'intro', who: 6 },
+      { kind: 'works', who: 6 }
     ];
 
     /* 經歷條列裡的主持語言註記。名稱本身是專有名詞、三語共用，

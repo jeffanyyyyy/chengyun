@@ -1,0 +1,18 @@
+{
+  "版本": "v8",
+  "說明": "六章完整版：首頁水晶、捲動過場（有人的那支＋水裡那支，交界烘了水波紋霧化）、關於我們深色＋水晶背景、我們的團隊十六格膠卷、活動成果緞帶、常見問題、聯繫我們。社群 icon 為無底磚的黑白線稿版。",
+  "commit": "93548cdfb026479468e37f59eae1178e31517511",
+  "artifact": {
+    "名稱": "Obsidian",
+    "網址": "https://claude.ai/artifact/APm16Q6Cfn1UTGQnKZWetm",
+    "版本": 93
+  },
+  "影片": {
+    "首頁背景": "assets/bg-obsidian.mp4（artifact 內為 bg-loop.mp4）",
+    "過場第二節": "assets/seg-a-480.mp4 / seg-a-720.mp4",
+    "過場第三段": "assets/seg-b-480.mp4 / seg-b-720.mp4",
+    "關於我們背景": "assets/crystal-rest.mp4"
+  },
+  "字級倍率": { "fs-display": 1.06, "fs-body": 1.14, "fs-label": 1.18, "fs-caption": 1.20 },
+  "過場參數": { "INTRO_SPAN": 4200, "INTRO_START": 3.5, "INTRO_BURST": 5.0, "INTRO_FX_WIN": 0.07, "INTRO_FX_HAZE": 0 }
+}

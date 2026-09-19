@@ -1264,6 +1264,8 @@
   .scene[data-scene="hero"],
   .scene[data-scene="hero"] .scene-inner { touch-action: none; }
 
+  .intro-stage { position: absolute; inset: 0; }
+
   .intro-video {
     position: absolute;
     inset: 0;
@@ -1272,6 +1274,9 @@
     object-fit: cover;
     background: #05060a;
   }
+
+  /* 第三段疊在第二節上面，交界時才淡進來 */
+  .intro-b { opacity: 0; }
 
   /* 影片從森林一路到一片白，固定顏色的文字一定會有一段看不見；
      和頁首同一招：difference 混合，底色是什麼它就反過來 */
@@ -1984,7 +1989,14 @@
      長按進入後不直接跳章節，先用捲動推著這支影片走完，
      最後一格（鹿撞破玻璃走進白色空間）再交棒給「關於我們」。 -->
 <section class="scene scene-intro" data-scene="intro" aria-hidden="true">
-  <video class="intro-video" id="introVideo" muted playsinline preload="none" aria-hidden="true"></video>
+  <!-- 兩段各自獨立，不併成一條。併檔要把整條重新編碼，時間軸容易不穩，
+       交界就會頓一下。分開之後兩支都用原檔尺寸直接轉，只加密關鍵影格。
+       水波紋不在這裡做，已經烘進影片的畫格裡了（見下方 introSeek 的註解），
+       所以這一層只剩兩支疊著溶接，外加一道很輕的霧化 -->
+  <div class="intro-stage" id="introStage" aria-hidden="true">
+    <video class="intro-video" id="introVideo" muted playsinline preload="none"></video>
+    <video class="intro-video intro-b" id="introVideoB" muted playsinline preload="none"></video>
+  </div>
   <div class="intro-veil" aria-hidden="true"></div>
 
   <div class="intro-ui">
@@ -4540,75 +4552,144 @@
     /* ══ 過場影片：捲動控制播放進度 ═══════════════════════════
        影片不自動播放，currentTime 由捲動量推著走 —— 往下前進、往上倒退。
        目標值與實際值之間走 lerp，所以放開手之後還會滑一小段，
-       和整站其他捲動一致。走到最後一格就交棒給「關於我們」。 */
+       和整站其他捲動一致。走到最後一格就交棒給「關於我們」。
+
+       兩段各自獨立，不併成一條。併檔得把整條重新編碼，時間軸容易不穩，
+       交界就會頓一下；分開之後兩支都用原檔尺寸直接轉，只加密關鍵影格。
+         第二節 seg-a  有人的那支，25.5 秒。
+                       0–3.5s 水晶（和首頁同一顆，跳過）、
+                       3.5–13s 舞台燈亮、人走出來、13–25.5s 沉入水中。
+         第三段 seg-b  水裡那支，15.7 秒。碎片聚攏、重新凝回水晶。
+       交界處兩層疊著溶接，外加水波紋與霧化，不是硬切。 */
     const introScene = scenes.get('intro');
     const introVideo = document.getElementById('introVideo');
+    const introVideoB = document.getElementById('introVideoB');
+    const introStage = document.getElementById('introStage');
     const introBar = document.getElementById('introBar');
     const introSkip = document.getElementById('introSkip');
 
-    /* 捲動多少 px 走完整支。這一條是兩支併起來的 41 秒，
-       比原本的 15.7 秒長一倍多，行程也跟著拉長，捲動的手感才一致 */
+    /* 捲動多少 px 走完兩段（合計約 37.7 秒） */
     const INTRO_SPAN = 4200;
 
-    /* 影片從第幾秒開始播。這一條是兩支併起來的：
-         0.0 – 3.5s    水晶（和首頁背景是同一顆，看兩次沒有意義）
-         3.5 – 13.0s   舞台燈亮、人走出來
-        13.0 – 25.5s   人沉入水中，只剩氣泡與光束
-        25.5 – 41.2s   碎片聚攏，重新凝回水晶
-       逐格量出來的切點在 3.50 秒（平均亮度 10.5 → 42.8），
-       所以跳過開頭那顆水晶，捲第一下就是舞台亮起來。
-       設成 0 就是從頭播完整條。 */
+    /* 第二節從第幾秒開始播。0–3.5 秒是水晶，和首頁背景同一顆，看兩次沒有意義。
+       切點是逐格量出來的：平均亮度在 3.50 秒從 10.5 跳到 42.8。
+       設成 0 就是從頭播完整支。 */
     const INTRO_START = 3.5;
 
-    /* 進場後自動播到第幾秒。被捲動拖著播的影片在沒人動它時是完全靜止的，
-       一進場就停在一格上，看起來像圖不像影片。先自動播一小段，
-       之後才交還給捲動。設成跟 INTRO_START 同值就取消這個自動段。
-       5.0 秒＝舞台燈已經掃開、人還沒走出來，剛好留整段給捲動。 */
+    /* 進場後自動播到第幾秒（第二節的時間軸）。被捲動拖著播的影片在沒人動它時
+       完全靜止，一進場就停在一格上，看起來像圖不像影片。先自動播一小段再
+       交還給捲動。設成跟 INTRO_START 同值就取消這個自動段。
+       5.0 秒＝舞台燈已經掃開、人還沒走出來。 */
     const INTRO_BURST = 5.0;
+
+    /* ── 交界的水波紋霧化 ──────────────────────────
+       兩段之間原本是硬切。水波紋不在瀏覽器裡做——實測 SVG 的
+       feDisplacementMap 會把畫面從 54fps 打到 9fps（它走 CPU，
+       不吃 GPU），拿來修「卡」反而更卡。所以水波是用 ffmpeg 事先
+       烘進畫格裡的：第二節尾端 1.2 秒由弱漸強、第三段開頭 1.2 秒
+       由強漸弱，同心圓沿半徑推開，兩邊在交界處接上。
+       執行時這裡只剩兩件便宜的事：疊著溶接，加一道很輕的模糊。
+         WIN  生效範圍（進度的絕對值）。0.07 約等於 ±290px 的捲動，
+              和烘進去的 1.2 秒大致對齊
+         HAZE 額外再補的模糊（px）。霧化也已經烘進畫格裡了，所以
+              預設 0 —— 執行時一個濾鏡都不掛，交界不會掉幀。
+              覺得還不夠朦朧再往上加，代價是那一秒要多一層合成 */
+    const INTRO_FX_WIN = 0.07;
+    const INTRO_FX_HAZE = 0;
+
     let introP = 0;                                    /* 目前進度 0–1 */
     let introT = 0;                                    /* 目標進度 */
     let introRaf = 0;
     let introRunning = false;
-    let introReady = false;                            /* 有足夠的資料可以 seek */
+    let introReady = false;                            /* 兩段都有足夠的資料可以 seek */
     let introBroken = false;                           /* 載不到就跳過這一段 */
     let introDone = false;                             /* 已經交棒，避免重複觸發 */
     let introLoaded = false;
+    let introFxOn = false;
 
-    /* 到了要用的時候才載：這支有好幾 MB，不該在首屏就下載。
+    /* 到了要用的時候才載：兩支加起來好幾 MB，不該在首屏就下載。
        使用者一按下長按區就先載，通常在放開手之前就備好了。
 
-       要換回別支：deer-480/720.mp4 與 underwater-480/720.mp4 都還在
+       要換回別支：deer-480/720.mp4、underwater-480/720.mp4 都還在
        assets/ 裡，沒有刪掉，改檔名即可。
 
        影片是被捲動拖著播的（currentTime 由捲動量決定），所以關鍵影格
        必須夠密，否則每次 seek 都要從前一個關鍵影格重解一大段。
-       這兩支重編成 0.5 秒一個關鍵影格（原始檔是 5 秒一個，會很頓）。 */
+       這兩支重編成 1/3 秒一個關鍵影格（原始檔是 5 秒一個，會很頓）。 */
     function introPreload() {
       if (introLoaded || reduce) { return; }
       introLoaded = true;
       const small = innerWidth < 900 || (navigator.connection && navigator.connection.saveData);
-      introVideo.src = small ? '../../assets/intro-480.mp4' : '../../assets/intro-720.mp4';
+      const q = small ? '480' : '720';
+      introVideo.src = '../../assets/seg-a-' + q + '.mp4';
+      introVideoB.src = '../../assets/seg-b-' + q + '.mp4';
       introVideo.load();
+      introVideoB.load();
     }
 
-    introVideo.addEventListener('loadeddata', () => {
+    /* 兩段都備好才算備好：只有一段的話，交界會停在一片黑 */
+    let introReadyA = false;
+    let introReadyB = false;
+
+    function introMaybeReady() {
+      if (introReady || !introReadyA || !introReadyB) { return; }
       introReady = true;
       introScene.classList.remove('is-loading');
-      /* 載好的第一格要直接停在起點，不然會先閃一下被跳過的那顆完整水晶 */
+      /* 載好的第一格要直接停在起點，不然會先閃一下被跳過的那顆水晶 */
       introSeek();
       /* 影片載得比進場還慢時，剛才那次排程會因為還沒 ready 而放棄，這裡補一次 */
       if (current === 'intro') { introBurst(); }
-    });
+    }
+
+    introVideo.addEventListener('loadeddata', () => { introReadyA = true; introMaybeReady(); });
+    introVideoB.addEventListener('loadeddata', () => { introReadyB = true; introMaybeReady(); });
     introVideo.addEventListener('error', () => { introBroken = true; });
+    introVideoB.addEventListener('error', () => { introBroken = true; });
+
+    /* 兩段在整體進度上的分界，依各自的可播長度分配 ——
+       所以換成多長的素材，捲動速度都會自動維持一致 */
+    function introSplit() {
+      const da = introVideo.duration, db = introVideoB.duration;
+      if (!da || !db || !isFinite(da) || !isFinite(db)) { return null; }
+      const a = Math.max(da - INTRO_START - .05, .05);
+      const b = Math.max(db - .05, .05);
+      return { a: a, b: b, at: a / (a + b) };
+    }
+
+    /* 差距太小就不要動：每幀都 seek 會讓解碼器一直重來 */
+    function introSeekTo(v, t) {
+      if (Math.abs(v.currentTime - t) < .02) { return; }
+      if (v.fastSeek) { v.fastSeek(t); } else { v.currentTime = t; }
+    }
+
+    function introFxClear() {
+      if (!introFxOn) { return; }
+      introFxOn = false;
+      introStage.style.filter = '';
+    }
 
     function introSeek() {
-      const d = introVideo.duration;
-      if (!introReady || !d || !isFinite(d)) { return; }
-      const target = INTRO_START + introP * Math.max(d - INTRO_START - .05, .05);
-      /* 差距太小就不要動：每幀都 seek 會讓解碼器一直重來 */
-      if (Math.abs(introVideo.currentTime - target) < .02) { return; }
-      if (introVideo.fastSeek) { introVideo.fastSeek(target); }
-      else { introVideo.currentTime = target; }
+      if (!introReady) { return; }
+      const s = introSplit();
+      if (!s) { return; }
+      const p = introP;
+      const win = Math.max(INTRO_FX_WIN, 1e-4);
+
+      /* 0 = 完全是第二節，1 = 完全是第三段。交界前後各半個範圍完成交接 */
+      const mix = clamp((p - (s.at - win)) / (win * 2), 0, 1);
+
+      /* 只推正在看得到的那一段：兩段都 seek 會白白多一次解碼 */
+      if (mix < 1) { introSeekTo(introVideo, INTRO_START + clamp(p / s.at, 0, 1) * s.a); }
+      if (mix > 0) { introSeekTo(introVideoB, clamp((p - s.at) / Math.max(1 - s.at, 1e-4), 0, 1) * s.b); }
+      introVideoB.style.opacity = mix.toFixed(3);
+
+      /* 霧化：離交界越近越糊，正中央最強。水波紋已經在畫格裡了，
+         這裡只補一層薄霧把兩段的接縫化開 */
+      const k = 1 - Math.min(Math.abs(p - s.at) / win, 1);
+      const e = k * k * (3 - 2 * k);
+      if (e < .002 || INTRO_FX_HAZE <= 0) { introFxClear(); return; }
+      introFxOn = true;
+      introStage.style.filter = 'blur(' + (INTRO_FX_HAZE * e).toFixed(2) + 'px)';
     }
 
     function introFrame() {
@@ -4648,7 +4729,12 @@
       introBar.style.width = '0%';
       introScene.classList.remove('is-done');
       introScene.classList.toggle('is-loading', !introReady);
-      if (introReady) { introVideo.currentTime = INTRO_START; }
+      if (introReady) {
+        introVideo.currentTime = INTRO_START;
+        introVideoB.currentTime = 0;
+      }
+      introVideoB.style.opacity = '0';
+      introFxClear();
       introBurst();
 
       /* 等太久就直接進章節：使用者不該被卡在一段載不完的影片前面 */
@@ -4658,14 +4744,15 @@
       }, 8000);
     }
 
-    /* 等堆疊轉場蓋定才開始炸。分鏡還在往上滑的途中就炸完的話，
+    /* 等堆疊轉場蓋定才開始播。分鏡還在往上滑的途中就播完的話，
        使用者等於沒看到——那正是原本「停著不動」的另一種失敗。 */
     let introBurstTimer = 0;
 
     function introBurstP() {
-      const d = introVideo.duration;
-      if (!d || !isFinite(d) || INTRO_BURST <= INTRO_START) { return 0; }
-      return clamp((INTRO_BURST - INTRO_START) / Math.max(d - INTRO_START - .05, .05), 0, 1);
+      const s = introSplit();
+      if (!s || INTRO_BURST <= INTRO_START) { return 0; }
+      /* 自動段只在第二節裡，所以換算完還要乘上第二節佔的比例 */
+      return clamp((INTRO_BURST - INTRO_START) / s.a * s.at, 0, 1);
     }
 
     function introBurst() {

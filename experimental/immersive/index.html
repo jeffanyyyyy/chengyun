@@ -735,13 +735,36 @@
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12), 0 26px 70px rgba(0, 0, 0, .6);
   }
 
+  /* 主持人介紹：詞條 + 說明 */
+  .person-fields { margin: 0; }
+  .person-fields dt { margin-bottom: .45rem; }
+  .person-fields dd { margin: 0 0 1.4rem; }
+  .person-fields dd:last-child { margin-bottom: 0; }
+
+  /* 主持人經歷：分類標題 + 條列 */
+  .person-list {
+    margin: .2rem 0 1.5rem;
+    padding-left: 1.1rem;
+    list-style: disc;
+  }
+
+  .person-list li {
+    font-size: .78rem;
+    line-height: 1.9;
+    color: rgba(255, 255, 255, .45);
+  }
+
+  .person-list li::marker { color: rgba(255, 255, 255, .22); }
+  .person-list:last-child { margin-bottom: 0; }
+
   @media (max-width: 720px) {
     .person {
       grid-template-columns: minmax(0, 1fr);
       gap: 1.75rem;
     }
 
-    .person-shot { aspect-ratio: 4 / 3; }
+    /* 經歷很長，手機上照片別佔掉半個螢幕 */
+    .person-shot { aspect-ratio: 16 / 10; }
   }
 
   /* ── 團隊：3D 圓柱膠卷轉盤（CSS 3D 備援）─
@@ -2025,7 +2048,7 @@
   <div class="scene-inner grid place-items-center min-h-[100svh] px-6 md:px-10 py-10">
     <div class="stagger w-full max-w-6xl text-center">
       <span class="eyebrow" data-i18n="teams.eyebrow">03 — Teams</span>
-      <h2 class="scene-title film-title" data-i18n-html="teams.title">A small team,<br />each holding one part of the process.</h2>
+      <h2 class="scene-title film-title" data-i18n-html="teams.title">Our team<br />— Hosts</h2>
 
       <!-- 目前這一格的說明，跟著輪播切換 -->
       <p class="film-caption"><b id="filmRole"></b><span class="sep">•</span><span id="filmNote"></span></p>
@@ -2044,7 +2067,7 @@
       </div>
 
       <!-- 邊欄計數器：角標壓在黑色底片上等於隱形，改用數字標示目前是第幾位 -->
-      <p class="film-count" aria-hidden="true"><b id="filmCount">01</b><i>/ 11</i></p>
+      <p class="film-count" aria-hidden="true"><b id="filmCount">01</b><i>/ 04</i></p>
 
       <div class="film-stage">
       <!-- 中央聚光：畫在 3D 場景外，免得和正中央那一格同深度互穿 -->
@@ -2052,38 +2075,18 @@
 
       <div class="film" id="film">
         <div class="film-reel" id="filmTrack">
+          <!-- 一位主持人兩格：第一張點開是介紹，第二張點開是過往經歷 -->
           <article class="frame">
-            <div class="frame-shot" style="--a:#2b3a66; --b:#0d1220; background-image: url(../../assets/team/01.jpg); background-size: cover; background-position: center 50%"><span class="num">01</span><span class="frame-role" data-i18n="teams.s1">Curation Lead</span></div>
+            <div class="frame-shot" style="--a:#2b3a66; --b:#0d1220; background-image: url(../../assets/team/01.jpg); background-size: cover; background-position: center 26%"><span class="num">01</span><span class="frame-role" data-i18n="teams.s1">Gisele — Profile</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#1f4a4a; --b:#0b1516; background-image: url(../../assets/team/02.jpg); background-size: cover; background-position: center 40%"><span class="num">02</span><span class="frame-role" data-i18n="teams.s2">Brand Review</span></div>
+            <div class="frame-shot" style="--a:#4a2a2a; --b:#170d0d; background-image: url(../../assets/team/02.jpg); background-size: cover; background-position: center 50%"><span class="num">02</span><span class="frame-role" data-i18n="teams.s2">Gisele — Selected work</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#4a2a2a; --b:#170d0d; background-image: url(../../assets/team/03.jpg); background-size: cover; background-position: center 36%"><span class="num">03</span><span class="frame-role" data-i18n="teams.s3">Site Operations</span></div>
+            <div class="frame-shot" style="--a:#1f4a4a; --b:#0b1516; background-image: url(../../assets/team/03.jpg); background-size: cover; background-position: center 16%"><span class="num">03</span><span class="frame-role" data-i18n="teams.s3">Wendy — Profile</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#3d3a18; --b:#14130a; background-image: url(../../assets/team/04.jpg); background-size: cover; background-position: center 45%"><span class="num">04</span><span class="frame-role" data-i18n="teams.s4">Design</span></div>
-          </article>
-          <article class="frame">
-            <div class="frame-shot" style="--a:#33265c; --b:#100c1c"><span>05</span><span class="frame-role" data-i18n="teams.s5">Social</span></div>
-          </article>
-          <article class="frame">
-            <div class="frame-shot" style="--a:#20405e; --b:#0a131c"><span>06</span><span class="frame-role" data-i18n="teams.s6">Stallholder Support</span></div>
-          </article>
-          <article class="frame">
-            <div class="frame-shot" style="--a:#2d4a3a; --b:#0b1510"><span>07</span><span class="frame-role" data-i18n="teams.s7">Role to be confirmed</span></div>
-          </article>
-          <article class="frame">
-            <div class="frame-shot" style="--a:#4a3556; --b:#140f1a"><span>08</span><span class="frame-role" data-i18n="teams.s8">Role to be confirmed</span></div>
-          </article>
-          <article class="frame">
-            <div class="frame-shot" style="--a:#563d2a; --b:#18100b"><span>09</span><span class="frame-role" data-i18n="teams.s9">Role to be confirmed</span></div>
-          </article>
-          <article class="frame">
-            <div class="frame-shot" style="--a:#25505a; --b:#0a1619"><span>10</span><span class="frame-role" data-i18n="teams.s10">Role to be confirmed</span></div>
-          </article>
-          <article class="frame">
-            <div class="frame-shot" style="--a:#3a3550; --b:#111018"><span>11</span><span class="frame-role" data-i18n="teams.s11">Role to be confirmed</span></div>
+            <div class="frame-shot" style="--a:#3d3a18; --b:#14130a; background-image: url(../../assets/team/04.jpg); background-size: cover; background-position: center 10%"><span class="num">04</span><span class="frame-role" data-i18n="teams.s4">Wendy — Selected work</span></div>
           </article>
         </div>
       </div>
@@ -2438,20 +2441,42 @@
         'hero.top': 'View All Projects', 'hero.hold': 'Hold or Scroll',
         'label.intro': '— Entering', 'hint.intro': 'Scroll to run the film · Esc to go back',
         'intro.hint': 'Scroll to continue', 'intro.skip': 'Skip →',
-        'teams.b1': 'Theme, schedule and overall pacing; speaks for the organiser.',
-        'teams.b2': 'Brand communication, screening and allocation; keeps the tone of the settlement.',
-        'teams.b3': 'Load-in, flow, power and safety — every call made on the day.',
-        'teams.b4': 'Key visuals, brand signage and the on-site props.',
-        'teams.b5': 'Site and social content, stall features, and the record kept after each session.',
-        'teams.b6': 'Briefings, help on the day, and follow-up once the market closes.',
-        'teams.b7': 'Name, role and photo to be supplied.',
-        'teams.b8': 'Name, role and photo to be supplied.',
-        'teams.b9': 'Name, role and photo to be supplied.',
-        'teams.b10': 'Name, role and photo to be supplied.',
-        'teams.b11': 'Name, role and photo to be supplied.',
+        'teams.b1': 'Ten-plus years hosting · Mandarin and English',
+        'teams.b2': 'Press conferences · forums · year-end parties · ceremonies',
+        'teams.b3': 'Eight-plus years hosting · live Mandarin–English interpretation',
+        'teams.b4': 'International forums · launches · corporate banquets',
+        'teams.f.bg': 'Background', 'teams.f.look': 'Presence', 'teams.f.style': 'Hosting style',
+        'teams.f.lang': 'Languages', 'teams.f.point': 'Strengths', 'teams.f.types': 'Best suited to',
+        'teams.i1.bg': 'Over ten years of hosting, built on sustained training in spoken delivery. Studied at a language school in the Philippines; a keen traveller whose international outlook shows in how she reads a room.',
+        'teams.i1.style': 'At ease in both registers \u2014 composed and articulate at formal corporate events, warm and quick on lighter occasions, closing the distance with an audience.',
+        'teams.i1.lang': 'Mandarin, English.',
+        'teams.i1.point': 'Ten-plus years of vocal training; equally at home across hosting, performance and emotional delivery of the voice.',
+        'teams.i1.types': 'Conferences, press conferences, forums, family days, year-end and spring parties, commercial events, event hosting, award ceremonies.',
+        'teams.i2.bg': 'Eight-plus years of hosting, and a name in the field for bilingual and all-English work, with a background in English and international teaching. Ten years of stage performance behind her as well.',
+        'teams.i2.look': 'Striking features and an assured bearing; a clear voice and steady stage presence that lift the room.',
+        'teams.i2.style': 'Poised and articulate \u2014 weighty or lively as the occasion asks, read off the brief and the room.',
+        'teams.i2.lang': 'Mandarin, English (fluent live Mandarin\u2013English interpretation; bilingual and all-English hosting).',
+        'teams.i2.point': 'Live Mandarin\u2013English interpretation, a bicultural background, and the host international events and large corporates ask for by name.',
+        'teams.i2.types': 'Press conferences, launches, international forums, conferences, opening ceremonies, exhibition events, year-end and spring parties.',
+        'teams.w1.g1': 'Press conferences, launches & brand events',
+        'teams.w1.g2': 'Forums, conferences & professional meetings',
+        'teams.w1.g3': 'Year-end parties, spring parties & banquets',
+        'teams.w1.g4': 'Family days, sports days, ceremonies & more',
+        'teams.w2.g1': 'International forums & executive conferences',
+        'teams.w2.g2': 'Automotive, technology & brand launches',
+        'teams.w2.g3': 'Corporate year-end parties, spring parties & banquets',
+        'teams.w2.g4': 'Other notable events & award ceremonies',
+        /* 活動名稱是專有名詞，三語共用；只有 {b} / {e} / {z} 的主持語言註記會換 */
+        'teams.w1.l1': '台北寒舍艾美酒店點燈儀式記者會 | 格力變頻空調記者會 | LEXUS 一日店長活動 | Happy go 地球母親日記者會 | 2024 雙北世界壯年運動會吉祥物亮相記者會{b} | 氧顏森活森林美人 TW 森果茶多酚系列新品發表會 | 中華電信記者會 | traveler VIP 新品體驗會 | 漫遊台中空間推廣美學 e 化系統發佈展示會 | 「全面反詐！電商一齊」啟動記者會',
+        'teams.w1.l2': 'SAP 財務長圓桌會 | SAP 2023 合作夥伴高峰會 | DIGITEL Innovation Day: Partners, Taiwan 2023 | 數位產業 RISE 產業諮詢會議 | 遠見雜誌 x 施耐德電機 解密新一代製造業贏家策略論壇 | SAP 轉型上雲研討會 | 復盛集團 70 週年論壇 | 潔比爾航太噴射科技醫師研討會',
+        'teams.w1.l3': 'Wave Shine ＆ CACO 聯合尾牙 | 山本網路創業尾牙、春酒 | 美賣春酒大會 | 長原汽車春酒宴 | 和泰集團 — 東部汽車春酒晚宴 | 廣運集團尾牙{b} | 美商嘉康利年會晚宴 | 飛虹整合行銷春酒晚宴 | Epson 台灣愛普生「戴來春風，豐穎四十」事業夥伴春酒晚宴',
+        'teams.w1.l4': '恩主公醫院家庭日 | 和泰集團淨灘減塑國都總動員活動 | 華碩跟霓一起 HIGH 啦！家庭日 | 慧邦科技運動會家庭日 | Deloitte 勤業眾信運動會家庭日 | 臺灣創媒會 TCCE 開幕典禮 | 台北市的花季盛事頒獎典禮 | 英業達攜手 SAP 拓展集團新事業簽約儀式 | Yahoo 奇摩 2023 全通路行銷選拔決賽 | 台北生技園區落成頒獎典禮{b} | Intel 英特爾 Data Center & AI Day{b} | 長榮航空粉萌機首航{b} | PHOTO VOGUE 影像藝術展星光主持 | 禾蘴機械新廠房開幕典禮 | 新碩 SHINSOL 落成頒獎典禮 | 府中搞什麼鬼萬聖節活動',
+        'teams.w2.l1': 'Bio Asia BME IDEA APAC{e} | Bio Asia SPARK GLOBAL{e} | CME Group 國際期貨商頒獎典禮{b} | HITCON CyberSec Summit{b} | AIT 美國在台協會交流會議{b} | CISCO 領袖高峰論壇 VIP 午宴{b} | 外國專業人才延攬說明會政府記者會{b}',
+        'teams.w2.l2': 'BMW 新車發表會{b} | VESPA PRIMAVERA 新車發表會{b} | 黎明覺醒線上遊戲發表會{e} | AUDI HOUSE of PROGRESS VIP 之夜 | 台糖新品上市發表會{b} | Philips 飛利浦新品上市記者會 | 台灣莫德納 (MODERNA) 記者會 | MANOLO BLAHNIK 發表會 | COSTA SERENA 歌詩達郵輪記者會{b}',
+        'teams.w2.l3': 'TSMC 台積電尾牙 | BENZ 賓士春酒 + 尾牙{b} | ERICSSON 愛立信春酒晚宴{b} | CREDIT AGRICOLE 東方匯理銀行尾牙 | NOVO NORDISK 諾和諾德晚宴',
+        'teams.w2.l4': 'Uber Eats 商家合作頒獎典禮{z} | 台灣經濟部創業頒獎典禮 | SYNMOSA 健喬 – NOVARTIS 諾華簽約儀式 | VOLKSWAGEN 台灣鉅富福斯開幕',
         'teams.link': 'View our work →',
         'teams.profile': 'Profile →',
-        'teams.bioTodo': 'A fuller introduction for this person is still to be supplied.',
         'teams.tapHint': 'Click the frame to read more',
         'contact.t0': 'Chengyun Event Studio Co., Ltd.',
         'form.required': 'This field is required', 'form.badEmail': 'Please check the email address',
@@ -2606,21 +2631,34 @@
         'services.f3': '確認執行 — 依內部審查調整，簽約排程。',
         'services.f4': '現場落地 — 創辦人親自帶隊督導。',
         'services.f5': '結案交付 — 成果報告、永續數據與影音素材包。',
-        'teams.eyebrow': '03 — 我們的團隊', 'teams.title': '一個小團隊，<br />各自守住一段流程。',
-        'teams.s1': '策展統籌', 'teams.b1': '主題發想、檔期與整體節奏，對外代表大會發言。',
-        'teams.s2': '招商審核', 'teams.b2': '品牌溝通、資格審核與名額調度，維持聚落調性。',
-        'teams.s3': '現場執行', 'teams.b3': '進撤場、動線、用電與安規，活動當天的所有臨場判斷。',
-        'teams.s4': '視覺設計', 'teams.b4': '主視覺、品牌招牌與現場道具的設計與製作。',
-        'teams.s5': '社群經營', 'teams.b5': '官網與社群內容、攤商曝光與活動後的紀錄整理。',
-        'teams.s6': '攤商服務', 'teams.b6': '行前說明、現場協助與活動後的意見回收。',
-        'teams.s7': '職務待補', 'teams.b7': '姓名、職務與照片待提供。',
-        'teams.s8': '職務待補', 'teams.b8': '姓名、職務與照片待提供。',
-        'teams.s9': '職務待補', 'teams.b9': '姓名、職務與照片待提供。',
-        'teams.s10': '職務待補', 'teams.b10': '姓名、職務與照片待提供。',
-        'teams.s11': '職務待補', 'teams.b11': '姓名、職務與照片待提供。',
+        'teams.eyebrow': '03 — 我們的團隊', 'teams.title': '我們的團隊<br />— 主持人',
+        'teams.s1': 'Gisele 奎奎 · 介紹', 'teams.b1': '10 年以上主持經驗 · 中英主持',
+        'teams.s2': 'Gisele 奎奎 · 經歷', 'teams.b2': '記者會 · 論壇 · 尾牙春酒 · 家庭日與頒獎典禮',
+        'teams.s3': 'Wendy · 介紹', 'teams.b3': '8 年以上主持經驗 · 中英即時翻譯',
+        'teams.s4': 'Wendy · 經歷', 'teams.b4': '國際論壇 · 品牌發表 · 企業尾牙 · 頒獎典禮',
+        'teams.f.bg': '資歷背景', 'teams.f.look': '外表與特質', 'teams.f.style': '主持風格',
+        'teams.f.lang': '語文能力', 'teams.f.point': '特點', 'teams.f.types': '擅長主持類型',
+        'teams.i1.bg': '擁有超過 10 年的主持經驗，具備長期紮實的口語表達訓練。曾赴菲律賓語言學校進修，熱愛旅遊、開闊國際視野，能以更廣闊的視角詮釋主持內容。',
+        'teams.i1.style': '動靜皆宜、能言善道。在隆重的企業活動中能展現沉穩、知性的一面；在輕鬆的場合則能以親切活潑的語氣拉近與觀眾的距離，由內而外散發專業魅力。',
+        'teams.i1.lang': '中文、英文。',
+        'teams.i1.point': '10 年以上口語表達訓練，擅長駕馭各類主持、表演及聲音情感表達。',
+        'teams.i1.types': '研討會、記者會、論壇、家庭日、春酒尾牙、商業活動、活動主持、頒獎典禮。',
+        'teams.i2.bg': '擁有 8 年以上主持經驗，是業界知名的中英雙語及全英語主持專家，具備英語與國際教學背景。同時擁有 10 年舞台演出經驗。',
+        'teams.i2.look': '深邃的五官及自信儀態，聲音清亮、台風穩健，能為現場增添高端形象與質感。',
+        'teams.i2.style': '溫文爾雅、能言善道，風格可穩重可活潑，能依據活動性質與現場氛圍靈活調整。',
+        'teams.i2.lang': '中文、英文（精通中英即時翻譯與雙語／全英主持）。',
+        'teams.i2.point': '中英即時翻譯、具備雙文化背景、國際活動與大型企業欽點主持。',
+        'teams.i2.types': '記者會、發表會、國際論壇、研討會、開幕典禮、展場活動、尾牙春酒。',
+        'teams.w1.g1': '記者會 / 新品發表 / 品牌活動',
+        'teams.w1.g2': '論壇 / 研討會 / 專業會議',
+        'teams.w1.g3': '尾牙 / 春酒 / 晚宴',
+        'teams.w1.g4': '家庭日 / 運動會 / 慶典與其他',
+        'teams.w2.g1': '國際論壇與高階研討會',
+        'teams.w2.g2': '汽車、科技與知名品牌發表會 / 展覽',
+        'teams.w2.g3': '企業尾牙、春酒與晚宴',
+        'teams.w2.g4': '其他重要活動與頒獎典禮',
         'teams.link': '活動成果 →',
         'teams.profile': '人物介紹 →',
-        'teams.bioTodo': '這位夥伴的完整介紹待提供。',
         'teams.tapHint': '點片格看介紹',
         'teams.note': '主辦單位：澄耘活動工作室 有限公司',
         'portfolio.meta': '市集策劃 · 品牌招商 · 現場執行',
@@ -2775,21 +2813,34 @@
         'services.f3': '確定 — 社内審査に合わせて調整し、契約と日程確定。',
         'services.f4': '当日運営 — 創業者が自ら現場を率います。',
         'services.f5': '納品 — 成果報告、サステナビリティデータ、映像素材一式。',
-        'teams.eyebrow': '03 — チーム', 'teams.title': '小さなチームが、<br />それぞれの工程を受け持ちます。',
-        'teams.s1': '企画統括', 'teams.b1': 'テーマ、日程、全体のテンポ。主催として対外的に発言します。',
-        'teams.s2': 'ブランド審査', 'teams.b2': 'ブランドとのやり取り、審査、枠の調整。集落のトーンを守ります。',
-        'teams.s3': '現場運営', 'teams.b3': '搬入出、動線、電源と安全。当日の判断はすべてここで。',
-        'teams.s4': 'デザイン', 'teams.b4': 'メインビジュアル、ブランド看板、会場の道具の設計と制作。',
-        'teams.s5': '広報', 'teams.b5': 'サイトとSNSの発信、出店者の紹介、開催後の記録。',
-        'teams.s6': '出店者サポート', 'teams.b6': '事前説明、当日の対応、開催後のフィードバック回収。',
-        'teams.s7': '担当は調整中', 'teams.b7': '氏名・担当・写真は後日追加。',
-        'teams.s8': '担当は調整中', 'teams.b8': '氏名・担当・写真は後日追加。',
-        'teams.s9': '担当は調整中', 'teams.b9': '氏名・担当・写真は後日追加。',
-        'teams.s10': '担当は調整中', 'teams.b10': '氏名・担当・写真は後日追加。',
-        'teams.s11': '担当は調整中', 'teams.b11': '氏名・担当・写真は後日追加。',
+        'teams.eyebrow': '03 — チーム', 'teams.title': '私たちのチーム<br />— 司会者',
+        'teams.s1': 'Gisele · プロフィール', 'teams.b1': '10年以上の司会経験 · 中英対応',
+        'teams.s2': 'Gisele · 実績', 'teams.b2': '記者会見 · フォーラム · 忘年会 · 表彰式',
+        'teams.s3': 'Wendy · プロフィール', 'teams.b3': '8年以上の司会経験 · 中英同時通訳',
+        'teams.s4': 'Wendy · 実績', 'teams.b4': '国際フォーラム · 発表会 · 企業晩餐会',
+        'teams.f.bg': '経歴', 'teams.f.look': '佇まい', 'teams.f.style': '司会スタイル',
+        'teams.f.lang': '言語', 'teams.f.point': '強み', 'teams.f.types': '得意な司会',
+        'teams.i1.bg': '10年以上の司会経験と、長年積み重ねた話し方の訓練。フィリピンの語学学校で学び、旅を通じて広げた国際的な視点で場を読み解きます。',
+        'teams.i1.style': '静と動を使い分けます。格式ある企業イベントでは落ち着きと知性を、くだけた場では親しみやすさで客席との距離を縮めます。',
+        'teams.i1.lang': '中国語、英語。',
+        'teams.i1.point': '10年以上の発声・話し方の訓練。司会、パフォーマンス、声による感情表現まで幅広く対応。',
+        'teams.i1.types': 'カンファレンス、記者会見、フォーラム、ファミリーデー、忘年会・新年会、商業イベント、イベント司会、表彰式。',
+        'teams.i2.bg': '8年以上の司会経験。中英バイリンガル／英語のみの司会の専門家として知られ、英語と国際教育のバックグラウンドを持ちます。舞台での10年の出演経験も。',
+        'teams.i2.look': '彫りの深い顔立ちと堂々とした佇まい。澄んだ声と安定したステージングで、会場に上質な印象を添えます。',
+        'teams.i2.style': '穏やかで弁が立ち、重厚にも軽やかにも。イベントの性格と当日の空気に合わせて調整します。',
+        'teams.i2.lang': '中国語、英語（中英同時通訳、バイリンガル／英語のみの司会に精通）。',
+        'teams.i2.point': '中英同時通訳、二つの文化を行き来する背景、国際イベントと大手企業からの指名。',
+        'teams.i2.types': '記者会見、発表会、国際フォーラム、カンファレンス、開会式、展示会イベント、忘年会・新年会。',
+        'teams.w1.g1': '記者会見・新製品発表・ブランドイベント',
+        'teams.w1.g2': 'フォーラム・カンファレンス・専門会議',
+        'teams.w1.g3': '忘年会・新年会・晩餐会',
+        'teams.w1.g4': 'ファミリーデー・運動会・式典ほか',
+        'teams.w2.g1': '国際フォーラム・上級カンファレンス',
+        'teams.w2.g2': '自動車・テクノロジー・ブランド発表会',
+        'teams.w2.g3': '企業の忘年会・新年会・晩餐会',
+        'teams.w2.g4': 'その他の主要イベント・表彰式',
         'teams.link': '活動実績 →',
         'teams.profile': 'プロフィール →',
-        'teams.bioTodo': 'このメンバーの詳しい紹介は後日追加します。',
         'teams.tapHint': 'フレームをクリックで詳細',
         'teams.note': '主催：澄耘活動工作室 有限公司（Chengyun Event Studio Co., Ltd.）',
         'portfolio.meta': 'キュレーション · 出店審査 · 現場運営',
@@ -3201,10 +3252,57 @@
         + '<dd class="desc">' + t('pf.n' + n) + '</dd></dl>';
     }
 
+    /* 經歷條列裡的 {b} / {e} / {z} 換成這個語言的主持語言註記 */
+    function teamTag(str) {
+      return str.replace(/\{[bez]\}/g, (k) => {
+        const m = TEAM_TAG[k];
+        return m ? ' ' + (m[lang] || m.en) : k;
+      });
+    }
+
+    /* 介紹：資歷背景、主持風格、語文能力……一組詞條 */
+    function fillIntro(box, who) {
+      const dl = document.createElement('dl');
+      dl.className = 'person-fields';
+      ['bg', 'look', 'style', 'lang', 'point', 'types'].forEach((f) => {
+        const v = t('teams.i' + who + '.' + f);
+        if (!v) { return; }                       /* 這位沒有這一欄就跳過 */
+        const dt = document.createElement('dt');
+        dt.className = 'term';
+        dt.textContent = t('teams.f.' + f);
+        const dd = document.createElement('dd');
+        dd.className = 'desc';
+        dd.textContent = v;
+        dl.append(dt, dd);
+      });
+      box.appendChild(dl);
+    }
+
+    /* 經歷：四個分類，每類一串條列 */
+    function fillWorks(box, who) {
+      for (let g = 1; g <= 4; g++) {
+        const head = t('teams.w' + who + '.g' + g);
+        const items = t('teams.w' + who + '.l' + g);
+        if (!head || !items) { continue; }
+        const h = document.createElement('span');
+        h.className = 'term';
+        h.textContent = head;
+        const ul = document.createElement('ul');
+        ul.className = 'person-list';
+        items.split('|').forEach((it) => {
+          const v = it.trim();
+          if (!v) { return; }
+          const li = document.createElement('li');
+          li.textContent = teamTag(v);
+          ul.appendChild(li);
+        });
+        box.append(h, ul);
+      }
+    }
+
     function renderPerson() {
       const n = detailIndex + 1;
       const art = FILM_ART[detailIndex] || {};
-      const bio = t('teams.p' + n);
 
       detailMeta.textContent = t('label.teams');
       detailTitle.textContent = t('teams.s' + n);
@@ -3224,16 +3322,9 @@
       }
 
       const text = document.createElement('div');
-      const duty = document.createElement('p');
-      duty.className = 'scene-body';
-      duty.textContent = t('teams.b' + n);
-      text.appendChild(duty);
-
-      const more = document.createElement('p');
-      /* 有寫介紹就顯示介紹，沒有就明說待補，不編故事 */
-      more.className = bio ? 'scene-body mt-7' : 'note mt-7';
-      more.textContent = bio || t('teams.bioTodo');
-      text.appendChild(more);
+      const meta = TEAM[detailIndex];
+      if (meta && meta.kind === 'works') { fillWorks(text, meta.who); }
+      else if (meta) { fillIntro(text, meta.who); }
 
       wrap.appendChild(shot);
       wrap.appendChild(text);
@@ -3335,7 +3426,7 @@
     const filmSpot = filmEl.querySelector('.film-spot');
     const filmMax = filmFrames.length - 1;
 
-    let filmPos = 1;                         /* 開場停在有照片的片格上 */
+    let filmPos = 0;                         /* 開場停在第一位主持人的介紹 */
     let filmTarget = filmPos;                /* 想去的位置 */
     let filmIndex = filmPos;                 /* 對外用的整數格號 */
     let filmStep = 16;                       /* 每一格佔的圓心角 */
@@ -3462,18 +3553,27 @@
        focus 是等比裁切時的垂直焦點（0 = 貼齊上緣、1 = 貼齊下緣），
        直式照片放進橫式片格會裁掉上下，用它把人臉留在畫面裡 */
     const FILM_ART = [
-      { a: '#2b3a66', b: '#0d1220', src: '../../assets/team/01.jpg', focus: .5 },
-      { a: '#1f4a4a', b: '#0b1516', src: '../../assets/team/02.jpg', focus: .4 },
-      { a: '#4a2a2a', b: '#170d0d', src: '../../assets/team/03.jpg', focus: .36 },
-      { a: '#3d3a18', b: '#14130a', src: '../../assets/team/04.jpg', focus: .45 },
-      { a: '#33265c', b: '#100c1c', src: '' },
-      { a: '#20405e', b: '#0a131c', src: '' },
-      { a: '#2d4a3a', b: '#0b1510', src: '' },
-      { a: '#4a3556', b: '#140f1a', src: '' },
-      { a: '#563d2a', b: '#18100b', src: '' },
-      { a: '#25505a', b: '#0a1619', src: '' },
-      { a: '#3a3550', b: '#111018', src: '' }
+      { a: '#2b3a66', b: '#0d1220', src: '../../assets/team/01.jpg', focus: .26 },
+      { a: '#4a2a2a', b: '#170d0d', src: '../../assets/team/02.jpg', focus: .50 },
+      { a: '#1f4a4a', b: '#0b1516', src: '../../assets/team/03.jpg', focus: .16 },
+      { a: '#3d3a18', b: '#14130a', src: '../../assets/team/04.jpg', focus: .10 }
     ];
+
+    /* 每位主持人佔兩格：第一格是介紹，第二格是過往經歷 */
+    const TEAM = [
+      { kind: 'intro', who: 1 },
+      { kind: 'works', who: 1 },
+      { kind: 'intro', who: 2 },
+      { kind: 'works', who: 2 }
+    ];
+
+    /* 經歷條列裡的主持語言註記。名稱本身是專有名詞、三語共用，
+       只有這個註記要跟著語言換，所以用標記在算繪時替換 */
+    const TEAM_TAG = {
+      '{b}': { en: '(Mandarin & English)', zh: '（中英主持）', ja: '（中英司会）' },
+      '{e}': { en: '(in English)', zh: '（全英主持）', ja: '（英語司会）' },
+      '{z}': { en: '(in Mandarin)', zh: '（中文主持）', ja: '（中国語司会）' }
+    };
 
     function filmMakeGL() {
       if (reduce || !window.THREE) { return null; }

@@ -511,6 +511,36 @@
     color: rgba(255, 255, 255, .6);
   }
 
+  /* ── 章節之內的小標 ──────────────────────
+     核心價值、為什麼選擇澄耘、合作流程這幾個原本套的是 .eyebrow，
+     但 .eyebrow 是章節最上方那行編號用的，刻意做小做淡。
+     這些其實是內容的骨架，客戶要靠它們判斷，得看得清楚，所以另立一級。 */
+  .sub-head {
+    display: block;
+    margin: 4rem 0 1.6rem;
+    font-size: calc(1.05rem * var(--fs-display));
+    font-weight: 400;
+    letter-spacing: .1em;
+    color: rgba(255, 255, 255, .95);
+  }
+
+  /* 這兩塊是說服力所在，整組字級往上帶一級、對比也提高。
+     列距寫在這裡而不是用 Tailwind 的 gap-y-10：預先編譯的 tw.css
+     只收了實際用到的級距（gap-y-6/7/8），沒編到的會整個失效變成 0 */
+  .block-lg { row-gap: 2.75rem; }
+
+  .block-lg .term {
+    font-size: calc(.86rem * var(--fs-body));
+    letter-spacing: .12em;
+    color: #fff;
+    margin-bottom: .75rem;
+  }
+
+  .block-lg .desc {
+    font-size: calc(.9rem * var(--fs-body));
+    color: rgba(255, 255, 255, .66);
+  }
+
   .term {
     display: block;
     font-size: calc(.7rem * var(--fs-body));
@@ -649,17 +679,17 @@
     flex: none;
     width: 2.5rem;
     font-weight: 400;
-    font-size: calc(.65rem * var(--fs-label));
-    letter-spacing: .2em;
-    color: rgba(255, 255, 255, .35);
-    padding-top: .2rem;
+    font-size: calc(.8rem * var(--fs-body));
+    letter-spacing: .16em;
+    color: rgba(255, 255, 255, .55);
+    padding-top: .15rem;
     font-variant-numeric: tabular-nums;
   }
 
   .flow span {
-    font-size: calc(.85rem * var(--fs-body));
-    line-height: 1.9;
-    color: rgba(255, 255, 255, .7);
+    font-size: calc(.98rem * var(--fs-body));
+    line-height: 1.85;
+    color: rgba(255, 255, 255, .85);
   }
 
   /* ── 團隊：Three.js 膠卷 ───────────────
@@ -740,10 +770,11 @@
   .film-name {
     position: relative;
     z-index: 3;
-    /* 下緣留一道固定的空隙：名字是三語共用的，中文那版最長
+    /* 緊接在標題下面。名字是三語共用的，中文那版最長
        （「張家瑜 Belina ｜ 個人介紹」），膠卷的上緣又是弧形、
-       兩側比中間高，字一長就會先撞到兩邊翹起來的地方 */
-    margin: .55rem 0 .5rem;
+       兩側比中間高，字一長就會先撞到兩邊翹起來的地方，
+       所以底下那道空隙一定要留住（由 .film-hint 的下邊距接手） */
+    margin: 1.15rem 0 .3rem;
     min-height: 1.5em;
     font-size: calc(clamp(.95rem, 1.5vw, 1.15rem) * var(--fs-display));
     font-weight: 400;
@@ -762,7 +793,9 @@
   .film-hint {
     position: relative;
     z-index: 3;
-    margin: 1.1rem 0 0;
+    /* 換到姓名下方了。它現在是最靠近膠卷的一行，
+       下緣那道空隙由它負責留 */
+    margin: .1rem 0 .55rem;
     font-size: calc(.62rem * var(--fs-label));
     letter-spacing: .22em;
     text-transform: uppercase;
@@ -1102,6 +1135,56 @@
   }
 
   /* ── 表單 ───────────────────────────── */
+  /* ── 線上諮詢：墊一層膜 ──────────────────
+     這一章背後是水晶影片，表單的標籤是細小的灰字，直接壓上去
+     會被影片的亮部吃掉。墊一層半透明底並把背後模糊掉，
+     字就浮得起來，影片也還看得見，不是整片蓋死。 */
+  .contact-form {
+    padding: 2rem 1.9rem 2.1rem;
+    border: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 2px;
+    background: rgba(12, 12, 14, .55);
+    backdrop-filter: blur(16px) saturate(120%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+  }
+
+  /* 不支援 backdrop-filter 時（舊版 Firefox）就把底色加深，
+     靠不透明度撐出同樣的可讀性 */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .contact-form { background: rgba(12, 12, 14, .86); }
+  }
+
+  @media (max-width: 720px) { .contact-form { padding: 1.5rem 1.25rem 1.6rem; } }
+
+  /* ── 社群 ──────────────────────────────── */
+  .social {
+    display: flex;
+    gap: .85rem;
+  }
+
+  .social a {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 50%;
+    color: rgba(255, 255, 255, .72);
+    transition: color .4s var(--ease), border-color .4s var(--ease), background-color .4s var(--ease);
+  }
+
+  .social a:hover {
+    color: #fff;
+    border-color: rgba(255, 255, 255, .55);
+    background: rgba(255, 255, 255, .08);
+  }
+
+  .social svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    display: block;
+  }
+
   .form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1207,13 +1290,14 @@
   .form-msg.is-ok { color: #8fd6a8; }
 
   /* ── 常見問題：用原生 details，不必為了展開再寫一套 JS ── */
+  /* 分類標題原本是 .6rem、透明度 .4 的全大寫小字，
+     在深底上幾乎看不見。和章節小標同一個級別處理 */
   .faq-group {
     display: block;
-    margin: 2.75rem 0 .5rem;
-    font-size: calc(.6rem * var(--fs-label));
-    letter-spacing: .3em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, .4);
+    margin: 3rem 0 .9rem;
+    font-size: calc(1.05rem * var(--fs-display));
+    letter-spacing: .1em;
+    color: rgba(255, 255, 255, .95);
   }
 
   .faq-group:first-child { margin-top: 0; }
@@ -2030,8 +2114,8 @@
       <p class="scene-body" data-i18n="about.p3">We work founder-led, backed by a network of senior specialists. Precise project control and a deep visual standard carry a project from planning through specification to delivery on site — one team, end to end.</p>
       <p class="scene-body" data-i18n="about.p4">However lavish an event looks, without sound trust and dignity in labour it is a tower built on sand. Chengyun stands on integrity and transparency, and on execution done slowly and carefully, so that every brand appearance creates both the highest return and lasting value.</p>
 
-      <span class="eyebrow mt-16" data-i18n="about.cv">Core Values</span>
-      <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+      <span class="sub-head" data-i18n="about.cv">Core Values</span>
+      <dl class="block-lg grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
         <div><dt class="term" data-i18n="about.v1">Transparency &amp; Integrity</dt><dd class="desc" data-i18n="about.c1">No black boxes. Modular, transparent pricing, against an industry habit of asymmetry and vague quotes.</dd></div>
         <div><dt class="term" data-i18n="about.v2">Craftsmanship &amp; Precision</dt><dd class="desc" data-i18n="about.c2">Management SOP as the skeleton; visual aesthetics, materials and on-site detail held to a strict standard. Each event is worked like a made object.</dd></div>
         <div><dt class="term" data-i18n="about.v3">Sustainability &amp; Shared Value</dt><dd class="desc" data-i18n="about.c3">ESG thinking applied to events, turning commercial activity into an ecosystem that supports local artisans and the places they work in.</dd></div>
@@ -2085,15 +2169,15 @@
         </li>
       </ol>
 
-      <span class="eyebrow mt-16" data-i18n="services.why">Why Chengyun</span>
-      <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+      <span class="sub-head" data-i18n="services.why">Why Chengyun</span>
+      <dl class="block-lg grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
         <div><dt class="term" data-i18n="services.w1">On-Site Command</dt><dd class="desc" data-i18n="services.wd1">The founder brings three years of large-scale site command, managing build teams of fifty and above. Design intent and physical build are delivered safely and faithfully.</dd></div>
         <div><dt class="term" data-i18n="services.w2">International Brand Experience</dt><dd class="desc" data-i18n="services.wd2">Projects for Sisley and Trend Micro among others — familiar with the process rigour and safety standards listed companies expect.</dd></div>
         <div><dt class="term" data-i18n="services.w3">Fully Transparent Modular Pricing</dt><dd class="desc" data-i18n="services.wd3">Line items, labour hours and hardware are broken out separately. No hidden fees, so budgeting and internal audit stay straightforward.</dd></div>
         <div><dt class="term" data-i18n="services.w4">Risk Stated Up Front</dt><dd class="desc" data-i18n="services.wd4">Critical build items carry stated warnings and liability clauses in the quotation. Setting out the worst case first is basic courtesy.</dd></div>
       </dl>
 
-      <span class="eyebrow mt-16" data-i18n="services.flow">How We Work</span>
+      <span class="sub-head" data-i18n="services.flow">How We Work</span>
       <ol class="flow">
         <li><b>01</b><span data-i18n="services.f1">Enquiry — headcount, budget range and schedule.</span></li>
         <li><b>02</b><span data-i18n="services.f2">Proposal and quotation — 3D simulation, run sheet, transparent quote.</span></li>
@@ -2110,11 +2194,11 @@
   <div class="scene-inner grid place-items-center min-h-[100svh] px-6 md:px-10 py-10">
     <div class="stagger w-full max-w-6xl text-center">
       <span class="eyebrow" data-i18n="teams.eyebrow">03 — Teams</span>
-      <h2 class="scene-title film-title" data-i18n-html="teams.title">Our team<br />— Hosts</h2>
+      <h2 class="scene-title film-title" data-i18n-html="teams.title">Our team<br />Hosts</h2>
 
-      <p class="film-hint" data-i18n="teams.tapHint">Click a photo to read the profile</p>
       <!-- 目前停在誰身上，跟著膠卷切換 -->
       <p class="film-name" id="filmName" aria-live="polite"></p>
+      <p class="film-hint" data-i18n="teams.tapHint">Click a photo to read the profile</p>
     </div>
 
     <!-- 膠卷：滿版出血、帶透視與傾斜，兩端切出畫面外 -->
@@ -2221,9 +2305,9 @@
 
         <!-- 第一段：錯開的兩行大標 -->
         <div class="pf-head" id="pfHead">
-          <h2 class="pf-line pf-line-a" id="pfLineA" data-i18n="pf.l1">CHENG</h2>
+          <h2 class="pf-line pf-line-a" id="pfLineA" data-i18n="pf.l1">CHENGYUN</h2>
           <p class="pf-kicker" id="pfKicker" data-i18n="pf.kicker">Six rooms we built, and what it took to build them.</p>
-          <h2 class="pf-line pf-line-b" id="pfLineB" data-i18n="pf.l2">YUN</h2>
+          <h2 class="pf-line pf-line-b" id="pfLineB" data-i18n="pf.l2">STUDIO</h2>
         </div>
 
         <div class="pf-rib pf-rib-front" id="pfRibFront" aria-hidden="true">
@@ -2298,7 +2382,6 @@
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-3xl text-left">
       <span class="eyebrow" data-i18n="faq.eyebrow">05 — Q&amp;A</span>
-      <h2 class="scene-title" data-i18n="faq.title">The questions we are asked most.</h2>
 
       <div class="mt-12">
         <span class="faq-group" data-i18n="faq.g1">01　Services &amp; Planning</span>
@@ -2384,7 +2467,6 @@
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-5xl text-left">
       <span class="eyebrow" data-i18n="contact.eyebrow">06 — Contact Us</span>
-      <h2 class="scene-title" data-i18n-html="contact.title">Ready to set up a stall<br />in the quiet?</h2>
 
       <div class="contact-split">
         <!-- 企業聯絡資訊 -->
@@ -2392,10 +2474,6 @@
           <div>
             <span class="term" data-i18n="contact.t0">Chengyun Event Studio Co., Ltd.</span>
             <span class="desc" data-i18n="contact.note">Tax ID 62164766</span>
-          </div>
-          <div>
-            <span class="term" data-i18n="contact.t3">Phone</span>
-            <a class="link hover-target" href="tel:0922531118">0922-531-118</a>
           </div>
           <div>
             <span class="term" data-i18n="contact.t2">Email</span>
@@ -2406,6 +2484,21 @@
             <span class="term" data-i18n="contact.t1">Official LINE</span>
             <a class="link hover-target" href="https://lin.ee/niY5HtU" target="_blank" rel="noopener">lin.ee/niY5HtU</a>
             <span class="desc" data-i18n="contact.d1">For applications, review and pre-event questions.</span>
+          </div>
+          <!-- 社群：名稱是專有名詞，三語共用，不進 i18n 表 -->
+          <div class="social">
+            <a class="hover-target" href="https://www.instagram.com/chengyun.studio" target="_blank" rel="noopener" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="18" rx="5" />
+                <circle cx="12" cy="12" r="4.1" />
+                <circle cx="17.3" cy="6.7" r="1.15" fill="currentColor" stroke="none" />
+              </svg>
+            </a>
+            <a class="hover-target" href="https://lin.ee/niY5HtU" target="_blank" rel="noopener" aria-label="LINE">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 10.6c0-4-4-7.2-9-7.2s-9 3.2-9 7.2c0 3.6 3.2 6.6 7.4 7.1.3.06.7.2.8.47.1.25.07.62.03.87l-.12.8c-.04.23-.19.9.8.5 1-.42 5.3-3.1 7.2-5.3 1.3-1.4 1.89-2.8 1.89-4.4z" />
+              </svg>
+            </a>
           </div>
         </div>
 
@@ -2662,7 +2755,7 @@
         'menu.about': 'About Us',
         'menu.services': 'Services',
         'menu.teams': 'Teams',
-        'pf.l1': 'CHENG', 'pf.l2': 'YUN',
+        'pf.l1': 'CHENGYUN', 'pf.l2': 'STUDIO',
         'pf.kicker': 'Six rooms we built, and what it took to build them.',
         'pf.eyebrow': '04 — Portfolio',
         'pf.scope': 'Scope',
@@ -2739,7 +2832,7 @@
         'menu.about': '關於我們',
         'menu.services': '服務內容',
         'menu.teams': '我們的團隊',
-        'pf.l1': 'CHENG', 'pf.l2': 'YUN',
+        'pf.l1': 'CHENGYUN', 'pf.l2': 'STUDIO',
         'pf.kicker': '六個被我們做出來的場，以及它們花了什麼。',
         'pf.eyebrow': '04 — 活動成果',
         'pf.scope': '服務範圍',
@@ -2798,7 +2891,7 @@
         'services.f3': '確認執行 — 依內部審查調整，簽約排程。',
         'services.f4': '現場落地 — 創辦人親自帶隊督導。',
         'services.f5': '結案交付 — 成果報告、永續數據與影音素材包。',
-        'teams.eyebrow': '03 — 我們的團隊', 'teams.title': '我們的團隊<br />— 主持人',
+        'teams.eyebrow': '03 — 我們的團隊', 'teams.title': '我們的團隊<br />主持人',
         'teams.s1': 'Gisele 奎奎 ｜ 個人介紹', 'teams.b1': '10 年以上主持經驗 · 中英主持',
         'teams.s2': 'Gisele 奎奎 ｜ 個人經歷', 'teams.b2': '記者會 · 論壇 · 尾牙春酒 · 家庭日與頒獎典禮',
         'teams.s3': 'Wendy ｜ 個人介紹', 'teams.b3': '8 年以上主持經驗 · 中英即時翻譯',
@@ -2894,7 +2987,6 @@
         'portfolio.f3': '每日開攤，至 20:30', 'portfolio.f4': '首屆舉辦年度',
         'portfolio.note': '更多活動成果陸續更新。',
         'faq.eyebrow': '05 — 常見問題',
-        'faq.title': '客戶最常問的問題。',
         'faq.g1': '01　服務與規劃流程',
         'faq.q1': '貴公司承辦活動如何計費？',
         'faq.a1': '視廠商的預算來規畫活動的豐富度以及方向性，活動變化多元，皆依客戶需求量身訂製。',
@@ -2924,10 +3016,9 @@
         'faq.q12': '一開始提出的兩款設計都不喜歡，可以額外設計一款嗎？',
         'faq.a12': '一開始會針對想法設計兩款視覺供參考；若客戶都不喜歡，從第三款設計開始將會酌收設計費用。',
         'faq.note': '其他問題歡迎透過官方 IG／FB／LINE 來訊詢問。',
-        'contact.eyebrow': '06 — 聯繫我們', 'contact.title': '準備好一起<br />安靜地擺攤了嗎？',
+        'contact.eyebrow': '06 — 聯繫我們',
         'contact.t1': '官方 LINE', 'contact.d1': '報名、審核與行前問題請由官方帳號來訊。',
         'contact.t2': 'Email', 'contact.d2': '合作提案與媒體聯繫。',
-        'contact.t3': '聯絡電話',
         'contact.note': '澄耘活動工作室 有限公司　|　統一編號 62164766',
         'detail.meta': '市集策劃 · 品牌招商 · 現場執行',
         'detail.title': '《默者文畫》無聲風格聚落',
@@ -2979,7 +3070,7 @@
         'menu.about': '私たちについて',
         'menu.services': 'サービス内容',
         'menu.teams': 'チーム',
-        'pf.l1': 'CHENG', 'pf.l2': 'YUN',
+        'pf.l1': 'CHENGYUN', 'pf.l2': 'STUDIO',
         'pf.kicker': 'つくった六つの場と、それにかかったもの。',
         'pf.eyebrow': '04 — 実績',
         'pf.scope': '対応範囲',
@@ -3038,7 +3129,7 @@
         'services.f3': '確定 — 社内審査に合わせて調整し、契約と日程確定。',
         'services.f4': '当日運営 — 創業者が自ら現場を率います。',
         'services.f5': '納品 — 成果報告、サステナビリティデータ、映像素材一式。',
-        'teams.eyebrow': '03 — チーム', 'teams.title': '私たちのチーム<br />— 司会者',
+        'teams.eyebrow': '03 — チーム', 'teams.title': '私たちのチーム<br />司会者',
         'teams.s1': 'Gisele ｜ プロフィール', 'teams.b1': '10年以上の司会経験 · 中英対応',
         'teams.s2': 'Gisele ｜ 実績', 'teams.b2': '記者会見 · フォーラム · 忘年会 · 表彰式',
         'teams.s3': 'Wendy ｜ プロフィール', 'teams.b3': '8年以上の司会経験 · 中英同時通訳',
@@ -3132,7 +3223,6 @@
         'portfolio.f3': '毎日15:00開場、20:30まで', 'portfolio.f4': '初開催の年',
         'portfolio.note': '実績は順次追加します。',
         'faq.eyebrow': '05 — よくある質問',
-        'faq.title': 'お客様からよくいただく質問。',
         'faq.g1': '01　サービスと進め方',
         'faq.q1': 'イベントの費用はどのように決まりますか？',
         'faq.a1': 'ご予算に合わせて内容の密度と方向性を設計します。イベントは一つとして同じものがなく、すべてご要望に合わせたオーダーメイドです。',
@@ -3162,10 +3252,9 @@
         'faq.q12': '最初の2案がどちらも好みでない場合、追加で作ってもらえますか？',
         'faq.a12': '最初にご要望をもとに2案をご提案します。どちらもご希望に沿わない場合、3案目からはデザイン費を申し受けます。',
         'faq.note': 'その他のご質問は公式 IG／FB／LINE までお気軽にどうぞ。',
-        'contact.eyebrow': '06 — お問い合わせ', 'contact.title': '静けさのなかで、<br />出店してみませんか？',
+        'contact.eyebrow': '06 — お問い合わせ',
         'contact.t1': '公式 LINE', 'contact.d1': '申し込み・審査・事前のご質問はこちらから。',
         'contact.t2': 'Email', 'contact.d2': '協業のご提案と取材のお問い合わせ。',
-        'contact.t3': '電話',
         'contact.note': '澄耘活動工作室 有限公司　|　統一番号 62164766',
         'detail.meta': 'キュレーション · 出店審査 · 現場運営',
         'detail.title': 'サイレントマーケット『默者文畫』',

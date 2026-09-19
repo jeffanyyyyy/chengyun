@@ -596,7 +596,9 @@
     display: block;
     font-size: calc(1rem * var(--fs-body));
     letter-spacing: .02em;
-    margin-bottom: .5rem;
+    /* 行高之外再補一點上下內距，觸控時比較好按 */
+    padding: .35rem 0;
+    margin-bottom: .15rem;
     color: #fff;
     transition: opacity .4s var(--ease);
   }
@@ -906,6 +908,22 @@
 
   @media (max-width: 760px) { .film-stage { padding: 1rem 0 1.25rem; } }
 
+  /* 手機橫放（844x390 這類）：高度只剩 390px，而這一章是 overflow:hidden，
+     整疊排不下就直接被裁掉（實測 560px 塞進 390px，少 170px）。
+     最吃高度的是兩行大標（109px）與上下各 40px 的留白，一起收。 */
+  @media (max-height: 480px) and (orientation: landscape) {
+    .scene[data-scene="teams"] .scene-inner { padding-top: .5rem; padding-bottom: .5rem; }
+    .film-title { font-size: calc(clamp(1rem, 2.4vw, 1.45rem) * var(--fs-display)); margin-bottom: .1rem; }
+    .film-name { font-size: calc(clamp(.8rem, 1.2vw, .95rem) * var(--fs-display)); margin: .3rem 0 .1rem; }
+    .film-hint { margin: 0 0 .25rem; }
+    .film-gl-wrap { height: 40svh; }
+    /* 橫放時空間真的不夠，提示讓位給膠卷本身；姓名留著，那是資訊 */
+    .film-hint { display: none; }
+    .film-below { margin-top: .25rem; }
+    .film-arrow { width: 2.4rem; height: 2.4rem; }
+    .film-count { display: none; }
+  }
+
   .film {
     position: relative;
     height: calc(var(--fh) + var(--perf) * 2 + 1.5rem);
@@ -1085,6 +1103,8 @@
     padding: 0 clamp(.5rem, 3vw, 3rem);
   }
 
+  }
+
   .film-dots {
     display: flex;
     justify-content: center;
@@ -1093,6 +1113,7 @@
   }
 
   .film-dots button {
+    position: relative;
     width: 5px;
     height: 5px;
     border-radius: 50%;
@@ -1100,11 +1121,30 @@
     transition: background-color .4s var(--ease), transform .4s var(--ease);
   }
 
+  /* 點本身只有 5px，手指按不準。用一塊看不見的虛擬元素把命中範圍往外借到
+     間距的一半為止——再大就會和隔壁重疊，變成按 A 卻跳到 B */
+  .film-dots button::after {
+    content: '';
+    position: absolute;
+    inset: -5px -5px;
+    border-radius: 50%;
+  }
+
   .film-dots button[aria-selected="true"] {
     background: var(--ink);
     outline: 1px solid rgba(20, 19, 15, .38);
     outline-offset: 4px;
   }
+  /* ── 窄螢幕的控制列 ──────────────────────
+     16 個圓點排一列要 248px，320px 的手機扣掉兩顆箭頭與邊距只剩 172px，
+     於是整排把右邊那顆箭頭擠出畫面（實測 320/360/390 都溢位）。
+     而且 5px 的點在觸控上本來就按不準，16 個點各給 44px 更是不可能。
+     所以窄螢幕收起圓點，改以箭頭為主要操作——箭頭有 50px，按得到；
+     位置由上方的 01 / 16 計數器交代，左右滑動也照常可用。 */
+  @media (max-width: 559px) {
+    .film-dots { display: none; }
+    .film-controls { justify-content: center; gap: clamp(2rem, 18vw, 5rem); }
+
 
   .film-below .note { margin-top: 1.4rem; text-align: center; }
 

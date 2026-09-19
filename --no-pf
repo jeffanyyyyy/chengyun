@@ -1,16 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>CHENGYUN STUDIO — Silent Market</title>
-<meta name="description" content="Chengyun Event Studio — curation, brand selection and production for Silent Market, a quiet settlement of makers in Banqiao, New Taipei." />
-<meta name="theme-color" content="#0b0b0c" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230b0b0c'/%3E%3Cpath d='M16 5l9 11-9 11-9-11z' fill='%23191919' stroke='%239aa0b5' stroke-width='.8'/%3E%3C/svg%3E" />
+<title>Chengyun</title>
+
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Inter+Tight:wght@400;500&family=Noto+Sans+JP:wght@200;300;400&family=Noto+Sans+TC:wght@200;300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+
+<!-- 預先編譯好的 Tailwind：play CDN 萬一沒跑起來，版面仍然成立 -->
+<link rel="stylesheet" href="tw.css" />
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -81,11 +77,9 @@
   :focus-visible { outline: 1px solid #fff; outline-offset: 6px; }
 
   /* 象牙白的兩章：白色聚焦框與白色選取色壓在白紙上等於沒有，翻成墨色 */
-  .scene[data-scene="teams"] :focus-visible,
-  .scene[data-scene="portfolio"] :focus-visible { outline-color: var(--ink); }
+  .scene[data-scene="teams"] :focus-visible { outline-color: var(--ink); }
 
-  .scene[data-scene="teams"] ::selection,
-  .scene[data-scene="portfolio"] ::selection { background: var(--ink); color: var(--ivory); }
+  .scene[data-scene="teams"] ::selection { background: var(--ink); color: var(--ivory); }
 
   /* ── 背景影片 ───────────────────────── */
   .stage {
@@ -175,7 +169,6 @@
 
   /* 底板的顏色要跟各自 .scene-inner 的底色一致，否則交界會出現一條色差 */
   .scene[data-scene="teams"]     { --cover-bg: var(--ivory); }
-  .scene[data-scene="portfolio"] { --cover-bg: #e8e8e6; } /* ##PF## */
   .scene[data-scene="intro"]     { --cover-bg: #05060a; }
 
   /* ── 文字特效 ───────────────────────────
@@ -1550,52 +1543,6 @@
   .is-menu .burger span:nth-child(2) { opacity: 0; }
   .is-menu .burger span:nth-child(3) { transform: translateY(-4px) rotate(-45deg); }
 
-  /* 觸控裝置上的兩個修正：
-
-     一、1px 的髮絲線太細。在 mix-blend-difference 造出來的混色圖層裡，
-         iOS Safari 有機會把它整條抹掉；就算畫得出來，在手機上也幾乎看不見。
-         線加粗到 2px，位移跟著改成間距的一半（2+7=9 → 4.5）。
-
-     二、點擊範圍只有 26×33，比 Apple 訂的 44×44 最小觸控目標還小。
-         用一個看不見的 ::after 把感應區撐開，外觀不動。 */
-  @media (hover: none) {
-    .burger { position: relative; }
-
-    .burger::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 44px;
-      height: 44px;
-      transform: translate(-50%, -50%);
-    }
-
-    .burger span { height: 2px; }
-    .is-menu .burger span:nth-child(1) { transform: translateY(4.5px) rotate(45deg); }
-    .is-menu .burger span:nth-child(3) { transform: translateY(-4.5px) rotate(-45deg); }
-  }
-
-  /* ── 頁首／頁尾：觸控上不靠混色 ─────────
-     iOS Safari 把 <video> 交給獨立的合成層，疊在上面的 mix-blend-difference
-     有時整個算不出來，頁首就會連著漢堡鈕一起不見。桌機沒有這個問題，
-     所以只在觸控裝置關掉混色，改成直接指定顏色——
-     深色章節維持白色，膠卷那章是米白底，翻成墨色。結果和 difference 一樣。 */
-  @media (hover: none) {
-    header.mix-blend-difference,
-    footer.mix-blend-difference { mix-blend-mode: normal; }
-
-    html.is-lightbg header.mix-blend-difference,
-    html.is-lightbg header.mix-blend-difference #brand,
-    html.is-lightbg header.mix-blend-difference #sceneLabel { color: var(--ink); }
-
-    html.is-lightbg .burger span { background: var(--ink); }
-    html.is-lightbg .lang button { color: rgba(20, 19, 15, .45); }
-    html.is-lightbg .lang button[aria-current="true"] { color: var(--ink); }
-    html.is-lightbg .lang i { color: rgba(20, 19, 15, .25); }
-    html.is-lightbg footer.mix-blend-difference { color: rgba(20, 19, 15, .5); }
-  }
-
   /* ── 顆粒質感 ───────────────────────── */
   .grain {
     position: fixed;
@@ -1624,503 +1571,27 @@
   }
 
 
-  /* ##PF-START## 活動成果的樣式。建 chengyun 版時整段拿掉 */
-  /* ── 04 活動成果：捲動推進的三段式 ────
-     這一章有自己的捲動行程（300svh），舞台用 sticky 釘住，
-     進度 0→1 推著三段走：大標 → 3D 弧形卡片帶 → 散落拼貼。
-     整段只由一個 pfRender(p) 決定畫面，所以往回捲就是把 p 倒著走，
-     沒有任何單向的狀態，天生可逆。 */
-  .scene[data-scene="portfolio"] .scene-inner {
-    display: block;
-    padding: 0;
-    background: var(--pf-bg);
-    color: var(--pf-ink);
-    text-align: left;
-    --pf-bg: #e8e8e6;
-    --pf-ink: #1a1a1a;
-    --pf-dim: rgba(26, 26, 26, .52);
-    --pf-ghost: rgba(26, 26, 26, .17);   /* 大標：在背景當底紋，不搶照片 */
-    --pf-font: 'Inter Tight', 'Inter', 'Noto Sans TC', sans-serif;
-  }
-
-  .pf-track { position: relative; height: 500svh; }
-
-  .pf-stage {
-    position: sticky;
-    top: 0;
-    height: 100svh;
-    overflow: hidden;
-  }
-
-  /* ── 第二段：純 CSS 3D 的圓柱緞帶 ─────
-     整條緞帶是同一個圓柱上的一片。面板寬 = 圓的一條弦，所以相鄰
-     面板首尾自動貼齊；面板自己再切成 N 條縱條各轉一點角度，拼起來
-     就是弧面。彎曲用 rotateY，扭轉用 rotateX。
-     面板上絕對不能加 overflow:hidden 或 filter —— 兩者都會把 3D
-     壓扁成 2D，弧面就沒了。所以陰影只能畫進圖裡。 */
-  .pf-rib {
-    position: absolute;
-    inset: 0;
-    perspective: var(--pf-persp, 1200px);  /* 由 JS 依畫面大小等比縮放 */
-    perspective-origin: 50% 46%;
-    pointer-events: none;
-    will-change: opacity;
-  }
-
-  .pf-rib-back { z-index: 1; }
-  .pf-rib-front { z-index: 3; }
-
-  .pf-rib-in {
-    position: absolute;
-    inset: 0;
-    transform-style: preserve-3d;
-    will-change: transform;
-  }
-
-  .pf-panel {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: var(--cw);
-    aspect-ratio: 6 / 5;             /* 所有面板同一個比例，上下緣才齊 */
-    transform-style: preserve-3d;    /* 少了這行縱條的 3D 會被壓扁 */
-    transform: translate(-50%, -50%)
-               translate3d(var(--x), var(--y), var(--z))
-               rotateY(var(--ry)) rotateZ(var(--rz));
-    opacity: var(--o);
-    will-change: transform, opacity;
-  }
-
-  .pf-strip {
-    position: absolute;
-    top: 0;
-    height: 100%;
-    background-repeat: no-repeat;
-    backface-visibility: hidden;
-    transform-origin: 50% 50%;
-    transform: translate3d(var(--dx), var(--dy, 0px), var(--dz))
-               rotateY(var(--a))
-               rotateX(calc((var(--tw0) + var(--u) * var(--twSpan)) * 1deg));
-  }
-
-  /* 軌道細線：跟緞帶同一個圓柱，自己算投影畫成 SVG，不受裁切框影響 */
-  .pf-rails {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    pointer-events: none;
-  }
-
-  .pf-rail {
-    stroke: rgba(26, 26, 26, .28);
-    stroke-width: 1;
-    vector-effect: non-scaling-stroke;
-  }
-
-  /* 調校面板開著時：軌道加深，路徑畫出來，控制點可以直接拖 */
-  .pf-rails.is-debug .pf-rail { stroke: rgba(255, 59, 31, .85); }
-  .is-debug-rib .pf-strip { outline: 1px solid rgba(31, 107, 255, .3); }
-
-  .pf-path {
-    stroke: rgba(31, 107, 255, .75);
-    stroke-width: 1.5;
-    stroke-dasharray: 5 4;
-    vector-effect: non-scaling-stroke;
-    opacity: 0;
-  }
-
-  .pf-handle {
-    fill: #fff;
-    stroke: #1f6bff;
-    stroke-width: 2;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  /* 看不見的大命中圈，小白點才不會難點。
-     fill 給一個幾乎全透明的顏色 + pointer-events:all：
-     WebKit 在預設的 visiblePainted 下，對 fill:transparent 不一定打得中。 */
-  .pf-hit {
-    fill: rgba(31, 107, 255, .001);
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .pf-rails.is-edit .pf-hit {
-    opacity: 1;
-    pointer-events: all;
-    cursor: grab;
-    touch-action: none;
-  }
-
-  /* 控制點原本落在畫面外，夾回邊界時換個樣子提示 */
-  .pf-handle.is-clamped { fill: #1f6bff; stroke: #fff; }
-
-  /* 編輯時把路徑層抬到面板上面，中段的控制點才看得到也拖得到 */
-  .pf-rails.is-edit { z-index: 7; pointer-events: none; }
-  .pf-rails.is-edit .pf-path { opacity: 1; }
-
-  .pf-rails.is-edit .pf-handle {
-    opacity: 1;
-    cursor: grab;
-    pointer-events: auto;
-    touch-action: none;
-  }
-
-  .pf-rails.is-edit .pf-handle:active { cursor: grabbing; fill: #1f6bff; }
-
-  .pf-handle-tag {
-    fill: #1f6bff;
-    font-size: 10px;
-    font-family: var(--mono, ui-monospace, monospace);
-    letter-spacing: .04em;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .pf-rails.is-edit .pf-handle-tag { opacity: .9; }
-
-  /* ── 路徑編輯器的兩條列 ───────────────── */
-  .pf-tools {
-    position: absolute;
-    z-index: 8;
-    top: clamp(14px, 2.4vh, 26px);
-    left: clamp(18px, 5vw, 92px);
-    right: clamp(18px, 5vw, 92px);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: flex-end;
-    pointer-events: none;      /* 容器本身不吃點擊，只有按鈕吃 */
-  }
-
-  .pf-tool {
-    pointer-events: auto;
-    appearance: none;
-    border: 1px solid rgba(26, 26, 26, .18);
-    background: rgba(255, 255, 255, .72);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
-    border-radius: 999px;
-    padding: 7px 15px;
-    font: inherit;
-    font-size: 12px;
-    letter-spacing: .08em;
-    color: var(--pf-ink);
-    cursor: pointer;
-    transition: background .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
-  }
-
-  .pf-tool:hover { border-color: rgba(26, 26, 26, .4); }
-
-  .pf-tool.is-on {
-    background: #1f6bff;
-    border-color: #1f6bff;
-    color: #fff;
-  }
-
-  .pf-status {
-    position: absolute;
-    z-index: 8;
-    left: clamp(18px, 5vw, 92px);
-    right: clamp(18px, 5vw, 92px);
-    bottom: clamp(14px, 2.4vh, 26px);
-    display: flex;
-    align-items: center;
-    gap: clamp(12px, 2.4vw, 34px);
-    flex-wrap: wrap;
-    padding: 12px 18px;
-    border-radius: 14px;
-    border: 1px solid rgba(26, 26, 26, .12);
-    background: rgba(255, 255, 255, .78);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-    font-size: 12px;
-    letter-spacing: .04em;
-    color: var(--pf-dim);
-  }
-
-  /* class 裡的 display:flex 會蓋掉瀏覽器預設的 [hidden]{display:none}，
-     所以要自己補回來，不然這兩條列會一直留在畫面上 */
-  .pf-tools[hidden],
-  .pf-status[hidden] { display: none; }
-
-  .pf-status p { margin: 0; }
-  .pf-status b { color: var(--pf-ink); font-weight: 500; }
-  .pf-status-tip { flex: 1 1 260px; line-height: 1.5; }
-
-  .pf-status-slider {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    white-space: nowrap;
-  }
-
-  .pf-status-slider input[type="range"] { width: clamp(90px, 14vw, 180px); accent-color: #1f6bff; }
-
-  .pf-status-slider input[type="number"] {
-    width: 52px;
-    padding: 4px 6px;
-    border: 1px solid rgba(26, 26, 26, .18);
-    border-radius: 7px;
-    background: transparent;
-    font: inherit;
-    font-size: 12px;
-    color: var(--pf-ink);
-  }
-
-  .pf-status-jump { display: flex; gap: 6px; }
-  .pf-status-read { white-space: nowrap; }
-  .pf-status-read em { font-style: normal; color: #c2410c; }
-
-  .pf-status-btn {
-    appearance: none;
-    border: 1px solid rgba(26, 26, 26, .18);
-    background: transparent;
-    border-radius: 999px;
-    padding: 6px 14px;
-    font: inherit;
-    font-size: 12px;
-    letter-spacing: .08em;
-    color: var(--pf-ink);
-    cursor: pointer;
-  }
-
-  .pf-status-btn:hover { border-color: rgba(26, 26, 26, .45); }
-
-  .pf-status-btn.is-on {
-    background: #1f6bff;
-    border-color: #1f6bff;
-    color: #fff;
-  }
-
-  /* 滑到某一張卡片時，左下角報出它是哪一件 */
-  .pf-hover {
-    position: absolute;
-    z-index: 6;
-    left: clamp(18px, 5vw, 92px);
-    bottom: calc(clamp(52px, 8vh, 80px) + 1.8em);
-    margin: 0;
-    max-width: 40ch;
-    font-size: calc(clamp(9px, .72vw, 10.5px) * var(--fs-caption));
-    letter-spacing: .16em;
-    text-transform: uppercase;
-    color: var(--pf-dim);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .35s var(--ease);
-  }
-
-  .pf-hover.is-on { opacity: 1; }
-  .pf-hover b { font-weight: 400; color: var(--pf-ink); letter-spacing: .1em; }
-
-  /* ── 第一段：錯開的兩行大標 ────────── */
-  .pf-head {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 0 clamp(18px, 5vw, 92px);
-    pointer-events: none;
-    will-change: opacity;
-  }
-
-  .pf-line {
-    margin: 0;
-    font-family: var(--pf-font);
-    font-size: 9vw;
-    font-weight: 500;
-    letter-spacing: -.04em;
-    line-height: .92;
-    white-space: nowrap;
-    color: var(--pf-ghost);
-    will-change: transform, opacity;
-  }
-
-  .pf-line-a { align-self: flex-start; }
-  .pf-line-b { align-self: flex-end; margin-top: .18em; }
-
-  .pf-kicker {
-    margin: clamp(14px, 2.6vh, 34px) auto;
-    max-width: 34ch;
-    text-align: center;
-    font-size: calc(11px * var(--fs-caption));
-    line-height: 1.75;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--pf-dim);
-    will-change: transform, opacity;
-  }
-
-  /* ── 第三段：散落的拼貼 ──────────────
-     位置與大小寫在 markup 的 inline style 裡，
-     因為它們是版面資料，不是可以重用的樣式。 */
-  .pf-collage {
-    position: absolute;
-    inset: 0;
-    z-index: 4;
-    pointer-events: none;
-  }
-
-  .pf-card {
-    position: absolute;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: none;
-    opacity: 0;
-    will-change: transform, opacity;
-    pointer-events: none;   /* 只是圖與說明，不收滑鼠 */
-  }
-
-  .pf-card[hidden] { display: none; }
-
-  .pf-shot {
-    display: block;
-    width: 100%;
-    aspect-ratio: 16 / 10;
-    border-radius: 3px;
-    background: #d6d5d0 center / cover no-repeat;
-    box-shadow: 0 18px 44px rgba(26, 26, 26, .14);
-    transition: transform .6s var(--ease), box-shadow .6s var(--ease);
-  }
-
-  .pf-cap {
-    display: block;
-    margin-top: .7em;
-    text-align: left;
-    font-size: calc(clamp(9px, .72vw, 10.5px) * var(--fs-caption));
-    letter-spacing: .16em;
-    text-transform: uppercase;
-    color: var(--pf-dim);
-  }
-
-  .pf-cap b { display: block; font-weight: 400; color: var(--pf-ink); letter-spacing: .1em; }
-
-  /* 進度：右下角一條細線，讓人知道這一章還有多長 */
-  .pf-meter {
-    position: absolute;
-    z-index: 5;
-    right: clamp(18px, 5vw, 92px);
-    bottom: clamp(52px, 8vh, 80px);
-    width: clamp(90px, 12vw, 180px);
-    height: 1px;
-    background: rgba(26, 26, 26, .16);
-    pointer-events: none;
-  }
-
-  .pf-meter i {
-    display: block;
-    width: 100%;
-    height: 100%;
-    background: var(--pf-ink);
-    transform: scaleX(0);
-    transform-origin: 0 50%;
-  }
-
-  /* ── 調校面板的「已複製」提示 ── */
-  .pf-toast {
-    position: fixed;
-    z-index: 9999;
-    left: 50%;
-    bottom: 40px;
-    transform: translate(-50%, 12px);
-    padding: 10px 20px;
-    border-radius: 999px;
-    background: rgba(20, 20, 20, .9);
-    color: #fff;
-    font-size: 13px;
-    letter-spacing: .08em;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .18s ease, transform .18s ease;
-  }
-
-  .pf-toast.is-on { opacity: 1; transform: translate(-50%, 0); }
-
-  /* 編輯器開著時往上讓，不要壓在狀態列上 */
-  .pf-toast.is-high { bottom: clamp(120px, 16vh, 168px); }
-
-  .pf-eyebrow {
-    position: absolute;
-    z-index: 5;
-    left: clamp(18px, 5vw, 92px);
-    bottom: clamp(52px, 8vh, 80px);
-    margin: 0;
-    font-size: calc(.6rem * var(--fs-label));
-    letter-spacing: .3em;
-    text-transform: uppercase;
-    color: var(--pf-dim);
-  }
-
-  @media (max-width: 767px) {
-    .pf-line { font-size: 13.5vw; }
-    .pf-kicker { font-size: calc(10px * var(--fs-caption)); max-width: 26ch; }
-    .pf-meter { width: 70px; }
-
-    /* 散落的百分比版位在窄螢幕只會擠成一團，改成兩欄交錯 */
-    .pf-collage {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      align-content: center;
-      gap: clamp(14px, 4vw, 22px);
-      padding: 0 18px;
-    }
-    .pf-card { position: static !important; width: auto !important; }
-    .pf-card:nth-child(even) { margin-top: 14%; }
-    .pf-cap { font-size: calc(8.5px * var(--fs-caption)); letter-spacing: .12em; }
-    /* 客戶那一行在這個寬度一定會斷成四行，收起來，點進去看 */
-    .pf-cap > span { display: none; }
-  }
-
-  /* 動態偏好關閉：沒有釘住、沒有卡片帶，就是一份靜態的網格 */
-  @media (prefers-reduced-motion: reduce) {
-    .pf-track { height: auto; }
-    .pf-stage { position: static; height: auto; overflow: visible; padding: clamp(78px, 12vh, 120px) clamp(18px, 5vw, 92px) clamp(70px, 10vh, 110px); }
-    .pf-rib, .pf-rails, .pf-hover, .pf-tools, .pf-status { display: none !important; }
-    .pf-head { position: static; padding: 0; }
-    .pf-collage {
-      position: static;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
-      gap: clamp(20px, 3vw, 40px);
-      margin-top: clamp(40px, 7vh, 80px);
-      pointer-events: auto;
-    }
-    .pf-card { position: static !important; width: auto !important; height: auto; overflow: visible; opacity: 1 !important; transform: none !important; pointer-events: auto; }
-    .pf-meter, .pf-eyebrow { position: static; margin-top: 2.5rem; }
-    .pf-meter { display: none; }
-  }
-  /* ##PF-END## */
 
   @media (prefers-reduced-motion: reduce) {
     .grain, .breathe { animation: none; }
     .scene, .detail { transition-duration: .2s; }
     .stage, .bloom, .hero-top, .hero-lede, .hero-hint { transition: none; filter: none; }
     .scene.is-active .stagger > * { animation: none; }
-    .pf-shot { transition: none; } /* ##PF## */
   }
 </style>
-</head>
-<body>
 
 <!-- 百葉窗轉場的葉片。平常 visibility:hidden，不佔任何互動 -->
 <div class="blinds" id="blinds" aria-hidden="true"></div>
 
 <div class="stage" id="stage" aria-hidden="true">
   <video class="stage-video" id="bgVideo" autoplay muted loop playsinline preload="auto">
-    <source src="../../assets/bg-obsidian.mp4" type="video/mp4" />
+    <source src="bg-loop.mp4" type="video/mp4" />
   </video>
   <!-- 內頁的背景：水晶落定之後的那一段，倒放接正放，循環點看不出來。
        首頁不顯示，離開首頁才淡進來；過場結束進到關於我們時從第 0 秒起播，
        而第 0 秒正是過場影片的最後一格，所以水晶是「停在那裡」而不是重來一次 -->
   <video class="stage-video stage-rest" id="restVideo" muted loop playsinline preload="auto">
-    <source src="../../assets/crystal-rest.mp4" type="video/mp4" />
+    <source src="crystal-rest.mp4" type="video/mp4" />
   </video>
   <div class="stage-veil"></div>
 </div>
@@ -2191,16 +1662,11 @@
     <a class="menu-row hover-target" href="#teams" data-go="teams">
       <span class="idx">03</span><span class="label" data-i18n="menu.teams">Teams</span>
     </a>
-    <!-- ##PF-START## -->
-    <a class="menu-row hover-target" href="#portfolio" data-go="portfolio">
-      <span class="idx">04</span><span class="label" data-i18n="menu.portfolio">Portfolio</span>
-    </a>
-    <!-- ##PF-END## -->
     <a class="menu-row hover-target" href="#faq" data-go="faq">
-      <span class="idx">05</span><span class="label" data-i18n="menu.faq">Q&amp;A</span>
+      <span class="idx">04</span><span class="label" data-i18n="menu.faq">Q&amp;A</span>
     </a>
     <a class="menu-row hover-target" href="#contact" data-go="contact">
-      <span class="idx">06</span><span class="label" data-i18n="menu.contact">Contact Us</span>
+      <span class="idx">05</span><span class="label" data-i18n="menu.contact">Contact Us</span>
     </a>
   </nav>
 </div>
@@ -2343,52 +1809,52 @@
         <div class="film-reel" id="filmTrack">
           <!-- 一位主持人兩格：第一張點開是介紹，第二張點開是過往經歷 -->
           <article class="frame">
-            <div class="frame-shot" style="--a:#2b3a66; --b:#0d1220; background-image: url(../../assets/team/01.jpg); background-size: cover; background-position: center 26%"><span class="num">01</span><span class="frame-role" data-i18n="teams.s1">Gisele | Profile</span></div>
+            <div class="frame-shot" style="--a:#2b3a66; --b:#0d1220; background-image: url(team-01.jpg); background-size: cover; background-position: center 26%"><span class="num">01</span><span class="frame-role" data-i18n="teams.s1">Gisele | Profile</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#4a2a2a; --b:#170d0d; background-image: url(../../assets/team/02.jpg); background-size: cover; background-position: center 50%"><span class="num">02</span><span class="frame-role" data-i18n="teams.s2">Gisele | Selected work</span></div>
+            <div class="frame-shot" style="--a:#4a2a2a; --b:#170d0d; background-image: url(team-02.jpg); background-size: cover; background-position: center 50%"><span class="num">02</span><span class="frame-role" data-i18n="teams.s2">Gisele | Selected work</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#1f4a4a; --b:#0b1516; background-image: url(../../assets/team/03.jpg); background-size: cover; background-position: center 16%"><span class="num">03</span><span class="frame-role" data-i18n="teams.s3">Wendy | Profile</span></div>
+            <div class="frame-shot" style="--a:#1f4a4a; --b:#0b1516; background-image: url(team-03.jpg); background-size: cover; background-position: center 16%"><span class="num">03</span><span class="frame-role" data-i18n="teams.s3">Wendy | Profile</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#3d3a18; --b:#14130a; background-image: url(../../assets/team/04.jpg); background-size: cover; background-position: center 10%"><span class="num">04</span><span class="frame-role" data-i18n="teams.s4">Wendy | Selected work</span></div>
+            <div class="frame-shot" style="--a:#3d3a18; --b:#14130a; background-image: url(team-04.jpg); background-size: cover; background-position: center 10%"><span class="num">04</span><span class="frame-role" data-i18n="teams.s4">Wendy | Selected work</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#33265c; --b:#100c1c; background-image: url(../../assets/team/05.jpg); background-size: cover; background-position: center 18%"><span class="num">05</span><span class="frame-role" data-i18n="teams.s5">Nina | Profile</span></div>
+            <div class="frame-shot" style="--a:#33265c; --b:#100c1c; background-image: url(team-05.jpg); background-size: cover; background-position: center 18%"><span class="num">05</span><span class="frame-role" data-i18n="teams.s5">Nina | Profile</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#2d4a3a; --b:#0b1510; background-image: url(../../assets/team/06.jpg); background-size: cover; background-position: center 50%"><span class="num">06</span><span class="frame-role" data-i18n="teams.s6">Nina | Selected work</span></div>
+            <div class="frame-shot" style="--a:#2d4a3a; --b:#0b1510; background-image: url(team-06.jpg); background-size: cover; background-position: center 50%"><span class="num">06</span><span class="frame-role" data-i18n="teams.s6">Nina | Selected work</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#563d2a; --b:#18100b; background-image: url(../../assets/team/07.jpg); background-size: cover; background-position: center 17%"><span class="num">07</span><span class="frame-role" data-i18n="teams.s7">Jessica | Profile</span></div>
+            <div class="frame-shot" style="--a:#563d2a; --b:#18100b; background-image: url(team-07.jpg); background-size: cover; background-position: center 17%"><span class="num">07</span><span class="frame-role" data-i18n="teams.s7">Jessica | Profile</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#4a2a3a; --b:#170d12; background-image: url(../../assets/team/08.jpg); background-size: cover; background-position: center 80%"><span class="num">08</span><span class="frame-role" data-i18n="teams.s8">Jessica | Selected work</span></div>
+            <div class="frame-shot" style="--a:#4a2a3a; --b:#170d12; background-image: url(team-08.jpg); background-size: cover; background-position: center 80%"><span class="num">08</span><span class="frame-role" data-i18n="teams.s8">Jessica | Selected work</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#25505a; --b:#0a1619; background-image: url(../../assets/team/09.jpg); background-size: cover; background-position: center 12%"><span class="num">09</span><span class="frame-role" data-i18n="teams.s9">TongTong | Profile</span></div>
+            <div class="frame-shot" style="--a:#25505a; --b:#0a1619; background-image: url(team-09.jpg); background-size: cover; background-position: center 12%"><span class="num">09</span><span class="frame-role" data-i18n="teams.s9">TongTong | Profile</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#20405e; --b:#0a131c; background-image: url(../../assets/team/10.jpg); background-size: cover; background-position: center 20%"><span class="num">10</span><span class="frame-role" data-i18n="teams.s10">TongTong | Selected work</span></div>
+            <div class="frame-shot" style="--a:#20405e; --b:#0a131c; background-image: url(team-10.jpg); background-size: cover; background-position: center 20%"><span class="num">10</span><span class="frame-role" data-i18n="teams.s10">TongTong | Selected work</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#3a3550; --b:#111018; background-image: url(../../assets/team/11.jpg); background-size: cover; background-position: center 50%"><span class="num">11</span><span class="frame-role" data-i18n="teams.s11">Belina | Profile</span></div>
+            <div class="frame-shot" style="--a:#3a3550; --b:#111018; background-image: url(team-11.jpg); background-size: cover; background-position: center 50%"><span class="num">11</span><span class="frame-role" data-i18n="teams.s11">Belina | Profile</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#4a3556; --b:#140f1a; background-image: url(../../assets/team/12.jpg); background-size: cover; background-position: center 40%"><span class="num">12</span><span class="frame-role" data-i18n="teams.s12">Belina | Selected work</span></div>
+            <div class="frame-shot" style="--a:#4a3556; --b:#140f1a; background-image: url(team-12.jpg); background-size: cover; background-position: center 40%"><span class="num">12</span><span class="frame-role" data-i18n="teams.s12">Belina | Selected work</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#1b2436; --b:#080b12; background-image: url(../../assets/team/13.jpg); background-size: cover; background-position: center 11%"><span class="num">13</span><span class="frame-role" data-i18n="teams.s13">LC | Profile</span></div>
+            <div class="frame-shot" style="--a:#1b2436; --b:#080b12; background-image: url(team-13.jpg); background-size: cover; background-position: center 11%"><span class="num">13</span><span class="frame-role" data-i18n="teams.s13">LC | Profile</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#2a2a2a; --b:#0d0d0d; background-image: url(../../assets/team/14.jpg); background-size: cover; background-position: center 5%"><span class="num">14</span><span class="frame-role" data-i18n="teams.s14">LC | Selected work</span></div>
+            <div class="frame-shot" style="--a:#2a2a2a; --b:#0d0d0d; background-image: url(team-14.jpg); background-size: cover; background-position: center 5%"><span class="num">14</span><span class="frame-role" data-i18n="teams.s14">LC | Selected work</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#5a3a18; --b:#1a1008; background-image: url(../../assets/team/15.jpg); background-size: cover; background-position: center 6%"><span class="num">15</span><span class="frame-role" data-i18n="teams.s15">曼加非洲戰鼓團 | About the group</span></div>
+            <div class="frame-shot" style="--a:#5a3a18; --b:#1a1008; background-image: url(team-15.jpg); background-size: cover; background-position: center 6%"><span class="num">15</span><span class="frame-role" data-i18n="teams.s15">曼加非洲戰鼓團 | About the group</span></div>
           </article>
           <article class="frame">
-            <div class="frame-shot" style="--a:#3d5a2a; --b:#101a0b; background-image: url(../../assets/team/16.jpg); background-size: cover; background-position: center 50%"><span class="num">16</span><span class="frame-role" data-i18n="teams.s16">曼加非洲戰鼓團 | Highlights</span></div>
+            <div class="frame-shot" style="--a:#3d5a2a; --b:#101a0b; background-image: url(team-16.jpg); background-size: cover; background-position: center 50%"><span class="num">16</span><span class="frame-role" data-i18n="teams.s16">曼加非洲戰鼓團 | Highlights</span></div>
           </article>
         </div>
       </div>
@@ -2410,104 +1876,11 @@
   </div>
 </section>
 
-<!-- ##PF-START## -->
-<!-- ── 04 Portfolio：捲動推進的三段式 ─── -->
-<section class="scene" data-scene="portfolio" aria-hidden="true">
-  <div class="scene-inner" id="pfWrap">
-    <div class="pf-track" id="pfTrack">
-      <div class="pf-stage" id="pfStage">
-
-        <!-- 三明治：軌道細線 → 後半段面板 → 大標 → 前半段面板。
-             面板依自己的深度被丟進 back 或 front 那一層，
-             大標才能真的被緞帶夾住 -->
-        <svg class="pf-rails" id="pfRails" aria-hidden="true" preserveAspectRatio="none">
-          <path class="pf-rail" id="pfRail1" fill="none"></path>
-          <path class="pf-rail" id="pfRail2" fill="none"></path>
-        </svg>
-        <div class="pf-rib pf-rib-back" id="pfRibBack" aria-hidden="true">
-          <div class="pf-rib-in" id="pfRibBackIn"></div>
-        </div>
-
-        <!-- 第一段：錯開的兩行大標 -->
-        <div class="pf-head" id="pfHead">
-          <h2 class="pf-line pf-line-a" id="pfLineA" data-i18n="pf.l1">CHENGYUN</h2>
-          <p class="pf-kicker" id="pfKicker" data-i18n="pf.kicker">Six rooms we built, and what it took to build them.</p>
-          <h2 class="pf-line pf-line-b" id="pfLineB" data-i18n="pf.l2">STUDIO</h2>
-        </div>
-
-        <div class="pf-rib pf-rib-front" id="pfRibFront" aria-hidden="true">
-          <div class="pf-rib-in" id="pfRibFrontIn"></div>
-        </div>
-
-        <!-- 第三段：散落的拼貼 -->
-        <div class="pf-collage" id="pfCollage">
-        <!-- 一個主題兩張照片，這裡只放每一組的第一張當主圖。
-             不是按鈕：看圖 + 下面一行說明就好，不再點進細節頁。 -->
-        <figure class="pf-card" data-i="0" data-speed="0.86"
-                style="left:  4%; top:  8%; width: 26%">
-          <span class="pf-shot" style="background-image: url(../../assets/work/01.jpg)"></span>
-          <figcaption class="pf-cap"><b data-i18n="pf.t1">Year-end gala</b><span data-i18n="pf.m1">GREAT HONOR × JYUAN.AN · 2025</span></figcaption>
-        </figure>
-        <figure class="pf-card" data-i="1" data-speed="1.22"
-                style="left: 36%; top: 20%; width: 20%">
-          <span class="pf-shot" style="background-image: url(../../assets/work/03.jpg)"></span>
-          <figcaption class="pf-cap"><b data-i18n="pf.t2">Brand interview</b><span data-i18n="pf.m2">Client and date to be confirmed</span></figcaption>
-        </figure>
-        <figure class="pf-card" data-i="2" data-speed="0.94"
-                style="left: 62%; top:  4%; width: 30%">
-          <span class="pf-shot" style="background-image: url(../../assets/work/05.jpg)"></span>
-          <figcaption class="pf-cap"><b data-i18n="pf.t3">Sisley annual party</b><span data-i18n="pf.m3">Sisley · 2026</span></figcaption>
-        </figure>
-        <figure class="pf-card" data-i="3" data-speed="1.16"
-                style="left:  8%; top: 52%; width: 22%">
-          <span class="pf-shot" style="background-image: url(../../assets/work/07.jpg)"></span>
-          <figcaption class="pf-cap"><b data-i18n="pf.t4">Weaving Dreams</b><span data-i18n="pf.m4">Hsing Wu University, Dept. of Fashion Design · 2026</span></figcaption>
-        </figure>
-        <figure class="pf-card" data-i="4" data-speed="0.82"
-                style="left: 34%; top: 58%; width: 28%">
-          <span class="pf-shot" style="background-image: url(../../assets/work/09.jpg)"></span>
-          <figcaption class="pf-cap"><b data-i18n="pf.t5">YoungOptics spring party</b><span data-i18n="pf.m5">YoungOptics · 2026</span></figcaption>
-        </figure>
-        <figure class="pf-card" data-i="5" data-speed="1.28"
-                style="left: 70%; top: 46%; width: 24%">
-          <span class="pf-shot" style="background-image: url(../../assets/work/10.jpg)"></span>
-          <figcaption class="pf-cap"><b data-i18n="pf.t6">Children's Day award rally</b><span data-i18n="pf.m6">Mimosa Association × Dahe Village Office · 2026</span></figcaption>
-        </figure>
-        </div>
-
-        <p class="pf-hover" id="pfHover" aria-hidden="true"></p>
-
-        <!-- 路徑編輯器：按 D 才出現 -->
-        <div class="pf-tools" id="pfTools" hidden></div>
-        <div class="pf-status" id="pfStatus" hidden>
-          <p class="pf-status-tip">拖曳控制點改路徑；按住 <b>Shift</b> 上下拖改深度（遠近）。<b>編輯時捲動是鎖住的</b>，要換段請按下面三顆。改動會存在這台裝置的瀏覽器裡。</p>
-          <span class="pf-status-jump" id="pfJump"></span>
-          <p class="pf-status-read">編輯中：<b id="pfStageName">主秀</b></p>
-          <label class="pf-status-slider">並排間距
-            <input type="range" id="pfGap" min="0.6" max="1.4" step="0.01" value="1">
-            <b id="pfGapVal">1.00</b>
-          </label>
-          <label class="pf-status-slider">面板
-            <input type="number" id="pfNP" min="4" max="16" step="1" value="8">張
-          </label>
-          <p class="pf-status-read"><span id="pfOverlap"></span></p>
-          <button class="pf-status-btn" id="pfHome" type="button">回到畫面中</button>
-          <button class="pf-status-btn" id="pfReset" type="button">還原預設</button>
-          <button class="pf-status-btn" id="pfUndo" type="button">取回上次</button>
-        </div>
-        <span class="pf-eyebrow" data-i18n="pf.eyebrow">04 — Portfolio</span>
-        <div class="pf-meter" aria-hidden="true"><i id="pfMeter"></i></div>
-
-      </div>
-    </div>
-  </div>
-</section>
-<!-- ##PF-END## -->
 
 <section class="scene" data-scene="faq" aria-hidden="true">
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-3xl text-left">
-      <span class="eyebrow" data-i18n="faq.eyebrow">05 — Q&amp;A</span>
+      <span class="eyebrow" data-i18n="faq.eyebrow">04 — Q&amp;A</span>
 
       <div class="mt-12">
         <span class="faq-group fx-track" data-i18n="faq.g1">01　Services &amp; Planning</span>
@@ -2592,7 +1965,7 @@
 <section class="scene" data-scene="contact" aria-hidden="true">
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-5xl text-left">
-      <span class="eyebrow" data-i18n="contact.eyebrow">06 — Contact Us</span>
+      <span class="eyebrow" data-i18n="contact.eyebrow">05 — Contact Us</span>
 
       <div class="contact-split">
         <!-- 企業聯絡資訊 -->
@@ -2876,38 +2249,14 @@
         'ui.back': '← Index', 'ui.close': 'Close',
         'label.hero': 'Index', 'label.menu': 'Menu', 'label.about': '01 — About Us',
         'label.services': '02 — Services', 'label.teams': '03 — Teams',
-        'label.portfolio': '04 — Portfolio', 'label.faq': '05 — Q&A', 'label.contact': '06 — Contact Us',
+        'label.faq': '04 — Q&A', 'label.contact': '05 — Contact Us',
         'hint.hero': 'Chengyun Event Studio — Silent Market', 'hint.menu': 'Choose a chapter',
         'hint.faq': 'Click a question to expand',
         'hint.default': 'Esc to go back',
         'menu.about': 'About Us',
         'menu.services': 'Services',
         'menu.teams': 'Teams',
-        'pf.l1': 'CHENGYUN', 'pf.l2': 'STUDIO',
-        'pf.kicker': 'Six rooms we built, and what it took to build them.',
-        'pf.eyebrow': '04 — Portfolio',
-        'pf.scope': 'Scope',
-        'pf.t1': 'Year-end gala', 'pf.t2': 'Brand interview', 'pf.t3': 'Sisley annual party',
-        'pf.t4': 'Weaving Dreams', 'pf.t5': 'YoungOptics spring party', 'pf.t6': 'Children\'s Day award rally',
-        'pf.d1': 'A curated market built on one rule: silence. No loudspeakers, no PA, no microphones \u2014 hand-held signs, boards and purpose-built props carry the exchange instead, so attention stays on the work and the person who made it.',
-        'pf.d2': 'A black-and-gold backdrop wall, geometric side panels, a sequin column and gilded florals turn a hotel lobby into an entrance sequence \u2014 so the first thing a guest sees is already the brand.',
-        'pf.d3': 'A five-piece African drum troupe met guests at the door and carried the room from the lift lobby into the hall. The act at the door is cast, rehearsed and cued the same way the stage inside is.',
-        'pf.d4': 'An LED main stage, a host\u2019s route across it, and an awards run-down timed to the minute. Trophy, microphone, cue \u2014 the three things that have to arrive in the right hand at the right second.',
-        'pf.d5': 'A studio day for a brand film: lectern build, lighting set, a shotgun mic on the camera, and direction given from behind the monitor rather than shouted from the back of the room.',
-        'pf.d6': 'A two-camera founder interview against a full-height window \u2014 daylight as the key, a script loose enough to let the answer wander, and a second angle so the cut has somewhere to go.',
-        'pf.n1': 'Curation \u00b7 Brand selection \u00b7 Production',
-        'pf.n2': 'Key visual \u00b7 Backdrop build \u00b7 Floral styling',
-        'pf.n3': 'Performer casting \u00b7 Entrance staging',
-        'pf.n4': 'LED stage \u00b7 Hosting \u00b7 Run-down',
-        'pf.n5': 'Set build \u00b7 Lighting \u00b7 Direction',
-        'pf.n6': 'Two-camera interview \u00b7 Natural light',
-        'pf.m1': 'GREAT HONOR × JYUAN.AN · 2025',
-        'pf.m2': 'Client and date to be confirmed',
-        'pf.m3': 'Sisley · 2026',
-        'pf.m4': 'Hsing Wu University, Dept. of Fashion Design · 2026',
-        'pf.m5': 'YoungOptics · 2026',
-        'pf.m6': 'Mimosa Association × Dahe Village Office · 2026',
-        'menu.portfolio': 'Portfolio',
+        'pf.t6': 'Children\'s Day award rally',
         'menu.faq': 'Q&A',
         'menu.contact': 'Contact Us',
         'detail.meta': 'Curation · Brand Selection · Production',
@@ -2941,7 +2290,7 @@
         'ui.back': '← 首頁', 'ui.close': '關閉',
         'label.hero': '首頁', 'label.menu': '選單', 'label.about': '01 — 關於我們',
         'label.services': '02 — 服務內容', 'label.teams': '03 — 我們的團隊',
-        'label.portfolio': '04 — 活動成果', 'label.faq': '05 — 常見問題', 'label.contact': '06 — 聯繫我們',
+        'label.faq': '04 — 常見問題', 'label.contact': '05 — 聯繫我們',
         'hint.hero': '澄耘活動工作室 — 默者文畫 無聲風格聚落', 'hint.menu': '選擇章節',
         'hint.faq': '點擊問題可展開回答',
         'hint.default': '按 Esc 返回',
@@ -2960,31 +2309,6 @@
         'menu.about': '關於我們',
         'menu.services': '服務內容',
         'menu.teams': '我們的團隊',
-        'pf.l1': 'CHENGYUN', 'pf.l2': 'STUDIO',
-        'pf.kicker': '六個被我們做出來的場，以及它們花了什麼。',
-        'pf.eyebrow': '04 — 活動成果',
-        'pf.scope': '服務範圍',
-        'pf.t1': '年終感恩晚會', 'pf.t2': '品牌訪談側拍', 'pf.t3': 'Sisley 年會',
-        'pf.t4': '織景 畢業展演', 'pf.t5': '揚明光學春酒晚會', 'pf.t6': '歡慶兒童節表揚大會',
-        'pf.d1': '一場以「安靜」為唯一規則的策展市集。沒有大聲公、沒有音響、沒有麥克風——手舉牌、看板與專屬道具接手叫賣這件事，注意力才留得住在作品與做作品的人身上。',
-        'pf.d2': '黑金主視覺背板、兩側幾何立牌、亮片柱與金色花藝，把飯店大廳圍成一段入場序列——賓客第一眼看見的，已經是品牌本身。',
-        'pf.d3': '五人非洲鼓團在門口迎賓，把場子從電梯口一路帶進會場。門口這一段，和場內的舞台一樣要選角、排練、下 cue。',
-        'pf.d4': 'LED 主舞台、主持人在台上的動線，以及分鐘為單位的頒獎流程。獎座、麥克風、提示——三件事要在對的那一秒進到對的那隻手。',
-        'pf.d5': '品牌形象影片的棚拍日：講台搭設、燈光佈置、機頂槍型麥克風，導演在監看器後面說話，而不是在場邊喊。',
-        'pf.d6': '落地窗前的雙機人物專訪——自然光當主燈，腳本留白讓回答可以走遠一點，第二顆機位則讓剪接有地方去。',
-        'pf.n1': '策展 · 品牌審查 · 現場執行',
-        'pf.n2': '主視覺 · 背板施作 · 花藝陳設',
-        'pf.n3': '表演團隊媒合 · 入場動線',
-        'pf.n4': 'LED 舞台 · 主持 · 流程控管',
-        'pf.n5': '場景搭設 · 燈光 · 導演',
-        'pf.n6': '雙機訪談 · 自然光',
-        'pf.m1': '昭安國際 × 山榮資產 · 2025',
-        'pf.m2': '客戶與日期待補',
-        'pf.m3': 'Sisley · 2026',
-        'pf.m4': '醒吾科技大學 時尚造形設計系 · 2026',
-        'pf.m5': '揚明光學 · 2026',
-        'pf.m6': '含羞草協會 × 大和里里辦公處 · 2026',
-        'menu.portfolio': '活動成果',
         'menu.faq': '常見問題',
         'menu.contact': '聯繫我們',
         'about.eyebrow': '01 — 關於我們',
@@ -3107,14 +2431,7 @@
         'teams.w2.g3': '企業尾牙、春酒與晚宴',
         'teams.w2.g4': '其他重要活動與頒獎典禮',
         'teams.tapHint': '點照片看介紹',
-        'portfolio.meta': '市集策劃 · 品牌招商 · 現場執行',
-        'portfolio.title': '《默者文畫》<br />無聲風格聚落',
-        'portfolio.line': '2026.10.03 – 12.13　|　新北市板橋區雙十廣場',
-        'portfolio.open': '點擊展開細節',
-        'portfolio.f1': '檔期場次（隔週六日）', 'portfolio.f2': '活動天數',
-        'portfolio.f3': '每日開攤，至 20:30', 'portfolio.f4': '首屆舉辦年度',
-        'portfolio.note': '更多活動成果陸續更新。',
-        'faq.eyebrow': '05 — 常見問題',
+        'faq.eyebrow': '04 — 常見問題',
         'faq.g1': '01　服務與規劃流程',
         'faq.q1': '貴公司承辦活動如何計費？',
         'faq.a1': '視廠商的預算來規畫活動的豐富度以及方向性，活動變化多元，皆依客戶需求量身訂製。',
@@ -3144,7 +2461,7 @@
         'faq.q12': '一開始提出的兩款設計都不喜歡，可以額外設計一款嗎？',
         'faq.a12': '一開始會針對想法設計兩款視覺供參考；若客戶都不喜歡，從第三款設計開始將會酌收設計費用。',
         'faq.note': '其他問題歡迎透過官方 IG／FB／LINE 來訊詢問。',
-        'contact.eyebrow': '06 — 聯繫我們',
+        'contact.eyebrow': '05 — 聯繫我們',
         'contact.t2': 'Email', 'contact.d2': '合作提案與媒體聯繫。',
         'contact.note': '澄耘活動工作室 有限公司　|　統一編號 62164766',
         'detail.meta': '市集策劃 · 品牌招商 · 現場執行',
@@ -3178,7 +2495,7 @@
         'ui.back': '← トップ', 'ui.close': '閉じる',
         'label.hero': 'トップ', 'label.menu': 'メニュー', 'label.about': '01 — 私たちについて',
         'label.services': '02 — サービス内容', 'label.teams': '03 — チーム',
-        'label.portfolio': '04 — 実績', 'label.faq': '05 — よくある質問', 'label.contact': '06 — お問い合わせ',
+        'label.faq': '04 — よくある質問', 'label.contact': '05 — お問い合わせ',
         'hint.hero': '澄耘イベントスタジオ — サイレントマーケット', 'hint.menu': '章を選んでください',
         'hint.faq': '質問をクリックで回答',
         'hint.default': 'Esc で戻る',
@@ -3197,31 +2514,6 @@
         'menu.about': '私たちについて',
         'menu.services': 'サービス内容',
         'menu.teams': 'チーム',
-        'pf.l1': 'CHENGYUN', 'pf.l2': 'STUDIO',
-        'pf.kicker': 'つくった六つの場と、それにかかったもの。',
-        'pf.eyebrow': '04 — 実績',
-        'pf.scope': '対応範囲',
-        'pf.t1': '年末感謝パーティー', 'pf.t2': 'ブランド取材', 'pf.t3': 'Sisley 年次パーティー',
-        'pf.t4': '織景 卒業展', 'pf.t5': 'YoungOptics 新春パーティー', 'pf.t6': 'こどもの日表彰大会',
-        'pf.d1': '「静けさ」をただ一つのルールにしたキュレーション・マーケット。拡声器も、PAも、マイクもありません。手持ちの札や看板、専用の小道具がやり取りを引き受け、注意は作品とつくった人のもとに留まります。',
-        'pf.d2': '黒と金のメインバックパネル、両脇の幾何学スタンド、スパンコールの柱、金色のフラワー。ホテルのロビーが入場のシークエンスになり、来場者が最初に目にするものがすでにブランドになります。',
-        'pf.d3': '5人編成のアフリカン・ドラム隊が入口で出迎え、エレベーターホールから会場まで空気を運びます。入口の演出も、場内の舞台と同じようにキャスティングし、リハーサルし、キューを出します。',
-        'pf.d4': 'LEDメインステージ、ステージ上の動線、そして分単位で組んだ表彰の進行。トロフィー、マイク、きっかけ——この三つが、正しい瞬間に正しい手に届くこと。',
-        'pf.d5': 'ブランドムービーのスタジオ撮影。演台の製作、ライティング、カメラ上のガンマイク。ディレクションはモニターの後ろから、部屋の隅から叫ぶのではなく。',
-        'pf.d6': '大きな窓を背にした2カメラの創業者インタビュー。自然光をキーに、答えが少し遠くまで歩ける程度に緩い台本、そして編集に逃げ場をつくる2台目。',
-        'pf.n1': 'キュレーション · 出店審査 · 現場運営',
-        'pf.n2': 'キービジュアル · バックパネル施工 · 装花',
-        'pf.n3': '出演者のキャスティング · 入場動線',
-        'pf.n4': 'LEDステージ · 司会 · 進行管理',
-        'pf.n5': 'セット製作 · ライティング · 演出',
-        'pf.n6': '2カメラ収録 · 自然光',
-        'pf.m1': 'GREAT HONOR × JYUAN.AN · 2025',
-        'pf.m2': 'クライアントと日付は未定',
-        'pf.m3': 'Sisley · 2026',
-        'pf.m4': '醒吾科技大学 ファッションデザイン学科 · 2026',
-        'pf.m5': 'YoungOptics · 2026',
-        'pf.m6': '含羞草協会 × 大和里里事務所 · 2026',
-        'menu.portfolio': '実績',
         'menu.faq': 'よくある質問',
         'menu.contact': 'お問い合わせ',
         'about.eyebrow': '01 — 私たちについて',
@@ -3342,14 +2634,7 @@
         'teams.w2.g3': '企業の忘年会・新年会・晩餐会',
         'teams.w2.g4': 'その他の主要イベント・表彰式',
         'teams.tapHint': '写真をクリックで紹介を表示',
-        'portfolio.meta': 'キュレーション · 出店審査 · 現場運営',
-        'portfolio.title': 'サイレントマーケット<br />默者文畫',
-        'portfolio.line': '2026年10月3日 – 12月13日　|　新北市板橋区 双十広場',
-        'portfolio.open': 'クリックで詳細',
-        'portfolio.f1': '開催回（隔週の土日）', 'portfolio.f2': '開催日数',
-        'portfolio.f3': '毎日15:00開場、20:30まで', 'portfolio.f4': '初開催の年',
-        'portfolio.note': '実績は順次追加します。',
-        'faq.eyebrow': '05 — よくある質問',
+        'faq.eyebrow': '04 — よくある質問',
         'faq.g1': '01　サービスと進め方',
         'faq.q1': 'イベントの費用はどのように決まりますか？',
         'faq.a1': 'ご予算に合わせて内容の密度と方向性を設計します。イベントは一つとして同じものがなく、すべてご要望に合わせたオーダーメイドです。',
@@ -3379,7 +2664,7 @@
         'faq.q12': '最初の2案がどちらも好みでない場合、追加で作ってもらえますか？',
         'faq.a12': '最初にご要望をもとに2案をご提案します。どちらもご希望に沿わない場合、3案目からはデザイン費を申し受けます。',
         'faq.note': 'その他のご質問は公式 IG／FB／LINE までお気軽にどうぞ。',
-        'contact.eyebrow': '06 — お問い合わせ',
+        'contact.eyebrow': '05 — お問い合わせ',
         'contact.t2': 'Email', 'contact.d2': '協業のご提案と取材のお問い合わせ。',
         'contact.note': '澄耘活動工作室 有限公司　|　統一番号 62164766',
         'detail.meta': 'キュレーション · 出店審査 · 現場運営',
@@ -3791,8 +3076,6 @@
       current = name;
       if (name === 'hero') { setProgress(0); }
       root.classList.toggle('is-inner', name !== 'hero');
-      /* 米白底的章節：觸控版的頁首靠這個把字翻成墨色（見 .burger 附近的說明） */
-      root.classList.toggle('is-lightbg', name === 'teams');
       syncRest(name !== 'hero');
       syncChrome();
       watchScene(to);
@@ -4478,22 +3761,22 @@
        focus 是等比裁切時的垂直焦點（0 = 貼齊上緣、1 = 貼齊下緣），
        直式照片放進橫式片格會裁掉上下，用它把人臉留在畫面裡 */
     const FILM_ART = [
-      { a: '#2b3a66', b: '#0d1220', src: '../../assets/team/01.jpg', focus: .26 },
-      { a: '#4a2a2a', b: '#170d0d', src: '../../assets/team/02.jpg', focus: .50 },
-      { a: '#1f4a4a', b: '#0b1516', src: '../../assets/team/03.jpg', focus: .16 },
-      { a: '#3d3a18', b: '#14130a', src: '../../assets/team/04.jpg', focus: .10 },
-      { a: '#33265c', b: '#100c1c', src: '../../assets/team/05.jpg', focus: .18 },
-      { a: '#2d4a3a', b: '#0b1510', src: '../../assets/team/06.jpg', focus: .50 },
-      { a: '#563d2a', b: '#18100b', src: '../../assets/team/07.jpg', focus: .17 },
-      { a: '#4a2a3a', b: '#170d12', src: '../../assets/team/08.jpg', focus: .80 },
-      { a: '#25505a', b: '#0a1619', src: '../../assets/team/09.jpg', focus: .12 },
-      { a: '#20405e', b: '#0a131c', src: '../../assets/team/10.jpg', focus: .20 },
-      { a: '#3a3550', b: '#111018', src: '../../assets/team/11.jpg', focus: .50 },
-      { a: '#4a3556', b: '#140f1a', src: '../../assets/team/12.jpg', focus: .40 },
-      { a: '#1b2436', b: '#080b12', src: '../../assets/team/13.jpg', focus: .11 },
-      { a: '#2a2a2a', b: '#0d0d0d', src: '../../assets/team/14.jpg', focus: .05 },
-      { a: '#5a3a18', b: '#1a1008', src: '../../assets/team/15.jpg', focus: .06 },
-      { a: '#3d5a2a', b: '#101a0b', src: '../../assets/team/16.jpg', focus: .50 }
+      { a: '#2b3a66', b: '#0d1220', src: 'team-01.jpg', focus: .26 },
+      { a: '#4a2a2a', b: '#170d0d', src: 'team-02.jpg', focus: .50 },
+      { a: '#1f4a4a', b: '#0b1516', src: 'team-03.jpg', focus: .16 },
+      { a: '#3d3a18', b: '#14130a', src: 'team-04.jpg', focus: .10 },
+      { a: '#33265c', b: '#100c1c', src: 'team-05.jpg', focus: .18 },
+      { a: '#2d4a3a', b: '#0b1510', src: 'team-06.jpg', focus: .50 },
+      { a: '#563d2a', b: '#18100b', src: 'team-07.jpg', focus: .17 },
+      { a: '#4a2a3a', b: '#170d12', src: 'team-08.jpg', focus: .80 },
+      { a: '#25505a', b: '#0a1619', src: 'team-09.jpg', focus: .12 },
+      { a: '#20405e', b: '#0a131c', src: 'team-10.jpg', focus: .20 },
+      { a: '#3a3550', b: '#111018', src: 'team-11.jpg', focus: .50 },
+      { a: '#4a3556', b: '#140f1a', src: 'team-12.jpg', focus: .40 },
+      { a: '#1b2436', b: '#080b12', src: 'team-13.jpg', focus: .11 },
+      { a: '#2a2a2a', b: '#0d0d0d', src: 'team-14.jpg', focus: .05 },
+      { a: '#5a3a18', b: '#1a1008', src: 'team-15.jpg', focus: .06 },
+      { a: '#3d5a2a', b: '#101a0b', src: 'team-16.jpg', focus: .50 }
     ];
 
     /* 每位主持人佔兩格：第一格是介紹，第二格是過往經歷 */
@@ -4963,7 +4246,7 @@
        章節內容比畫面高時，滾輪先在章節裡捲（交給瀏覽器原生捲動）；
        捲到底再繼續往同方向推，才換到下一章。
        首頁與過場自己處理滾輪，膠卷與作品索引則是走到頭才交棒。 */
-    const ORDER = ['hero', 'intro', 'about', 'services', 'teams', 'portfolio', 'faq', 'contact'];
+    const ORDER = ['hero', 'intro', 'about', 'services', 'teams', 'faq', 'contact'];
     let navEdge = 0;                                   /* 在邊界持續推的累積量 */
     let navLock = 0;                                   /* 換場冷卻，一次手勢只走一章 */
     let navDir = 0;                                    /* 這次換場的方向：往下從頭進、往上從尾巴進 */
@@ -5031,10 +4314,7 @@
         ? navTouch.top >= el.scrollHeight - el.clientHeight - 2
         : navTouch.top <= 2);
       if (!wasEdge) { return; }
-      /* 膠卷那一章，滾輪版要求先把片子看到底才放行（滾輪本來就在推片子）。
-         手指不一樣：直滑不會動到膠卷，橫滑才會 —— 沿用同一條規則的話，
-         就得先把十六張全部撥完才離得開這一章。直滑在觸控上意思很明確，
-         所以這裡不看膠卷停在第幾格。 */
+      if (current === 'teams' && !filmAtEdge(dir)) { return; }
       if (performance.now() < navLock) { return; }
       sceneStep(dir);
     }, { passive: true });
@@ -5111,8 +4391,8 @@
       introLoaded = true;
       const small = innerWidth < 900 || (navigator.connection && navigator.connection.saveData);
       const q = small ? '480' : '720';
-      introVideo.src = '../../assets/seg-a-' + q + '.mp4';
-      introVideoB.src = '../../assets/seg-b-' + q + '.mp4';
+      introVideo.src = 'seg-a-' + q + '.mp4';
+      introVideoB.src = 'seg-b-' + q + '.mp4';
       introVideo.load();
       introVideoB.load();
     }
@@ -5418,1166 +4698,6 @@
     });
 
 
-    /* ##PF-START## 活動成果的程式。建 chengyun 版時整段拿掉 */
-    /* ══ 04 活動成果：捲動推進的三段式 ═══════════════════════
-       整章有自己的 500svh 行程，舞台用 CSS sticky 釘住。
-       畫面完全由 pfRender(p) 這一個純函式決定，p 是 0→1 的捲動進度，
-       往回捲就是把 p 倒著餵進去，所以可逆是結構上的。
-
-       第二段與第三段是同一批卡片：緞帶飛完不會消失，而是把位置、
-       旋轉、彎曲度一起補間到拼貼的位置上。卡片的擺位交給 JS
-       （mesh.position / quaternion），著色器只負責把平面繞著
-       自己的中心彎起來——兩件事分開，補間才寫得乾淨。 */
-    const pfWrap = document.getElementById('pfWrap');
-    const pfTrack = document.getElementById('pfTrack');
-    const pfHead = document.getElementById('pfHead');
-    const pfLineA = document.getElementById('pfLineA');
-    const pfLineB = document.getElementById('pfLineB');
-    const pfKicker = document.getElementById('pfKicker');
-    const pfMeter = document.getElementById('pfMeter');
-    const pfStage = document.getElementById('pfStage');
-    const pfRailsEl = document.getElementById('pfRails');
-    const pfHover = document.getElementById('pfHover');
-    const pfCards = [...document.querySelectorAll('.pf-card')];
-
-    /* 依提供順序排，緞帶會照這個順序流過去。
-       前四組各兩張，後兩組目前各一張。 */
-    const PF_SHOTS = [
-      '../../assets/work/01.jpg', '../../assets/work/02.jpg',   /* 年終感恩晚會 */
-      '../../assets/work/03.jpg', '../../assets/work/04.jpg',   /* 品牌訪談側拍 */
-      '../../assets/work/05.jpg', '../../assets/work/06.jpg',   /* Sisley 年會 */
-      '../../assets/work/07.jpg', '../../assets/work/08.jpg',   /* 醒吾時尚系畢業展演 */
-      '../../assets/work/09.jpg',                               /* 揚明光學春酒晚會 */
-      '../../assets/work/10.jpg'                                /* 童心熱血 x 浪浪關懷 */
-    ];
-
-    /* 拼貼牆每一格的主圖＝該組的第一張 */
-    const PF_COVER = [0, 2, 4, 6, 8, 9];
-
-    /* 三段的區間 */
-
-    /* ── 緞帶的可調參數。按 D 會在畫面上開編輯器接到這裡 ──
-       幾何模型：整條緞帶就是同一個圓柱上的一片。
-       面板自己的彎曲半徑 = 路徑的圓弧半徑（同一個 RC），兩者一致，
-       接縫處切線就自動吻合，整條看起來才是一條帶子而不是一排柵欄。 */
-    const RIB = {
-      NP: 8,          /* 面板數 */
-      N: 20,          /* 每張面板切幾條縱條。路徑越彎要越多條 */
-      TWIST: 11,      /* 扭轉最大角度（度） */
-      OVERLAP: 5,     /* 縱條左右外擴 px，蓋掉細縫 */
-      P: 1200,        /* perspective，必須跟 CSS 的 .pf-rib 同值 */
-      flowSpan: 0.62, /* 整段捲下來流過幾圈 */
-      flow0: 0.00,    /* 起始位移 */
-      damp: 0.07,     /* flow 的 lerp 係數。越小越黏、越大越跟手 */
-      spacing: 1.00,  /* 並排間距：面板中心的間隔佔面板寬的比例。
-                         1 = 首尾剛好相接，<1 重疊、>1 留縫 */
-      bend: 1,        /* 弧面：0 = 面板攤平 */
-      twistOn: 1,     /* 扭轉 */
-      yawOn: 1,       /* 轉向：面板跟著路徑的方向轉 */
-      rollOn: 1,      /* 傾斜：面板跟著路徑的升降傾斜 */
-      splitZ: -420,   /* 前後分界：深度大於這個值的面板疊到大標上面 */
-      railOff: 0.62,  /* 軌道細線離路徑多遠（面板高的倍數） */
-      railAlpha: 0.50,
-      fit: 0.80       /* 窄畫面怎麼塞：0 全部塞進來、1 以高度為準讓兩側跑出去 */
-    };
-
-    /* ── 緞帶跑的路徑 ────────────────────────────────────────
-       三個階段各有一條路徑，每條五個控制點，progress 落在中間時
-       逐點補間。x、y 是舞台寬高的倍數（0 = 正中），z 是深度 px，
-       越大越靠近鏡頭。按 D 開面板後可以直接在畫面上拖控制點。
-
-       面板沿著路徑等弧長鋪：每張的兩端都落在路徑上，彎曲半徑取
-       通過首中尾三點的外接圓——所以路徑怎麼改，接縫都還是密合的。 */
-    const RIB_STAGE = [
-      { name: '進場', at: 0.26, clip: 0.12, pts: [
-        [-0.62, 0.34, 120], [-0.28, 0.40, -120], [0.06, 0.42, -520],
-        [0.40, 0.38, -1000], [0.70, 0.30, -1500] ] },
-      { name: '主秀', at: 0.50, clip: 0.12, pts: [
-        [-0.62, -0.10, -900], [-0.30, 0.02, -260], [0.02, 0.12, 60],
-        [0.34, 0.24, -300], [0.66, 0.34, -1000] ] },
-      { name: '離場', at: 0.82, clip: 0.00, pts: [
-        [-0.55, -0.02, 60], [-0.22, -0.16, -260], [0.12, -0.28, -640],
-        [0.46, -0.36, -1100], [0.78, -0.40, -1600] ] }
-    ];
-    const RIB_LEAD = { x: -0.18, y: 0.78 };   /* 進場之前整條再往左下推 */
-    const RIB_TAIL = { x: 0.46, y: -0.52 };   /* 離場之後整條再往右上飛 */
-
-    /* 編輯器的顯示開關 */
-    const RIB_UI = { edit: true, path: true, play: true };
-
-    /* 改動存在這台裝置的瀏覽器裡，重新整理還在 */
-    const RIB_KEY = 'chengyun.pf.path.v1';
-    /* 路徑座標的設計基準框。實際舞台不是這個尺寸時，整個 3D 場景
-       （x / y / z / perspective）等比縮放，構圖才不會在窄螢幕上垮掉 */
-    const RIB_REF = { w: 1440, h: 900 };
-    const RIB_BAK = 'chengyun.pf.path.bak';   /* 還原預設之前的備份，只會被下一次備份蓋掉 */
-    const RIB_DEFAULT = JSON.stringify({ RIB, RIB_STAGE, RIB_LEAD, RIB_TAIL });
-
-    /* 存檔時一併記下「這份是以哪一版預設值為基準」。讀回來時就分得出
-       每一個值是使用者自己拖出來的，還是只是當時的預設值——前者永遠
-       保留，後者跟著新的預設值走。存檔在任何情況下都不會被自動刪除。 */
-    function ribSave() {
-      try {
-        localStorage.setItem(RIB_KEY, JSON.stringify({
-          v: 2,
-          base: JSON.parse(RIB_DEFAULT),
-          RIB: RIB, RIB_STAGE: RIB_STAGE, RIB_LEAD: RIB_LEAD, RIB_TAIL: RIB_TAIL
-        }));
-      } catch (err) { /* 無痕視窗或封鎖 localStorage：不存就算了 */ }
-    }
-
-    function ribApply(d) {
-      if (!d) { return; }
-      /* 沒有 base 的是舊版存檔：無從分辨，一律當成使用者調過的，全部保留 */
-      const base = d.base || null;
-      /* 這個值跟存檔當下的預設值一樣 → 使用者沒動過它 */
-      const kept = (v, b) => !(base && b !== undefined && v === b);
-
-      if (d.RIB) {
-        Object.keys(RIB).forEach((k) => {
-          /* 存檔裡沒有的鍵＝這一版新加的參數，用新的預設值 */
-          if (typeof d.RIB[k] !== 'number') { return; }
-          if (kept(d.RIB[k], base && base.RIB ? base.RIB[k] : undefined)) { RIB[k] = d.RIB[k]; }
-        });
-      }
-
-      if (Array.isArray(d.RIB_STAGE)) {
-        d.RIB_STAGE.forEach((st, i) => {
-          const t = RIB_STAGE[i];
-          const b = base && base.RIB_STAGE ? base.RIB_STAGE[i] : null;
-          if (!t || !st) { return; }
-          if (typeof st.at === 'number' && kept(st.at, b ? b.at : undefined)) { t.at = st.at; }
-          if (typeof st.clip === 'number' && kept(st.clip, b ? b.clip : undefined)) { t.clip = st.clip; }
-          if (Array.isArray(st.pts) && st.pts.length === t.pts.length) {
-            st.pts.forEach((q, j) => {
-              if (!Array.isArray(q) || q.length !== 3) { return; }
-              const bq = b && b.pts ? b.pts[j] : null;
-              /* 逐點比對：這一點是拖過的就留下，沒拖過的跟著新預設值 */
-              if (base && bq && q[0] === bq[0] && q[1] === bq[1] && q[2] === bq[2]) { return; }
-              t.pts[j] = q.slice();
-            });
-          }
-        });
-      }
-
-      ['x', 'y'].forEach((k) => {
-        const bl = base && base.RIB_LEAD ? base.RIB_LEAD[k] : undefined;
-        const bt = base && base.RIB_TAIL ? base.RIB_TAIL[k] : undefined;
-        if (d.RIB_LEAD && typeof d.RIB_LEAD[k] === 'number' && kept(d.RIB_LEAD[k], bl)) { RIB_LEAD[k] = d.RIB_LEAD[k]; }
-        if (d.RIB_TAIL && typeof d.RIB_TAIL[k] === 'number' && kept(d.RIB_TAIL[k], bt)) { RIB_TAIL[k] = d.RIB_TAIL[k]; }
-      });
-    }
-
-    function ribRead(key) {
-      let raw = null;
-      try { raw = localStorage.getItem(key); } catch (err) { return null; }
-      if (!raw) { return null; }
-      try { return JSON.parse(raw); } catch (err) {
-        console.warn('[chengyun] 活動成果：存起來的路徑讀不回來，用預設值。', err);
-        return null;
-      }
-    }
-
-    function ribLoad() { ribApply(ribRead(RIB_KEY)); }
-
-    function ribReset() {
-      const d = JSON.parse(RIB_DEFAULT);
-      Object.keys(d.RIB).forEach((k) => { RIB[k] = d.RIB[k]; });
-      d.RIB_STAGE.forEach((st, i) => {
-        RIB_STAGE[i].at = st.at;
-        RIB_STAGE[i].clip = st.clip;
-        st.pts.forEach((q, j) => { RIB_STAGE[i].pts[j] = q.slice(); });
-      });
-      RIB_LEAD.x = d.RIB_LEAD.x; RIB_LEAD.y = d.RIB_LEAD.y;
-      RIB_TAIL.x = d.RIB_TAIL.x; RIB_TAIL.y = d.RIB_TAIL.y;
-      /* 清掉之前先留一份，按錯了還有「取回上次」可以按 */
-      try {
-        const cur = localStorage.getItem(RIB_KEY);
-        if (cur) { localStorage.setItem(RIB_BAK, cur); }
-        localStorage.removeItem(RIB_KEY);
-      } catch (err) { /* 沒存過就算了 */ }
-    }
-
-    /* 把備份讀回來。有東西就回 true */
-    function ribRestore() {
-      const d = ribRead(RIB_BAK);
-      if (!d) { return false; }
-      ribApply(d);
-      ribSave();
-      return true;
-    }
-
-    ribLoad();
-
-    /* 大標的橫越 */
-    const PF = {
-      titleSpan: 1.42,    /* 兩行大標全程橫越幾個畫面寬 */
-      titleMid: 0.465     /* 走到第幾成時剛好回到原本的版位 */
-    };
-
-    /* 各階段的 progress 起訖 */
-    const PF_T = {
-      titleSweepA: 0.00, titleSweepB: 0.92,   /* 大標橫越的起訖，中間不停 */
-      ringInA:  0.16, ringInB:  0.34,
-      showA:    0.42, showB:    0.62,
-      ringOutA: 0.55, ringOutB: 0.84,
-      morphA:   0.85, morphB:   1.00
-    };
-
-    const pfSpan = (v, a, b) => clamp((v - a) / (b - a), 0, 1);
-    const pfEaseOut = (x) => 1 - Math.pow(1 - x, 3);
-    const pfEaseIn = (x) => x * x * x;
-    const pfSmooth = (x) => x * x * (3 - 2 * x);   /* 兩端都緩，中段才是主要行程 */
-    const pfEase = pfEaseOut;
-
-    /* 拼貼卡片的說明跟著語言走 */
-    pfSync = function () {
-      if (pfHoverIndex >= 0) { pfShowHover(pfHoverIndex); }
-    };
-
-    let pfRib = null;           /* 第二段的 CSS 3D 圓柱緞帶 */
-    let pfIntroRaf = 0;
-    let pfLast = 0;             /* 最後一次算過的 progress */
-    let pfHoverIndex = -1;      /* 滑鼠停在哪一張卡片上 */
-    let pfHandoff = null;       /* 交棒那一刻，緞帶上第一張照片的位置 */
-
-    /* 進到這一章時重畫一次，讓畫面對上目前的捲動位置。
-       大標的進場本身交給 progress（0.00–0.25），不再另外播一次 */
-    function pfHeadIntro() {
-      cancelAnimationFrame(pfIntroRaf);
-      pfIntroRaf = requestAnimationFrame(() => pfRender(reduce ? 1 : (pfScrub ? pfLast : pfProgress())));
-    }
-
-    function pfShowHover(i) {
-      pfHoverIndex = i;
-      if (i < 0) { pfHover.classList.remove('is-on'); return; }
-      const n = (i % PF_SHOTS.length) + 1;
-      pfHover.innerHTML = '';
-      const b = document.createElement('b');
-      b.textContent = t('pf.t' + n);
-      pfHover.append(b, document.createTextNode('　' + t('pf.m' + n)));
-      pfHover.classList.add('is-on');
-    }
-
-    function pfRender(p) {
-      p = clamp(p, 0, 1);
-      pfLast = p;
-
-      /* 關掉動態時沒有捲動敘事可言，全部停在最終狀態 */
-      if (reduce) {
-        pfHead.style.opacity = '1';
-        pfLineA.style.transform = pfLineB.style.transform = pfKicker.style.transform = 'none';
-        pfCards.forEach((el) => { el.style.opacity = '1'; el.style.transform = 'none'; el.classList.add('is-live'); });
-        pfMeter.style.transform = 'scaleX(1)';
-        return;
-      }
-
-      /* 第一段：兩行大標全程等速橫越。上排一路往右、下排一路往左，
-         中段兩行會同時經過畫面中央——那是刻意的，對照參考圖 D */
-      const u = pfSpan(p, PF_T.titleSweepA, PF_T.titleSweepB);
-      const inn = pfEaseOut(pfSpan(p, PF_T.titleSweepA, PF_T.titleSweepA + .18));
-      const gone = pfSpan(p, PF_T.morphA - .14, PF_T.morphA);
-      const W = pfHead.clientWidth || innerWidth;
-      const ax = (u - PF.titleMid) * PF.titleSpan * W;
-      const bx = -ax;
-      pfLineA.style.transform = 'translate3d(' + ax.toFixed(1) + 'px,0,0)';
-      pfLineB.style.transform = 'translate3d(' + bx.toFixed(1) + 'px,0,0)';
-      pfKicker.style.transform = 'translate3d(0,' + (20 * (1 - inn)).toFixed(2) + 'px,0)';
-      pfKicker.style.opacity = (inn * (1 - gone)).toFixed(3);
-      pfHead.style.opacity = '1';
-
-      /* 第二段：緞帶自己有阻尼迴圈，這裡只把目標值交給它 */
-      if (pfRib) { pfRib.set(p); }
-
-      /* 第三段：拼貼牆是真的 DOM，逐張淡進來、各自不同的視差速度。
-         第一張不淡入——它從緞帶上同一張照片的位置直接接手飛過來，
-         兩段動畫是同一個動作的上下半場。 */
-      const g = pfSpan(p, PF_T.morphA, 1);
-      if (g <= 0) { pfHandoff = null; }
-      else if (!pfHandoff) {
-        const from = (pfRib && pfRib.rectOf) ? pfRib.rectOf(PF_SHOTS[0]) : null;
-        if (!from) {
-          pfHandoff = 'none';
-        } else {
-          /* 量自己「沒有 transform」時的版位，只量這一次 */
-          const el0 = pfCards[0];
-          const keep = el0.style.transform;
-          el0.style.transform = 'none';
-          const to = el0.getBoundingClientRect();
-          el0.style.transform = keep;
-          pfHandoff = (to.width > 4) ? { from, to } : 'none';
-        }
-      }
-
-      pfCards.forEach((el, i) => {
-        const sp = parseFloat(el.dataset.speed) || 1;
-        const k = pfEase(clamp((g - i * .05) / .42, 0, 1));
-
-        if (i === 0 && pfHandoff && pfHandoff !== 'none') {
-          /* FLIP：從緞帶那張的外接框，補間回自己的版位 */
-          const to = pfHandoff.to, from = pfHandoff.from;
-          const w = to.width || 1;
-          const kk = pfEaseOut(clamp(g / .55, 0, 1));
-          const dx = (from.left + from.width / 2) - (to.left + to.width / 2);
-          const dy = (from.top + from.height / 2) - (to.top + to.height / 2);
-          const sc = from.width / w;
-          el.style.opacity = clamp(g / .08, 0, 1).toFixed(3);
-          el.style.transform = 'translate3d(' + (dx * (1 - kk)).toFixed(1) + 'px,' +
-            (dy * (1 - kk)).toFixed(1) + 'px,0) scale(' +
-            (1 + (sc - 1) * (1 - kk)).toFixed(3) + ')';
-          el.classList.toggle('is-live', k > .6);
-          return;
-        }
-
-        el.style.opacity = k.toFixed(3);
-        el.style.transform = 'translate3d(0,' + ((1 - g) * 170 * sp).toFixed(2) + 'px,0) scale(' + (.9 + .1 * k).toFixed(3) + ')';
-        el.classList.toggle('is-live', k > .6);
-      });
-
-      pfMeter.style.transform = 'scaleX(' + p.toFixed(4) + ')';
-    }
-
-    /* ── 第二段：純 CSS 3D 的緞帶，沿一條可編輯的路徑鋪 ───────
-       面板沿路徑等弧長鋪，每張的兩端都落在路徑上，彎曲半徑取通過
-       首中尾三點的外接圓——相鄰面板共用同一個端點，所以路徑怎麼改
-       接縫都密合。面板自己再切成 N 條縱條各轉一點角度拼成弧面。 */
-    function pfMakeRibbon() {
-      if (pfRib || reduce) { return; }
-
-      const backIn = document.getElementById('pfRibBackIn');
-      const frontIn = document.getElementById('pfRibFrontIn');
-      const ribBack = document.getElementById('pfRibBack');
-      const ribFront = document.getElementById('pfRibFront');
-      const rails = document.getElementById('pfRails');
-      const rail1 = document.getElementById('pfRail1');
-      const rail2 = document.getElementById('pfRail2');
-      if (!backIn || !frontIn) { return; }
-
-      const elTools = document.getElementById('pfTools');
-      const elStatus = document.getElementById('pfStatus');
-      const elGap = document.getElementById('pfGap');
-      const elGapVal = document.getElementById('pfGapVal');
-      const elNP = document.getElementById('pfNP');
-      const elJump = document.getElementById('pfJump');
-      const elStageName = document.getElementById('pfStageName');
-      const elOverlap = document.getElementById('pfOverlap');
-      const elReset = document.getElementById('pfReset');
-      const elHome = document.getElementById('pfHome');
-      const elUndo = document.getElementById('pfUndo');
-
-      const CN = RIB_STAGE[0].pts.length;   /* 控制點數 */
-      const M = 200;                        /* 路徑取樣數 */
-
-      let panels = [];
-      let Ww = 320, Wh = 266;
-      let stageW = 1440, stageH = 900;
-      let sc = 1, Pn = RIB.P;   /* 場景等比縮放倍率，以及跟著縮的透視距離 */
-      let flow = 0, flowTarget = 0, raf = 0, live = false, prog = 0;
-      let curve = [], arcTab = [], arcTotal = 1;
-      let editing = false;
-
-      function measure() {
-        stageW = pfStage.clientWidth || innerWidth;
-        stageH = pfStage.clientHeight || innerHeight;
-        /* 寬、高各自塞得下基準框的倍率。RIB.fit=0 完全塞進畫面，
-           =1 則以高度為準、任由緞帶往左右兩側跑出去（原本的構圖就是
-           要跑出去的）。1440x900 時兩者都是 1，桌機完全不受影響 */
-        const fw = stageW / RIB_REF.w, fh = stageH / RIB_REF.h;
-        sc = clamp(lerp(Math.min(fw, fh), fh, clamp(RIB.fit, 0, 1)), .2, 1.8);
-        Pn = RIB.P * sc;
-        pfStage.style.setProperty('--pf-persp', Pn.toFixed(1) + 'px');
-        rails.setAttribute('viewBox', '0 0 ' + stageW + ' ' + stageH);
-      }
-
-      /* 路徑座標（以基準框為單位）跟場景像素之間的換算 */
-      const uX = (v) => v * RIB_REF.w * sc;
-      const uY = (v) => v * RIB_REF.h * sc;
-      const iX = (v) => v / (RIB_REF.w * sc);
-      const iY = (v) => v / (RIB_REF.h * sc);
-
-      /* progress → 這一刻的控制點（三個階段之間逐點補間，
-         進場之前與離場之後再整條偏移，讓它滑進滑出畫面） */
-      function ctrlNow(t) {
-        const S = RIB_STAGE;
-        const keys = [
-          { p: Math.min(PF_T.ringInA, S[0].at - .04), st: S[0], off: RIB_LEAD },
-          { p: S[0].at, st: S[0], off: null },
-          { p: S[1].at, st: S[1], off: null },
-          { p: S[2].at, st: S[2], off: null },
-          { p: Math.max(PF_T.morphA, S[2].at + .04), st: S[2], off: RIB_TAIL }
-        ];
-        let k = 0;
-        while (k < keys.length - 2 && t > keys[k + 1].p) { k++; }
-        const A = keys[k], B = keys[k + 1];
-        const u = pfSmooth(clamp((t - A.p) / Math.max(B.p - A.p, 1e-4), 0, 1));
-        const out = [];
-        for (let i = 0; i < CN; i++) {
-          const a = A.st.pts[i], b = B.st.pts[i];
-          const ax = a[0] + (A.off ? A.off.x : 0), ay = a[1] + (A.off ? A.off.y : 0);
-          const bx = b[0] + (B.off ? B.off.x : 0), by = b[1] + (B.off ? B.off.y : 0);
-          out.push({
-            x: uX(lerp(ax, bx, u)),
-            y: uY(lerp(ay, by, u)),
-            z: lerp(a[2], b[2], u) * sc
-          });
-        }
-        return { pts: out, clip: lerp(A.st.clip, B.st.clip, u) };
-      }
-
-      /* Catmull–Rom，兩端各補一個虛擬點 */
-      function spline(c, u) {
-        const n = c.length - 1;
-        const f = clamp(u, 0, 1) * n;
-        const i = Math.min(Math.floor(f), n - 1);
-        const w = f - i;
-        const p0 = c[Math.max(i - 1, 0)], p1 = c[i], p2 = c[i + 1], p3 = c[Math.min(i + 2, n)];
-        const w2 = w * w, w3 = w2 * w;
-        const h = (a, b, cc, d) =>
-          .5 * ((2 * b) + (-a + cc) * w + (2 * a - 5 * b + 4 * cc - d) * w2 + (-a + 3 * b - 3 * cc + d) * w3);
-        return { x: h(p0.x, p1.x, p2.x, p3.x), y: h(p0.y, p1.y, p2.y, p3.y), z: h(p0.z, p1.z, p2.z, p3.z) };
-      }
-
-      function buildPath(t) {
-        const c = ctrlNow(t);
-        curve = [];
-        for (let i = 0; i <= M; i++) { curve.push(spline(c.pts, i / M)); }
-        arcTab = [0];
-        for (let i = 1; i <= M; i++) {
-          const a = curve[i - 1], b = curve[i];
-          arcTab.push(arcTab[i - 1] + Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z));
-        }
-        arcTotal = arcTab[M] || 1;
-        return c;
-      }
-
-      /* 弧長 → 路徑上的點（超出兩端就沿切線外推，面板才不會擠在端點） */
-      function pathAt(sr) {
-        if (sr <= 0) {
-          const a = curve[0], b = curve[1];
-          const d = Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z) || 1;
-          const k = sr / d;
-          return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, z: a.z + (b.z - a.z) * k };
-        }
-        if (sr >= arcTotal) {
-          const a = curve[M - 1], b = curve[M];
-          const d = Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z) || 1;
-          const k = (sr - arcTotal) / d;
-          return { x: b.x + (b.x - a.x) * k, y: b.y + (b.y - a.y) * k, z: b.z + (b.z - a.z) * k };
-        }
-        let lo = 0, hi = M;
-        while (lo + 1 < hi) { const mid = (lo + hi) >> 1; if (arcTab[mid] <= sr) { lo = mid; } else { hi = mid; } }
-        const seg = arcTab[hi] - arcTab[lo] || 1;
-        const w = (sr - arcTab[lo]) / seg;
-        const a = curve[lo], b = curve[hi];
-        return { x: lerp(a.x, b.x, w), y: lerp(a.y, b.y, w), z: lerp(a.z, b.z, w) };
-      }
-
-      function fadeAtEnds(t) {
-        if (t < .08) { return Math.max(0, t / .08); }
-        if (t > .94) { return Math.max(0, (1 - t) / .06); }
-        return 1;
-      }
-
-      function roll(t) { return RIB.TWIST * Math.sin(t * Math.PI * 2); }
-
-      /* 縱條：只建一次。left / width / 背景都只跟面板寬有關，
-         每幀變的只有 --dx / --dz / --a 三個值。 */
-      function buildStrips(rec) {
-        const el = rec.el;
-        el.innerHTML = '';
-        rec.strips = [];
-        const N = Math.max(4, Math.round(RIB.N));
-        for (let i = 0; i < N; i++) {
-          const u = (i + .5) / N;
-          const st = document.createElement('div');
-          st.className = 'pf-strip';
-          st.style.backgroundImage = 'url(' + rec.src + ')';
-          st.style.setProperty('--u', u.toFixed(4));
-          st._u = u;
-          el.appendChild(st);
-          rec.strips.push(st);
-        }
-        sizeStrips(rec);
-      }
-
-      /* 面板寬變了就重算縱條的位置與背景（不重建元素） */
-      function sizeStrips(rec) {
-        const N = rec.strips.length || 1;
-        const sw = Ww / N;
-        const ar = rec.ar || 1.5;
-        let bw = Ww, bh = Ww / ar;
-        if (bh < Wh) { bh = Wh; bw = Wh * ar; }
-        const ox = (Ww - bw) / 2, oy = (Wh - bh) / 2;
-        rec.el.style.setProperty('--cw', Ww.toFixed(1) + 'px');
-        for (let i = 0; i < N; i++) {
-          const st = rec.strips[i];
-          const x0 = i * sw - RIB.OVERLAP / 2;
-          st.style.left = x0.toFixed(2) + 'px';
-          st.style.width = (sw + RIB.OVERLAP).toFixed(2) + 'px';
-          st.style.backgroundSize = bw.toFixed(1) + 'px ' + bh.toFixed(1) + 'px';
-          st.style.backgroundPosition = (-x0 + ox).toFixed(1) + 'px ' + oy.toFixed(1) + 'px';
-          st._flat = (st._u - .5) * Ww;
-        }
-        rec.flat = null;
-      }
-
-      /* 把這張面板貼到路徑上：每一條縱條各自去路徑上取自己的點與切線，
-         再換算成面板自己的座標。不是「一張一個圓弧」，所以同一張面板裡
-         可以有反曲點——路徑彎幾次就跟著彎幾次。 */
-      const eX = { x: 0, y: 0, z: 0 }, eY = { x: 0, y: 0, z: 0 }, eZ = { x: 0, y: 0, z: 0 };
-
-      function bendPanel(rec, pm, ry, rz, sMid) {
-        const strips = rec.strips;
-        if (!RIB.bend) {
-          if (rec.flat) { return; }
-          rec.flat = true;
-          for (let i = 0; i < strips.length; i++) {
-            strips[i].style.setProperty('--dx', '0px');
-            strips[i].style.setProperty('--dy', '0px');
-            strips[i].style.setProperty('--dz', '0px');
-            strips[i].style.setProperty('--a', '0deg');
-          }
-          return;
-        }
-        rec.flat = false;
-        /* 面板的三根軸（CSS 是先 rotateY(ry) 再 rotateZ(rz)） */
-        const cy = Math.cos(ry), sy = Math.sin(ry);
-        const cz = Math.cos(rz), sz = Math.sin(rz);
-        eX.x = cz * cy; eX.y = sz; eX.z = -cz * sy;
-        eY.x = -sz * cy; eY.y = cz; eY.z = sz * sy;
-        eZ.x = sy; eZ.y = 0; eZ.z = cy;
-        const h = Math.max(Ww / (strips.length * 2), 1);
-        for (let i = 0; i < strips.length; i++) {
-          const st = strips[i];
-          const fx = st._flat;
-          const q = pathAt(sMid + fx);
-          const dx = q.x - pm.x, dy = q.y - pm.y, dz = q.z - pm.z;
-          const lx = dx * eX.x + dy * eX.y + dz * eX.z;
-          const ly = dx * eY.x + dy * eY.y + dz * eY.z;
-          const lz = dx * eZ.x + dy * eZ.y + dz * eZ.z;
-          const qa = pathAt(sMid + fx - h), qb = pathAt(sMid + fx + h);
-          const tx = (qb.x - qa.x) * eX.x + (qb.y - qa.y) * eX.y + (qb.z - qa.z) * eX.z;
-          const tz = (qb.x - qa.x) * eZ.x + (qb.y - qa.y) * eZ.y + (qb.z - qa.z) * eZ.z;
-          st.style.setProperty('--dx', (lx - fx).toFixed(2) + 'px');
-          st.style.setProperty('--dy', ly.toFixed(2) + 'px');
-          st.style.setProperty('--dz', lz.toFixed(2) + 'px');
-          st.style.setProperty('--a', (Math.atan2(-tz, tx) * 180 / Math.PI).toFixed(3) + 'deg');
-        }
-      }
-
-      function build() {
-        panels.forEach((q) => q.el.remove());
-        panels = [];
-        measure();
-        buildPath(prog);
-        const NP = Math.max(3, Math.round(RIB.NP));
-        /* 面板寬 = 每張分到的弧長 x 並排間距。1 = 首尾剛好相接 */
-        Ww = arcTotal / NP / Math.max(RIB.spacing, .2);
-        Wh = Ww * 5 / 6;
-        for (let i = 0; i < NP; i++) {
-          const el = document.createElement('div');
-          el.className = 'pf-panel';
-          const rec = { el, i, side: -1, src: PF_SHOTS[i % PF_SHOTS.length], strips: [], ar: 1.5, flat: null };
-          const img = new Image();
-          img.onload = () => { rec.ar = img.naturalWidth / img.naturalHeight; buildStrips(rec); };
-          img.src = rec.src;
-          buildStrips(rec);
-          frontIn.appendChild(el);
-          panels.push(rec);
-        }
-      }
-
-      /* 每幀只更新 NP 張面板；縱條只有在曲率真的變了才重寫 */
-      function layout() {
-        const c = buildPath(prog);
-        const NP = panels.length || 1;
-        const L = arcTotal / NP;
-        /* 面板寬 = 每張分到的弧長 x 並排間距。路徑長度會隨階段變，
-           差超過 1% 才重算一次縱條，不是每幀都算 */
-        const want = L / Math.max(RIB.spacing, .2);
-        if (Math.abs(want / (Ww || 1) - 1) > .01) {
-          Ww = want;
-          Wh = Ww * 5 / 6;
-          panels.forEach(sizeStrips);
-        }
-        const alpha = 1 - pfSmooth(pfSpan(prog, PF_T.morphA, PF_T.morphA + .07));
-        const span = 1 / NP;
-
-        const inset = c.clip < .003 ? 'none'
-          : 'inset(0 ' + (c.clip * 100).toFixed(1) + '% 0 ' + (c.clip * 100).toFixed(1) + '%)';
-        ribBack.style.clipPath = inset;
-        ribFront.style.clipPath = inset;
-
-        for (let i = 0; i < panels.length; i++) {
-          const rec = panels[i];
-          const t = ((rec.i / NP + flow) % 1 + 1) % 1;
-          const sMid = t * arcTotal;
-          const pm = pathAt(sMid);
-          const p0 = pathAt(sMid - L / 2);
-          const p1 = pathAt(sMid + L / 2);
-          const dx = p1.x - p0.x, dy = p1.y - p0.y, dz = p1.z - p0.z;
-          const dxz = Math.hypot(dx, dz) || 1e-3;
-
-          /* 面板的 +X 對齊弦；rotateZ 讓它跟著路徑的升降 */
-          const ry = RIB.yawOn ? Math.atan2(-dz, dx) * 180 / Math.PI : 0;
-          const rz = RIB.rollOn ? Math.atan2(dy, dxz) * 180 / Math.PI : 0;
-
-          bendPanel(rec, pm, ry * Math.PI / 180, rz * Math.PI / 180, sMid);
-
-          const el = rec.el;
-          el.style.setProperty('--x', pm.x.toFixed(2) + 'px');
-          el.style.setProperty('--y', pm.y.toFixed(2) + 'px');
-          el.style.setProperty('--z', pm.z.toFixed(2) + 'px');
-          el.style.setProperty('--ry', ry.toFixed(3) + 'deg');
-          el.style.setProperty('--rz', rz.toFixed(3) + 'deg');
-          el.style.setProperty('--o', (fadeAtEnds(t) * alpha).toFixed(3));
-          const tw0 = RIB.twistOn ? roll(t - span / 2) : 0;
-          el.style.setProperty('--tw0', tw0.toFixed(3));
-          el.style.setProperty('--twSpan',
-            (RIB.twistOn ? roll(t + span / 2) - tw0 : 0).toFixed(3));
-
-          const side = pm.z > RIB.splitZ * sc ? 1 : 0;   /* 分界跟著場景一起縮 */
-          if (side !== rec.side) {
-            rec.side = side;
-            (side ? frontIn : backIn).appendChild(el);
-          }
-        }
-
-        drawRails(alpha);
-        if (statusOn) { drawStatus(L); }
-      }
-
-      /* 下排狀態列：面板數與實測的重疊／間隙 */
-      let statusOn = false;
-      function drawStatus(L) {
-        const over = Ww - L;
-        if (document.activeElement !== elNP) { elNP.value = panels.length; }
-        if (Math.abs(over) < 6) {
-          elOverlap.innerHTML = '<b>首尾剛好相接</b>';
-        } else if (over > 0) {
-          elOverlap.innerHTML = '實測重疊 <em>' + Math.round(over) + '</em> px' +
-            '　→ 拉到 1.00 重疊歸零';
-        } else {
-          elOverlap.innerHTML = '實測間隙 <em>' + Math.round(-over) + '</em> px' +
-            '　← 拉到 1.00 間隙歸零';
-        }
-      }
-
-      /* 控制點可以放的範圍：扣掉上排開關列與下排狀態列實際佔的高度 */
-      function safeBox() {
-        const pad = 26;
-        const tools = (!elTools.hidden && elTools.offsetHeight) ? elTools.offsetHeight : 0;
-        const status = (!elStatus.hidden && elStatus.offsetHeight) ? elStatus.offsetHeight : 0;
-        const topGap = tools ? elTools.offsetTop + tools + 14 : pad;
-        const botGap = status ? stageH - elStatus.offsetTop + 14 : pad;
-        return {
-          left: pad, right: stageW - pad,
-          top: Math.min(topGap, stageH * .5),
-          bottom: Math.max(stageH - botGap, stageH * .5)
-        };
-      }
-
-      /* 把目前這條路徑整條搬回畫面中間，形狀不變。
-         拖到看不見的地方之後靠這個救回來。 */
-      function homePath() {
-        const st = dragStage || nearestStage();
-        const sb = safeBox();
-        const pts = st.pts.map((q) => proj({ x: uX(q[0]), y: uY(q[1]), z: q[2] * sc }, 0));
-        const xs = pts.map((q) => q[0]), ys = pts.map((q) => q[1]);
-        const x0 = Math.min(...xs), x1 = Math.max(...xs);
-        const y0 = Math.min(...ys), y1 = Math.max(...ys);
-        const boxW = Math.max(x1 - x0, 1), boxH = Math.max(y1 - y0, 1);
-        const fitW = sb.right - sb.left, fitH = sb.bottom - sb.top;
-        /* 太大就先往中心收，收到塞得進安全區為止 */
-        const k = Math.min(1, fitW / boxW, fitH / boxH);
-        const cxN = ((x0 + x1) / 2 - stageW * .5);
-        const cyN = ((y0 + y1) / 2 - stageH * .46);
-        const wantX = ((sb.left + sb.right) / 2 - stageW * .5);
-        const wantY = ((sb.top + sb.bottom) / 2 - stageH * .46);
-        st.pts.forEach((q, i) => {
-          const kk = Pn / (Pn - q[2] * sc);
-          /* 先以投影後的中心為原點縮放，再整條平移到安全區中央 */
-          const sx = (pts[i][0] - stageW * .5 - cxN) * k + cxN + (wantX - cxN);
-          const sy = (pts[i][1] - stageH * .46 - cyN) * k + cyN + (wantY - cyN);
-          q[0] = iX(sx / kk);
-          q[1] = iY(sy / kk);
-        });
-        ribSave();
-        rebuild();
-        pfToast('已把「' + st.name + '」的路徑搬回畫面中');
-      }
-
-      /* 軌道細線：跟路徑同一條，往上下各偏一點，自己算 CSS 的透視投影 */
-      function proj(q, offY) {
-        const k = Pn / (Pn - q.z);
-        return [stageW * .5 + q.x * k, stageH * .46 + (q.y + offY) * k];
-      }
-
-      function drawRails(alpha) {
-        const railA = RIB.railAlpha * alpha;
-        [rail1, rail2].forEach((el, n) => {
-          const off = (n ? -1 : 1) * RIB.railOff * Wh;
-          let d = '';
-          for (let j = 0; j <= M; j += 2) {
-            const q = proj(curve[j], off);
-            d += (j ? 'L' : 'M') + q[0].toFixed(1) + ',' + q[1].toFixed(1);
-          }
-          el.setAttribute('d', d);
-          el.style.opacity = railA.toFixed(3);
-        });
-        if (editing) { drawHandles(); }
-      }
-
-      /* ── 可以拖的控制點 ──────────────────────────────────── */
-      let handles = [], hits = [], tags = [], pathLine = null, dragI = -1, dragStage = null;
-
-      function nearestStage() {
-        let best = RIB_STAGE[0], bd = 9;
-        RIB_STAGE.forEach((st) => { const d = Math.abs(st.at - prog); if (d < bd) { bd = d; best = st; } });
-        return best;
-      }
-
-      function ensureHandles() {
-        if (pathLine) { return; }
-        pathLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        pathLine.setAttribute('class', 'pf-path');
-        pathLine.setAttribute('fill', 'none');
-        rails.appendChild(pathLine);
-        for (let i = 0; i < CN; i++) {
-          const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-          c.setAttribute('class', 'pf-handle');
-          c.setAttribute('r', 9);
-          const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-          hit.setAttribute('class', 'pf-hit');
-          hit.setAttribute('r', 22);
-          const tag = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-          tag.setAttribute('class', 'pf-handle-tag');
-          let lastX = 0, lastY = 0;
-          hit.addEventListener('pointerdown', (ev) => {
-            ev.preventDefault();
-            dragI = i;
-            /* 只能編輯「目前停在哪個階段」的那條路徑，拖了才會 1:1 跟手 */
-            dragStage = nearestStage();
-            lastX = ev.clientX; lastY = ev.clientY;
-            /* 原本被夾在邊界的點：一抓就把它拉到游標底下，
-               否則會覺得「拖了沒反應」——其實是真值還在畫面外 */
-            if (c.classList.contains('is-clamped') && !ev.shiftKey) {
-              const pt = dragStage.pts[i];
-              const r = rails.getBoundingClientRect();
-              const k = Pn / (Pn - pt[2] * sc);
-              const sx = (ev.clientX - r.left) / r.width * stageW;
-              const sy = (ev.clientY - r.top) / r.height * stageH;
-              pt[0] = iX((sx - stageW * .5) / k);
-              pt[1] = iY((sy - stageH * .46) / k);
-              if (!live) { layout(); }
-            }
-            /* 有些引擎對 SVG 的 setPointerCapture 不穩，所以同時把
-               pointermove / pointerup 掛到 window 上，兩條路都留著 */
-            try { hit.setPointerCapture(ev.pointerId); } catch (err) { /* 沒有就算了 */ }
-            hit._begin();
-          });
-          const onMove = (ev) => {
-            if (dragI !== i || !dragStage) { return; }
-            const pt = dragStage.pts[i];
-            if (ev.shiftKey) {
-              /* 按住 Shift：上下拖改深度，往上＝往鏡頭靠近 */
-              pt[2] = clamp(pt[2] - (ev.clientY - lastY) * 4, -2600, RIB.P - 160);
-            } else {
-              /* 用位移不是絕對位置，所以就算控制點被夾在邊界上也不會跳 */
-              const r = rails.getBoundingClientRect();
-              const sx = (ev.clientX - lastX) / r.width * stageW;
-              const sy = (ev.clientY - lastY) / r.height * stageH;
-              const k = Pn / (Pn - pt[2] * sc);
-              pt[0] += iX(sx / k);
-              pt[1] += iY(sy / k);
-            }
-            lastX = ev.clientX; lastY = ev.clientY;
-            if (!live) { layout(); }
-          };
-          const done = () => {
-            if (dragI !== i) { return; }
-            dragI = -1;
-            removeEventListener('pointermove', onMove);
-            removeEventListener('pointerup', done);
-            removeEventListener('pointercancel', done);
-            ribSave();
-            rebuild();
-          };
-          hit._begin = () => {
-            addEventListener('pointermove', onMove, { passive: false });
-            addEventListener('pointerup', done);
-            addEventListener('pointercancel', done);
-          };
-          hit.addEventListener('pointermove', onMove);
-          hit.addEventListener('pointerup', done);
-          hit.addEventListener('pointercancel', done);
-          rails.appendChild(c);
-          rails.appendChild(tag);
-          rails.appendChild(hit);
-          handles.push(c);
-          hits.push(hit);
-          tags.push(tag);
-        }
-      }
-
-      function drawHandles() {
-        ensureHandles();
-        let d = '';
-        for (let j = 0; j <= M; j += 2) {
-          const q = proj(curve[j], 0);
-          d += (j ? 'L' : 'M') + q[0].toFixed(1) + ',' + q[1].toFixed(1);
-        }
-        pathLine.setAttribute('d', d);
-        const st = dragStage || nearestStage();
-        /* 控制點有可能投影到畫面外（舞台是 overflow:hidden，會被裁掉），
-           或是躲到上下兩條列底下被按鈕吃掉點擊，所以一律夾進安全區，
-           被夾住的換個顏色提示 */
-        const sb = safeBox();
-        for (let i = 0; i < CN; i++) {
-          const q = proj({ x: uX(st.pts[i][0]), y: uY(st.pts[i][1]), z: st.pts[i][2] * sc }, 0);
-          const cx = clamp(q[0], sb.left, sb.right);
-          const cy = clamp(q[1], sb.top, sb.bottom);
-          const off = Math.abs(cx - q[0]) > .5 || Math.abs(cy - q[1]) > .5;
-          handles[i].setAttribute('cx', cx.toFixed(1));
-          handles[i].setAttribute('cy', cy.toFixed(1));
-          handles[i].classList.toggle('is-clamped', off);
-          hits[i].setAttribute('cx', cx.toFixed(1));
-          hits[i].setAttribute('cy', cy.toFixed(1));
-          tags[i].setAttribute('x', (cx + 14).toFixed(1));
-          tags[i].setAttribute('y', (cy + 4).toFixed(1));
-          tags[i].textContent = 'P' + i + ' ' + Math.round(st.pts[i][2]);
-        }
-        if (elStageName) {
-          elStageName.textContent = st.name;
-          [...elJump.children].forEach((b) => b.classList.toggle('is-on', b.textContent === st.name));
-        }
-      }
-
-      /* 上排開關：四個效果 + 編輯中 / 顯示路徑 / 動態 */
-      const TOOLS = [
-        { key: 'bend', on: RIB, label: '弧面' },
-        { key: 'twistOn', on: RIB, label: '扭轉' },
-        { key: 'yawOn', on: RIB, label: '轉向' },
-        { key: 'rollOn', on: RIB, label: '傾斜' },
-        { key: 'edit', on: RIB_UI, label: '編輯中' },
-        { key: 'path', on: RIB_UI, label: '顯示路徑' },
-        { key: 'play', on: RIB_UI, label: '動態' }
-      ];
-      const COPY_LABEL = '複製數值';
-      let toolBtns = [];
-
-      function syncTools() {
-        toolBtns.forEach((b, i) => {
-          const t = TOOLS[i];
-          b.classList.toggle('is-on', !!t.on[t.key]);
-          b.setAttribute('aria-pressed', t.on[t.key] ? 'true' : 'false');
-        });
-        elGap.value = RIB.spacing.toFixed(2);
-        elGapVal.textContent = RIB.spacing.toFixed(2);
-      }
-
-      function buildTools() {
-        if (toolBtns.length) { return; }
-        TOOLS.forEach((t) => {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.className = 'pf-tool';
-          b.textContent = t.label;
-          b.addEventListener('click', () => {
-            t.on[t.key] = t.on[t.key] ? 0 : 1;
-            if (t.key === 'edit' || t.key === 'path') { showEdit(statusOn); }
-            syncTools();
-            ribSave();
-            rebuild();
-          });
-          elTools.appendChild(b);
-          toolBtns.push(b);
-        });
-        const cp = document.createElement('button');
-        cp.type = 'button';
-        cp.className = 'pf-tool';
-        cp.textContent = COPY_LABEL;
-        cp.addEventListener('click', pfCopyValues);
-        elTools.appendChild(cp);
-        elGap.addEventListener('input', () => {
-          RIB.spacing = +elGap.value;
-          elGapVal.textContent = RIB.spacing.toFixed(2);
-          rebuild();
-        });
-        elGap.addEventListener('change', ribSave);
-        elNP.addEventListener('change', () => {
-          RIB.NP = clamp(Math.round(+elNP.value || 8), 4, 16);
-          elNP.value = RIB.NP;
-          ribSave();
-          rebuild();
-        });
-        RIB_STAGE.forEach((st) => {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.className = 'pf-status-btn';
-          b.textContent = st.name;
-          b.addEventListener('click', () => pfJumpTo(st.at));
-          elJump.appendChild(b);
-        });
-        elHome.addEventListener('click', homePath);
-        elReset.addEventListener('click', () => {
-          ribReset();
-          syncTools();
-          rebuild();
-          pfToast('已還原預設，按「取回上次」可以拿回來');
-        });
-        elUndo.addEventListener('click', () => {
-          if (ribRestore()) {
-            syncTools();
-            rebuild();
-            pfToast('已取回還原之前的路徑');
-          } else {
-            pfToast('沒有可以取回的備份');
-          }
-        });
-      }
-
-      function showPanel(on) {
-        statusOn = on;
-        elTools.hidden = !on;
-        elStatus.hidden = !on;
-        if (!on) { return; }
-        buildTools();
-        syncTools();
-        /* 停在兩個階段中間時，路徑是補間出來的，拖控制點只會動一部分。
-           所以開編輯器時先自動靠到最近的那個階段。 */
-        const st = nearestStage();
-        if (Math.abs(st.at - prog) > .02) { pfJumpTo(st.at); }
-      }
-
-      function showEdit(on) {
-        editing = on && RIB_UI.edit;
-        rails.classList.toggle('is-edit', editing);
-        rails.classList.toggle('is-path', on && RIB_UI.path);
-        if (editing) { ensureHandles(); drawHandles(); }
-        if (pathLine) { pathLine.style.opacity = (on && RIB_UI.path) ? 1 : 0; }
-      }
-
-      function frame(ts) {
-        if (!live) { return; }
-        flowTarget = RIB.flow0 + pfSpan(prog, PF_T.ringInA, PF_T.ringOutB) * RIB.flowSpan +
-          ((document.hidden || !RIB_UI.play) ? 0 : ts * 0.0000075);
-        flow += (flowTarget - flow) * RIB.damp;
-        layout();
-        raf = requestAnimationFrame(frame);
-      }
-
-      function rebuild() { build(); layout(); }
-
-      build();
-      addEventListener('resize', rebuild);
-
-      pfRib = {
-        set(v) { prog = clamp(v, 0, 1); if (!live) { layout(); } },
-        /* 交棒用：某一張照片此刻在螢幕上的外接框 */
-        rectOf(src) {
-          const rec = panels.find((q) => q.src === src);
-          if (!rec) { return null; }
-          const r = rec.el.getBoundingClientRect();
-          return (r.width > 4 && r.height > 4) ? r : null;
-        },
-        rebuild,
-        relayout: layout,
-        edit(on) { showPanel(on); showEdit(on); },
-        start() {
-          if (live) { return; }
-          live = true;
-          flow = RIB.flow0 + pfSpan(prog, PF_T.ringInA, PF_T.ringOutB) * RIB.flowSpan;
-          raf = requestAnimationFrame(frame);
-        },
-        stop() { live = false; cancelAnimationFrame(raf); }
-      };
-      layout();
-    }
-
-    /* ── 進度來源：Lenis + ScrollTrigger，兩者都缺就讀 scrollTop ── */
-    let pfLenis = null;
-    let pfScrub = null;
-    let pfLenisRaf = 0;
-
-    function pfProgress() {
-      const max = pfWrap.scrollHeight - pfWrap.clientHeight;
-      return max > 0 ? pfWrap.scrollTop / max : 0;
-    }
-
-    function pfWire() {
-      if (reduce) { return; }
-
-      if (window.Lenis && !pfLenis) {
-        try {
-          pfLenis = new Lenis({ wrapper: pfWrap, content: pfTrack, lerp: .1, smoothWheel: true });
-        } catch (err) {
-          pfLenis = null;
-          console.warn('[chengyun] 活動成果：Lenis 起不來，改用原生捲動。', err);
-        }
-      } else if (!window.Lenis && !pfLenis) {
-        console.warn('[chengyun] 活動成果：找不到 Lenis，改用原生捲動（少一層慣性，其餘照常）。');
-      }
-
-      if (pfLenis) {
-        if (hasGsap) {
-          gsap.ticker.add(pfTick);
-          gsap.ticker.lagSmoothing(0);
-        } else {
-          const spin = (time) => { pfLenis.raf(time); pfLenisRaf = requestAnimationFrame(spin); };
-          pfLenisRaf = requestAnimationFrame(spin);
-        }
-        if (window.ScrollTrigger) { pfLenis.on('scroll', ScrollTrigger.update); }
-      }
-
-      if (hasGsap && window.ScrollTrigger && !pfScrub) {
-        gsap.registerPlugin(ScrollTrigger);
-        const at = { p: 0 };
-        pfScrub = gsap.to(at, {
-          p: 1,
-          ease: 'none',
-          onUpdate: () => pfRender(at.p),
-          scrollTrigger: {
-            scroller: pfWrap,
-            start: 0,
-            end: () => Math.max(1, pfWrap.scrollHeight - pfWrap.clientHeight),
-            invalidateOnRefresh: true,
-            scrub: 1
-          }
-        });
-      } else if (!window.ScrollTrigger) {
-        console.warn('[chengyun] 活動成果：找不到 ScrollTrigger，改用原生捲動位置驅動（少一層 scrub 平滑）。');
-      }
-    }
-
-    function pfTick(time) { if (pfLenis) { pfLenis.raf(time * 1000); } }
-
-    /* ScrollTrigger 不在的時候，原生捲動就是唯一的進度來源 */
-    pfWrap.addEventListener('scroll', () => {
-      if (!pfScrub) { pfRender(pfProgress()); }
-    }, { passive: true });
-
-    /* ── 路徑編輯器的開關 ──────────────────────────────────
-       鍵盤 D 開關（輸入框聚焦時不觸發），網址加 ?debug 也能直接開。
-       開著的時候，上排是效果開關、下排是狀態列，畫面上畫出路徑與
-       可以拖的控制點。沒有用到任何外部函式庫。 */
-    let pfGuiState = { open: false };
-
-    let pfToastTimer = 0;
-    function pfToast(msg) {
-      let el = document.getElementById('pfToast');
-      if (!el) {
-        el = document.createElement('div');
-        el.id = 'pfToast';
-        el.className = 'pf-toast';
-        document.body.appendChild(el);
-      }
-      el.textContent = msg;
-      el.classList.toggle('is-high', !!(pfGuiState && pfGuiState.open));
-      el.classList.add('is-on');
-      clearTimeout(pfToastTimer);
-      pfToastTimer = setTimeout(() => el.classList.remove('is-on'), 1600);
-    }
-
-    /* 跳到某個階段的捲動位置 */
-    function pfJumpTo(at) {
-      const max = pfWrap.scrollHeight - pfWrap.clientHeight;
-      pfWrap.scrollTo({ top: max * at, behavior: 'smooth' });
-    }
-
-    function pfCopyValues() {
-      const payload = JSON.stringify({
-        RIB: RIB, RIB_STAGE: RIB_STAGE, RIB_LEAD: RIB_LEAD, RIB_TAIL: RIB_TAIL,
-        PF: PF, PF_T: PF_T
-      }, null, 2);
-      const done = () => pfToast('已複製');
-      const fallback = () => {
-        const ta = document.createElement('textarea');
-        ta.value = payload;
-        ta.style.cssText = 'position:fixed;top:-200px;opacity:0';
-        document.body.appendChild(ta);
-        ta.select();
-        let ok = false;
-        try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
-        ta.remove();
-        if (ok) { done(); } else { console.log(payload); pfToast('剪貼簿被擋，已印到 console'); }
-      };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(payload).then(done, fallback);
-      } else {
-        fallback();
-      }
-    }
-
-    /* 編輯時把這一章的捲動鎖起來。捲動會改 progress，路徑跟著補間，
-       拖到一半畫面跑掉就永遠對不準。要換階段請用狀態列那三顆。 */
-    let pfLockOn = false;
-    const pfNoScroll = (e) => e.preventDefault();
-
-    function pfScrollLock(on) {
-      if (on === pfLockOn) { return; }
-      pfLockOn = on;
-      if (on) {
-        if (pfLenis) { pfLenis.stop(); }
-        pfWrap.addEventListener('wheel', pfNoScroll, { passive: false });
-        pfWrap.addEventListener('touchmove', pfNoScroll, { passive: false });
-      } else {
-        if (pfLenis) { pfLenis.start(); }
-        pfWrap.removeEventListener('wheel', pfNoScroll);
-        pfWrap.removeEventListener('touchmove', pfNoScroll);
-      }
-    }
-
-    function pfShowGui(on) {
-      pfGuiState.open = on;
-      pfScrollLock(on);
-      if (pfRailsEl) { pfRailsEl.classList.toggle('is-debug', on); }
-      if (pfStage) { pfStage.classList.toggle('is-debug-rib', on); }
-      if (pfRib && pfRib.edit) { pfRib.edit(on); }
-    }
-
-    function pfToggleGui(force) {
-      pfShowGui(force === undefined ? !pfGuiState.open : force);
-    }
-
-    /* 鍵盤 D。輸入框、文字區、可編輯區聚焦時不搶鍵；有修飾鍵也不搶 */
-    addEventListener('keydown', (e) => {
-      if (e.key !== 'd' && e.key !== 'D') { return; }
-      if (e.ctrlKey || e.metaKey || e.altKey) { return; }
-      const t = e.target;
-      if (t && (t.isContentEditable ||
-        /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName || ''))) { return; }
-      e.preventDefault();
-      pfToggleGui();
-    });
-
-    function pfDebugPanel() {
-      if (/(^|[?&])debug\b/.test(location.search)) { pfToggleGui(true); }
-      else if (pfGuiState.open) { pfShowGui(true); }
-    }
-
-    pfSync();
-    pfRender(reduce ? 1 : 0);
-
-    addEventListener('cy:scene', (e) => {
-      if (e.detail === 'portfolio') {
-        pfMakeRibbon();
-        pfWire();
-        pfDebugPanel();
-        pfHeadIntro();
-        if (pfRib) { pfRib.rebuild(); pfRib.start(); }
-        /* 編輯器開著時捲動是鎖住的，回到這一章也不要偷偷解開 */
-        if (pfLenis) { pfLenis.resize(); if (!pfLockOn) { pfLenis.start(); } }
-        /* 分鏡剛顯示出來，量測要重做一次，否則行程長度是舊的 */
-        if (window.ScrollTrigger) { requestAnimationFrame(() => ScrollTrigger.refresh()); }
-        else { requestAnimationFrame(() => pfRender(pfProgress())); }
-      } else {
-        if (pfRib) { pfRib.stop(); }
-        if (pfLenis) { pfLenis.stop(); }
-        pfShowHover(-1);
-      }
-    });
-    /* ##PF-END## */
 
     /* ══ 單一 rAF ══════════════════════════════════════════════ */
     function frame(now) {
@@ -6607,5 +4727,3 @@
   })();
 </script>
 
-</body>
-</html>

@@ -175,7 +175,7 @@
 
   /* 底板的顏色要跟各自 .scene-inner 的底色一致，否則交界會出現一條色差 */
   .scene[data-scene="teams"]     { --cover-bg: var(--ivory); }
-  .scene[data-scene="portfolio"] { --cover-bg: #e8e8e6; }
+  .scene[data-scene="portfolio"] { --cover-bg: #e8e8e6; } /* ##PF## */
   .scene[data-scene="intro"]     { --cover-bg: #05060a; }
 
   /* 分鏡內容若超出視窗（窄螢幕、橫躺手機）就自己捲，頁面本身仍然不捲 */
@@ -1344,7 +1344,6 @@
     color: rgba(255, 255, 255, .5);
   }
 
-  /* ── 活動成果卡 ─────────────────────── */
   /* ── 00 過場影片：捲動控制播放進度 ─────
      影片鋪滿整個分鏡，進度由捲動量推動（不是自動播放），
      所以它不需要 autoplay，也不會有行動裝置擋自動播放的問題。 */
@@ -1503,6 +1502,7 @@
   }
 
 
+  /* ##PF-START## 活動成果的樣式。建 chengyun 版時整段拿掉 */
   /* ── 04 活動成果：捲動推進的三段式 ────
      這一章有自己的捲動行程（300svh），舞台用 sticky 釘住，
      進度 0→1 推著三段走：大標 → 3D 弧形卡片帶 → 散落拼貼。
@@ -1974,13 +1974,14 @@
     .pf-meter, .pf-eyebrow { position: static; margin-top: 2.5rem; }
     .pf-meter { display: none; }
   }
+  /* ##PF-END## */
 
   @media (prefers-reduced-motion: reduce) {
     .grain, .breathe { animation: none; }
     .scene, .detail { transition-duration: .2s; }
     .stage, .bloom, .hero-top, .hero-lede, .hero-hint { transition: none; filter: none; }
     .scene.is-active .stagger > * { animation: none; }
-    .pf-shot { transition: none; }
+    .pf-shot { transition: none; } /* ##PF## */
   }
 </style>
 </head>
@@ -2065,9 +2066,11 @@
     <a class="menu-row hover-target" href="#teams" data-go="teams">
       <span class="idx">03</span><span class="label" data-i18n="menu.teams">Teams</span>
     </a>
+    <!-- ##PF-START## -->
     <a class="menu-row hover-target" href="#portfolio" data-go="portfolio">
       <span class="idx">04</span><span class="label" data-i18n="menu.portfolio">Portfolio</span>
     </a>
+    <!-- ##PF-END## -->
     <a class="menu-row hover-target" href="#faq" data-go="faq">
       <span class="idx">05</span><span class="label" data-i18n="menu.faq">Q&amp;A</span>
     </a>
@@ -2282,6 +2285,7 @@
   </div>
 </section>
 
+<!-- ##PF-START## -->
 <!-- ── 04 Portfolio：捲動推進的三段式 ─── -->
 <section class="scene" data-scene="portfolio" aria-hidden="true">
   <div class="scene-inner" id="pfWrap">
@@ -2373,6 +2377,7 @@
     </div>
   </div>
 </section>
+<!-- ##PF-END## -->
 
 <section class="scene" data-scene="faq" aria-hidden="true">
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
@@ -5025,6 +5030,7 @@
     });
 
 
+    /* ##PF-START## 活動成果的程式。建 chengyun 版時整段拿掉 */
     /* ══ 04 活動成果：捲動推進的三段式 ═══════════════════════
        整章有自己的 500svh 行程，舞台用 CSS sticky 釘住。
        畫面完全由 pfRender(p) 這一個純函式決定，p 是 0→1 的捲動進度，
@@ -6183,6 +6189,7 @@
         pfShowHover(-1);
       }
     });
+    /* ##PF-END## */
 
     /* ══ 單一 rAF ══════════════════════════════════════════════ */
     function frame(now) {

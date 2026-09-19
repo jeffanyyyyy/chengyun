@@ -178,6 +178,44 @@
   .scene[data-scene="portfolio"] { --cover-bg: #e8e8e6; } /* ##PF## */
   .scene[data-scene="intro"]     { --cover-bg: #05060a; }
 
+  /* ── 文字特效 ───────────────────────────
+     每一章一種，方便比較。拆字／拆行是執行時把文字切成一個個 span，
+     所以換語言或改視窗寬度之後都必須重切。 */
+  .fx-chars .ch { display: inline-block; will-change: transform, opacity; }
+
+  /* 逐行揭開：外層裁切、內層位移，文字就像從一道邊緣後面升上來 */
+  .fx-lines .ln { display: block; overflow: hidden; }
+  .fx-lines .ln > i { display: block; font-style: normal; will-change: transform; }
+
+  .fx-parallax { will-change: transform; }
+
+  /* 洗牌時字寬會跳動，固定成等寬數字，版面才不會跟著抖 */
+  .fx-scramble { font-variant-numeric: tabular-nums; }
+
+  /* ── 百葉窗轉場 ─────────────────────────
+     葉片橫向鋪滿視窗，由上而下依序闔上把舊的一章蓋掉，蓋定那一刻換頁，
+     再由上而下依序拉開露出新的一章。闔上用 transform-origin: top、
+     拉開用 bottom，接起來是同一個方向的連續動作，不會有回彈感。
+     z-index 放在選單（70）之上、頁首（95）之下，和堆疊轉場一致。 */
+  .blinds {
+    position: fixed;
+    inset: 0;
+    z-index: 85;
+    display: grid;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  .blinds i {
+    display: block;
+    background: var(--blind-bg, #0b0b0c);
+    transform: scaleY(0);
+    transform-origin: top;
+    /* 葉片之間留一道極細的接縫，闔上時看得出是一片一片而不是一整塊 */
+    box-shadow: 0 1px 0 rgba(0, 0, 0, .35);
+    will-change: transform;
+  }
+
   /* 分鏡內容若超出視窗（窄螢幕、橫躺手機）就自己捲，頁面本身仍然不捲 */
   .scene-inner {
     width: 100%;
@@ -2025,6 +2063,9 @@
 </head>
 <body>
 
+<!-- 百葉窗轉場的葉片。平常 visibility:hidden，不佔任何互動 -->
+<div class="blinds" id="blinds" aria-hidden="true"></div>
+
 <div class="stage" id="stage" aria-hidden="true">
   <video class="stage-video" id="bgVideo" autoplay muted loop playsinline preload="auto">
     <source src="../../assets/bg-obsidian.mp4" type="video/mp4" />
@@ -2144,7 +2185,7 @@
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-3xl text-left">
       <span class="eyebrow" data-i18n="about.eyebrow">01 — About Us</span>
-      <h2 class="scene-title" data-i18n-html="about.tagline">Cheng — clarity, made transparent.<br />Yun — the ground worked, step by step.</h2>
+      <h2 class="scene-title fx-chars fx-skip" data-i18n-html="about.tagline">Cheng — clarity, made transparent.<br />Yun — the ground worked, step by step.</h2>
 
       <p class="scene-body" data-i18n="about.p1">In this industry, asymmetry of information is the most expensive cost of all. Companies spend heavily and still get a rough result, because the work has been subcontracted down through layer after layer; meanwhile the performers on stage and the technicians on the front line meet squeezed rates and deductions nobody explains. Chengyun was founded to change that.</p>
       <p class="scene-body" data-i18n="about.p2">We run on the discipline of corporate management, with a modular, transparent pricing system that breaks event costs and service specifications down scientifically — giving corporate clients a clear, standardised process with real control over budget. Our work spans large corporate annual events and brand launches, high-end visual and physical craft design, integration of local artisans and art IP, and low-carbon event delivery.</p>
@@ -2167,7 +2208,7 @@
   <div class="scene-inner grid place-items-center min-h-[100svh] px-8 md:px-16 py-28">
     <div class="stagger w-full max-w-4xl text-left">
       <span class="eyebrow" data-i18n="services.eyebrow">02 — Services</span>
-      <h2 class="scene-title" data-i18n="services.title">From planning to the day itself — one team, end to end.</h2>
+      <h2 class="scene-title fx-lines fx-skip" data-i18n="services.title">From planning to the day itself — one team, end to end.</h2>
       <p class="scene-body" data-i18n="services.lead">Modular, transparent pricing: every line of the budget is clear and auditable.</p>
 
       <ol class="mt-14">
@@ -2231,7 +2272,7 @@
   <div class="scene-inner grid place-items-center min-h-[100svh] px-6 md:px-10 py-10">
     <div class="stagger w-full max-w-6xl text-center">
       <span class="eyebrow" data-i18n="teams.eyebrow">03 — Teams</span>
-      <h2 class="scene-title film-title" data-i18n-html="teams.title">Our team<br />Hosts</h2>
+      <h2 class="scene-title film-title fx-parallax" data-i18n-html="teams.title">Our team<br />Hosts</h2>
 
       <!-- 目前停在誰身上，跟著膠卷切換 -->
       <p class="film-name" id="filmName" aria-live="polite"></p>
@@ -2423,7 +2464,7 @@
       <span class="eyebrow" data-i18n="faq.eyebrow">05 — Q&amp;A</span>
 
       <div class="mt-12">
-        <span class="faq-group" data-i18n="faq.g1">01　Services &amp; Planning</span>
+        <span class="faq-group fx-track" data-i18n="faq.g1">01　Services &amp; Planning</span>
         <details class="faq">
           <summary class="hover-target" data-i18n="faq.q1">How do you price an event?</summary>
           <p data-i18n="faq.a1">We plan the scale and direction of an event around your budget. Every event is different, and each proposal is made to order.</p>
@@ -2445,7 +2486,7 @@
           <p data-i18n="faq.a5">Whether the increment is half-hourly or hourly, and whether waiting time for executives counts, is defined with you before the quotation is issued.</p>
         </details>
 
-        <span class="faq-group" data-i18n="faq.g2">02　Hosting &amp; Coordination</span>
+        <span class="faq-group fx-track" data-i18n="faq.g2">02　Hosting &amp; Coordination</span>
         <details class="faq">
           <summary class="hover-target" data-i18n="faq.q6">How do you work with the rest of the crew to keep an event on track?</summary>
           <div data-i18n-html="faq.a6">
@@ -2459,7 +2500,7 @@
           </div>
         </details>
 
-        <span class="faq-group" data-i18n="faq.g3">03　Band &amp; Sound</span>
+        <span class="faq-group fx-track" data-i18n="faq.g3">03　Band &amp; Sound</span>
         <details class="faq">
           <summary class="hover-target" data-i18n="faq.q7">The venue already has a sound system — can the band use that instead?</summary>
           <p data-i18n="faq.a7">Hardware is the backstage soul of a live band. A dedicated engineer and a crew used to the same equipment handle the room, the balance across frequencies and the effects for the whole event. Venue systems usually cannot meet a band's needs — controlling the character of each instrument, for one — and if equipment is damaged, liability becomes unclear. So every performance runs on the band's own professional hardware.</p>
@@ -2473,7 +2514,7 @@
           <p data-i18n="faq.a9">A band's set is normally built from songs the singers and players know well, which is what keeps the standard up. For a particular favourite, tell us at least two months ahead so the band has time to rehearse it. If the band cannot perform it, we suggest burning it to MP3 for the DJ to play at three points: the welcome, the table toasts and the send-off.</p>
         </details>
 
-        <span class="faq-group" data-i18n="faq.g4">04　Visual Design</span>
+        <span class="faq-group fx-track" data-i18n="faq.g4">04　Visual Design</span>
         <details class="faq">
           <summary class="hover-target" data-i18n="faq.q10">What do you need from us to start a visual design?</summary>
           <p data-i18n="faq.a10">First, clarify what you need. After an initial conversation about style, send us copy, images, links, proposals and any other reference material.</p>
@@ -2516,7 +2557,7 @@
           </div>
           <div>
             <span class="term" data-i18n="contact.t2">Email</span>
-            <a class="link hover-target" href="mailto:chengyuneventstudio@gmail.com">chengyuneventstudio@gmail.com</a>
+            <a class="link hover-target fx-scramble" href="mailto:chengyuneventstudio@gmail.com">chengyuneventstudio@gmail.com</a>
             <span class="desc" data-i18n="contact.d2">Partnerships and press.</span>
           </div>
           <!-- 社群：名稱是專有名詞，三語共用，不進 i18n 表。
@@ -3343,6 +3384,10 @@
       filmSync();
       pfSync();
       syncChrome();
+      /* innerHTML 被換掉了，原本切好的 span 都沒了，清記號並重播 */
+      fxReset();
+      const curScene = scenes.get(current);
+      if (curScene) { fxPlay(curScene); }
       if (detail.classList.contains('is-on')) { renderDetail(); }
       requestAnimationFrame(updateCue);
     }
@@ -3437,6 +3482,240 @@
     const STACK_RISE = 28;
     const STACK_STAGGER = .08;
 
+    /* ══ 文字特效 ═════════════════════════════════════════
+       五章各一種，方便比較：
+         01 關於我們   標題逐字浮現
+         02 服務內容   標題逐行揭開
+         03 我們的團隊 大標隨滑鼠微幅視差（僅限有精準指標的裝置）
+         04 常見問題   分類標題的字距由寬收攏
+         05 聯繫我們   Email 滑過時洗牌（只洗英數，中文方塊字洗起來是亂碼）
+       減少動態時全部不跑，只留最終狀態。 */
+    let fxTimer = 0;
+    let fxParTarget = null;
+
+    function fxSplitChars(el) {
+      if (el.dataset.fxSplit === 'chars') { return; }
+      const frag = document.createDocumentFragment();
+      [...el.childNodes].forEach((n) => {
+        if (n.nodeType !== 3) { frag.appendChild(n.cloneNode(true)); return; }
+        [...n.textContent].forEach((c) => {
+          /* 空白保持原樣，包成 span 會讓斷行判斷跑掉 */
+          if (c === ' ') { frag.appendChild(document.createTextNode(' ')); return; }
+          const sp = document.createElement('span');
+          sp.className = 'ch';
+          sp.textContent = c;
+          frag.appendChild(sp);
+        });
+      });
+      el.textContent = '';
+      el.appendChild(frag);
+      el.dataset.fxSplit = 'chars';
+    }
+
+    /* 標題多半是自然換行，沒有 <br> 可以依靠——照 <br> 切的話整段只會是一行。
+       先把每個字包成 inline 的 span（inline 不影響斷行規則），量各自的上緣，
+       把同一個高度的字歸成一行，最後才包成可裁切的行容器。 */
+    function fxSplitLines(el) {
+      if (el.dataset.fxSplit === 'lines') { return; }
+      if (!el.dataset.fxRaw) { el.dataset.fxRaw = el.innerHTML; }
+      el.innerHTML = el.dataset.fxRaw;
+
+      const marks = [];
+      const frag = document.createDocumentFragment();
+      [...el.childNodes].forEach((n) => {
+        if (n.nodeType !== 3) { frag.appendChild(n.cloneNode(true)); return; }
+        [...n.textContent].forEach((c) => {
+          const sp = document.createElement('span');
+          sp.textContent = c;
+          frag.appendChild(sp);
+          marks.push(sp);
+        });
+      });
+      el.textContent = '';
+      el.appendChild(frag);
+
+      const rows = [];
+      let top = null;
+      marks.forEach((sp) => {
+        const t = Math.round(sp.getBoundingClientRect().top);
+        if (top === null || Math.abs(t - top) > 2) { rows.push([]); top = t; }
+        rows[rows.length - 1].push(sp.textContent);
+      });
+
+      el.innerHTML = rows.map((r) => '<span class="ln"><i>' + r.join('') + '</i></span>').join('');
+      el.dataset.fxSplit = 'lines';
+    }
+
+    function fxReset() {
+      document.querySelectorAll('[data-fx-split]').forEach((el) => {
+        delete el.dataset.fxSplit;
+        /* 語言換了，快取的原文也過期了 */
+        delete el.dataset.fxRaw;
+      });
+    }
+
+    function fxPlay(scene) {
+      if (!hasGsap || reduce) { return; }
+
+      const chars = scene.querySelector('.fx-chars');
+      if (chars) {
+        fxSplitChars(chars);
+        gsap.fromTo(chars.querySelectorAll('.ch'),
+          { opacity: 0, yPercent: 55 },
+          { opacity: 1, yPercent: 0, duration: .62, ease: 'power3.out', stagger: .026 });
+      }
+
+      const lines = scene.querySelector('.fx-lines');
+      if (lines) {
+        fxSplitLines(lines);
+        gsap.fromTo(lines.querySelectorAll('.ln > i'),
+          { yPercent: 108 }, { yPercent: 0, duration: .85, ease: 'power4.out', stagger: .11 });
+      }
+
+      /* 字距一定要用 px：實測 GSAP 補間不了 em 單位的 letterSpacing，
+         會卡在起始值不動。結束值從 CSS 算出來的實際值讀回來，跑完再清掉
+         行內樣式，字級隨視窗改變時才不會留著過期的 px */
+      scene.querySelectorAll('.fx-track').forEach((el, i) => {
+        const end = parseFloat(getComputedStyle(el).letterSpacing) || 0;
+        gsap.fromTo(el,
+          { opacity: 0, letterSpacing: (end + 9).toFixed(2) + 'px' },
+          { opacity: 1, letterSpacing: end.toFixed(2) + 'px', duration: .9, delay: i * .09,
+            ease: 'power3.out', onComplete: () => { el.style.letterSpacing = ''; } });
+      });
+    }
+
+    /* 視窗寬度一變，自然換行的位置就不一樣了，切好的行要重來 */
+    let fxResizeT = 0;
+    addEventListener('resize', () => {
+      clearTimeout(fxResizeT);
+      fxResizeT = setTimeout(() => {
+        document.querySelectorAll('[data-fx-split="lines"]').forEach((el) => {
+          delete el.dataset.fxSplit;
+          if (el.dataset.fxRaw) { el.innerHTML = el.dataset.fxRaw; }
+        });
+        const cur = scenes.get(current);
+        const l = cur && cur.querySelector('.fx-lines');
+        if (l) { fxSplitLines(l); }
+      }, 220);
+    });
+
+    /* ── 03 大標隨滑鼠視差 ──
+       只有精準指標（滑鼠）才跑；觸控裝置沒有「游標位置」這回事 */
+    const fxPar = { x: 0, y: 0, tx: 0, ty: 0 };
+    const FX_PAR_MAX = 9;
+
+    if (fine && hasGsap && !reduce) {
+      addEventListener('mousemove', (e) => {
+        fxPar.tx = ((e.clientX / innerWidth) - .5) * 2 * FX_PAR_MAX;
+        fxPar.ty = ((e.clientY / innerHeight) - .5) * 2 * FX_PAR_MAX;
+      }, { passive: true });
+    }
+
+    /* ── 05 洗牌 ── */
+    const FX_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*<>/';
+    const fxLatin = /[A-Za-z0-9@._-]/;
+
+    function fxScramble(el) {
+      if (reduce || el.dataset.fxRun === '1') { return; }
+      const text = el.dataset.fxText || (el.dataset.fxText = el.textContent);
+      el.dataset.fxRun = '1';
+      const chars = [...text];
+      /* 每個字元有自己的「定下來」的時間點，由左往右陸續歸位 */
+      const settle = chars.map((c, i) => (fxLatin.test(c) ? i * 1.1 + 4 + Math.random() * 6 : 0));
+      const last = Math.max.apply(null, settle);
+      let f = 0;
+      const tick = () => {
+        f += 1;
+        el.textContent = chars.map((c, i) => {
+          if (!fxLatin.test(c) || f >= settle[i]) { return c; }
+          return FX_POOL[(Math.random() * FX_POOL.length) | 0];
+        }).join('');
+        if (f < last) { requestAnimationFrame(tick); }
+        else { el.textContent = text; el.dataset.fxRun = '0'; }
+      };
+      requestAnimationFrame(tick);
+    }
+
+    document.querySelectorAll('.fx-scramble').forEach((el) => {
+      el.addEventListener('mouseenter', () => fxScramble(el));
+      el.addEventListener('focus', () => fxScramble(el));
+    });
+
+    /* ══ 百葉窗轉場的旋鈕 ═══════════════════════════════════
+       BLIND_FROM   從哪一章開始改用百葉窗。這一章（含）出發的每一次換章
+                    都走百葉窗；它之前（首頁、過場進關於我們）維持堆疊
+       BLIND_N      葉片數。太少像色塊掃過、太多每片太細看不出是百葉窗
+       BLIND_DUR    單片闔上（或拉開）的秒數
+       BLIND_STEP   葉片之間錯開的間隔（秒）
+       整段總長 = (BLIND_DUR + BLIND_STEP x (BLIND_N - 1)) x 2 */
+    const BLIND_FROM = 'about';
+    const BLIND_N = 12;
+    const BLIND_DUR = .42;
+    const BLIND_STEP = .022;
+    const BLIND_HALF = BLIND_DUR + BLIND_STEP * (BLIND_N - 1);
+
+    const blinds = document.getElementById('blinds');
+    const blindSlats = [];
+    for (let i = 0; i < BLIND_N; i++) { blindSlats.push(blinds.appendChild(document.createElement('i'))); }
+    blinds.style.gridTemplateRows = 'repeat(' + BLIND_N + ', 1fr)';
+
+    /* 從 BLIND_FROM 那一章（含）出發就走百葉窗。首頁與過場進關於我們
+       維持堆疊——那一段是「升起來蓋上去」，和水晶的敘事是連著的 */
+    function useBlinds(fromName, toName) {
+      const i = ORDER.indexOf(fromName);
+      const base = ORDER.indexOf(BLIND_FROM);
+      return i >= 0 && base >= 0 && i >= base && ORDER.indexOf(toName) >= 0;
+    }
+
+    function blindSwap(from, to) {
+      /* 葉片顏色跟著要進場的那一章走，拉開時才不會先閃一下別的底色 */
+      const bg = getComputedStyle(to).getPropertyValue('--cover-bg').trim() || '#0b0b0c';
+      blinds.style.setProperty('--blind-bg', bg);
+
+      const rise = to.querySelectorAll('.stagger > *:not(.fx-skip)');
+      gsap.killTweensOf([from, to]);
+      gsap.killTweensOf(blindSlats);
+      if (rise.length) { gsap.killTweensOf(rise); }
+
+      /* 兩層都靜止：百葉窗蓋在上面，底下不需要也不應該動 */
+      gsap.set([from, to], { opacity: 1, scale: 1, yPercent: 0, clearProps: 'zIndex' });
+      gsap.set(from, { zIndex: 2 });
+      gsap.set(to, { zIndex: 1 });
+
+      blinds.style.visibility = 'visible';
+      gsap.set(blindSlats, { scaleY: 0, transformOrigin: 'top' });
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          blinds.style.visibility = 'hidden';
+          gsap.set(blindSlats, { scaleY: 0 });
+          if (rise.length) { gsap.set(rise, { clearProps: 'opacity,transform' }); }
+          busy = false;
+        }
+      });
+
+      /* 闔上：由上而下一片一片轉正，把舊的那一章蓋掉 */
+      tl.to(blindSlats, { scaleY: 1, duration: BLIND_DUR, ease: 'power2.inOut', stagger: BLIND_STEP }, 0);
+
+      /* 蓋定的那一刻換頁。這時畫面完全被葉片遮住，換什麼都看不見 */
+      tl.add(() => {
+        from.classList.remove('is-active');
+        gsap.set(from, { opacity: 0, clearProps: 'zIndex' });
+        gsap.set(to, { opacity: 1, clearProps: 'zIndex' });
+      }, BLIND_HALF);
+
+      /* 拉開：改從下緣收，方向和闔上一致，看起來是同一道動作繼續往下走 */
+      tl.to(blindSlats, { scaleY: 0, transformOrigin: 'bottom', duration: BLIND_DUR,
+                          ease: 'power2.inOut', stagger: BLIND_STEP }, BLIND_HALF + .02);
+
+      /* 葉片拉開到一半就讓新內容浮上來，兩段動作重疊 */
+      if (rise.length) {
+        tl.fromTo(rise, { opacity: 0, y: STACK_RISE },
+          { opacity: 1, y: 0, duration: .7, ease: 'power3.out', stagger: STACK_STAGGER },
+          BLIND_HALF + BLIND_DUR * .4);
+      }
+    }
+
     function goTo(name) {
       if (busy || name === current || !scenes.has(name)) { return; }
       if (detail.classList.contains('is-on')) { closeDetail(); }
@@ -3444,6 +3723,8 @@
 
       const from = scenes.get(current);
       const to = scenes.get(name);
+      /* current 等一下會被改寫成目的地，先記下出發的那一章 */
+      const fromName = current;
 
       /* 新分鏡先就位，再與舊分鏡交叉溶接、彼此重疊約 0.2 秒。
          「舊的退完才換新的」會有一個空拍，那正是頓挫感的來源 */
@@ -3464,12 +3745,21 @@
       /* 分鏡在隱藏狀態下量不到寬度，進場時發一則事件，讓需要的元件自己重算 */
       dispatchEvent(new CustomEvent('cy:scene', { detail: name }));
 
+      /* 文字特效：轉場蓋定之後才播，不然滑動途中就演完了 */
+      fxParTarget = to.querySelector('.fx-parallax');
+      if (!fxParTarget) { fxPar.x = fxPar.y = fxPar.tx = fxPar.ty = 0; }
+      clearTimeout(fxTimer);
+      fxTimer = setTimeout(() => fxPlay(to),
+        (useBlinds(fromName, name) ? BLIND_HALF : STACK_DUR) * 1000 * .85);
+
       /* 焦點移到新分鏡，鍵盤使用者不會被留在看不見的地方 */
       const focusable = to.querySelector('a, button');
       if (focusable && keyboardNav && name !== 'hero') { focusable.focus({ preventScroll: true }); }
 
-      if (hasGsap && !reduce) {
-        const rise = to.querySelectorAll('.stagger > *');
+      if (hasGsap && !reduce && useBlinds(fromName, name)) {
+        blindSwap(from, to);
+      } else if (hasGsap && !reduce) {
+        const rise = to.querySelectorAll('.stagger > *:not(.fx-skip)');
         gsap.killTweensOf([from, to]);
         if (rise.length) { gsap.killTweensOf(rise); }
 
@@ -6241,6 +6531,14 @@
         ringX = lerp(ringX, mouseX, 0.16);
         ringY = lerp(ringY, mouseY, 0.16);
         ring.style.transform = `translate(${ringX}px, ${ringY}px)`;
+      }
+
+      /* 大標的視差。lerp 讓它慢半拍跟上，直接跟會太神經質 */
+      if (fxParTarget) {
+        fxPar.x = lerp(fxPar.x, fxPar.tx, .06);
+        fxPar.y = lerp(fxPar.y, fxPar.ty, .06);
+        fxParTarget.style.transform =
+          'translate3d(' + fxPar.x.toFixed(2) + 'px,' + fxPar.y.toFixed(2) + 'px,0)';
       }
 
       requestAnimationFrame(frame);

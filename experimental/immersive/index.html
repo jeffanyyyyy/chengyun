@@ -67,9 +67,14 @@
   ::selection { background: #fff; color: #000; }
   :focus-visible { outline: 1px solid #fff; outline-offset: 6px; }
 
-  /* 象牙白的兩章：白色聚焦框壓在白紙上等於沒有，翻成墨色 */
+  /* 象牙白的幾章：白色聚焦框與白色選取色壓在白紙上等於沒有，翻成墨色 */
+  .scene[data-scene="about"] :focus-visible,
   .scene[data-scene="teams"] :focus-visible,
   .scene[data-scene="portfolio"] :focus-visible { outline-color: var(--ink); }
+
+  .scene[data-scene="about"] ::selection,
+  .scene[data-scene="teams"] ::selection,
+  .scene[data-scene="portfolio"] ::selection { background: var(--ink); color: var(--ivory); }
 
   /* ── 背景影片 ───────────────────────── */
   .stage {
@@ -197,6 +202,8 @@
     z-index: 60;
     transform: translateX(-50%);
     pointer-events: none;
+    /* 白箭頭壓在暖白底的章節上等於沒有；和頁首同一招，底色是什麼就反過來 */
+    mix-blend-mode: difference;
     font-size: .8rem;
     line-height: 1;
     color: rgba(255, 255, 255, .5);
@@ -614,6 +621,21 @@
     line-height: 1.9;
     color: rgba(255, 255, 255, .7);
   }
+
+  /* ── 01 關於我們：明亮版 ───────────────
+     和團隊、活動成果用同一套暖白，文字翻成墨色。頁首頁尾與游標都是
+     mix-blend-difference，白底會自己翻成黑字，不必另外處理。
+     這一章內容會捲，所以不像團隊那樣設 overflow: hidden。 */
+  .scene[data-scene="about"] .scene-inner {
+    background: var(--ivory);
+    color: var(--ink);
+  }
+
+  .scene[data-scene="about"] .eyebrow { color: rgba(20, 19, 15, .45); }
+  .scene[data-scene="about"] .scene-body { color: rgba(20, 19, 15, .62); }
+  .scene[data-scene="about"] .term { color: rgba(20, 19, 15, .88); }
+  .scene[data-scene="about"] .desc { color: rgba(20, 19, 15, .5); }
+  .scene[data-scene="about"] .note { color: rgba(20, 19, 15, .4); }
 
   /* ── 團隊：Three.js 膠卷 ───────────────
      WebGL 可用時由畫布接手，CSS 3D 那版整個收起來；

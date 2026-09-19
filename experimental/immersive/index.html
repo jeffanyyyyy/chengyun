@@ -685,33 +685,11 @@
   /* 沒有 WebGL 時膠卷更寬，計數器會撞上去 */
   :root:not(.has-filmgl) .film-count { display: none; }
 
-  /* 連結列：人物介紹、活動成果 */
-  .film-cta {
-    position: relative;
-    z-index: 3;
-    margin: .7rem 0 0;
-    display: flex;
-    justify-content: center;
-    gap: 1.75rem;
-    flex-wrap: wrap;
-  }
-
-  .film-link {
-    font-size: .78rem;
-    letter-spacing: .1em;
-    color: var(--ink);
-    border-bottom: 1px solid rgba(20, 19, 15, .28);
-    padding-bottom: 2px;
-    transition: color .4s var(--ease), border-color .4s var(--ease);
-  }
-
-  .film-link:hover { border-color: var(--ink); }
-
-  /* 提示片格可以點 */
+  /* 提示照片可以點 */
   .film-hint {
     position: relative;
     z-index: 3;
-    margin: .55rem 0 0;
+    margin: 1.4rem 0 0;
     font-size: .62rem;
     letter-spacing: .22em;
     text-transform: uppercase;
@@ -776,19 +754,6 @@
     z-index: 3;
     color: var(--ink);
   }
-
-  .film-caption {
-    position: relative;
-    z-index: 3;
-    margin: 1.1rem 0 0;
-    font-size: .78rem;
-    letter-spacing: .08em;
-    color: var(--dim);
-    min-height: 1.4em;
-  }
-
-  .film-caption b { font-weight: 400; color: var(--ink); }
-  .film-caption .sep { margin: 0 .6rem; opacity: .4; }
 
   /* 出血：跨滿整個視窗寬度，超出的部分由分鏡容器裁掉 */
   .film-bleed {
@@ -2050,13 +2015,7 @@
       <span class="eyebrow" data-i18n="teams.eyebrow">03 — Teams</span>
       <h2 class="scene-title film-title" data-i18n-html="teams.title">Our team<br />— Hosts</h2>
 
-      <!-- 目前這一格的說明，跟著輪播切換 -->
-      <p class="film-caption"><b id="filmRole"></b><span class="sep">•</span><span id="filmNote"></span></p>
-      <p class="film-cta">
-        <a class="film-link hover-target" id="filmProfile" href="#profile" data-i18n="teams.profile">Profile →</a>
-        <a class="film-link hover-target" id="filmLink" href="#portfolio" data-i18n="teams.link">View our work →</a>
-      </p>
-      <p class="film-hint" data-i18n="teams.tapHint">Click the frame to read more</p>
+      <p class="film-hint" data-i18n="teams.tapHint">Click a photo to read the profile</p>
     </div>
 
     <!-- 膠卷：滿版出血、帶透視與傾斜，兩端切出畫面外 -->
@@ -2140,7 +2099,6 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
-      <p class="note" data-i18n="teams.note">Organised by Chengyun Event Studio Co., Ltd.</p>
     </div>
   </div>
 </section>
@@ -2587,9 +2545,7 @@
         'teams.w2.l2': 'BMW 新車發表會{b} | VESPA PRIMAVERA 新車發表會{b} | 黎明覺醒線上遊戲發表會{e} | AUDI HOUSE of PROGRESS VIP 之夜 | 台糖新品上市發表會{b} | Philips 飛利浦新品上市記者會 | 台灣莫德納 (MODERNA) 記者會 | MANOLO BLAHNIK 發表會 | COSTA SERENA 歌詩達郵輪記者會{b}',
         'teams.w2.l3': 'TSMC 台積電尾牙 | BENZ 賓士春酒 + 尾牙{b} | ERICSSON 愛立信春酒晚宴{b} | CREDIT AGRICOLE 東方匯理銀行尾牙 | NOVO NORDISK 諾和諾德晚宴',
         'teams.w2.l4': 'Uber Eats 商家合作頒獎典禮{z} | 台灣經濟部創業頒獎典禮 | SYNMOSA 健喬 – NOVARTIS 諾華簽約儀式 | VOLKSWAGEN 台灣鉅富福斯開幕',
-        'teams.link': 'View our work →',
-        'teams.profile': 'Profile →',
-        'teams.tapHint': 'Click the frame to read more',
+        'teams.tapHint': 'Click a photo to read the profile',
         'contact.t0': 'Chengyun Event Studio Co., Ltd.',
         'form.required': 'This field is required', 'form.badEmail': 'Please check the email address',
         'form.fixFields': 'Please complete the required fields marked with an asterisk.',
@@ -2830,10 +2786,7 @@
         'teams.w2.g2': '汽車、科技與知名品牌發表會 / 展覽',
         'teams.w2.g3': '企業尾牙、春酒與晚宴',
         'teams.w2.g4': '其他重要活動與頒獎典禮',
-        'teams.link': '活動成果 →',
-        'teams.profile': '人物介紹 →',
-        'teams.tapHint': '點片格看介紹',
-        'teams.note': '主辦單位：澄耘活動工作室 有限公司',
+        'teams.tapHint': '點照片看介紹',
         'portfolio.meta': '市集策劃 · 品牌招商 · 現場執行',
         'portfolio.title': '《默者文畫》<br />無聲風格聚落',
         'portfolio.line': '2026.10.03 – 12.13　|　新北市板橋區雙十廣場',
@@ -3071,10 +3024,7 @@
         'teams.w2.g2': '自動車・テクノロジー・ブランド発表会',
         'teams.w2.g3': '企業の忘年会・新年会・晩餐会',
         'teams.w2.g4': 'その他の主要イベント・表彰式',
-        'teams.link': '活動実績 →',
-        'teams.profile': 'プロフィール →',
-        'teams.tapHint': 'フレームをクリックで詳細',
-        'teams.note': '主催：澄耘活動工作室 有限公司（Chengyun Event Studio Co., Ltd.）',
+        'teams.tapHint': '写真をクリックで紹介を表示',
         'portfolio.meta': 'キュレーション · 出店審査 · 現場運営',
         'portfolio.title': 'サイレントマーケット<br />默者文畫',
         'portfolio.line': '2026年10月3日 – 12月13日　|　新北市板橋区 双十広場',
@@ -3663,8 +3613,6 @@
     const filmDots = document.getElementById('filmDots');
     const filmPrev = document.getElementById('filmPrev');
     const filmNext = document.getElementById('filmNext');
-    const filmRole = document.getElementById('filmRole');
-    const filmNote = document.getElementById('filmNote');
     const filmCount = document.getElementById('filmCount');
     const filmSpot = filmEl.querySelector('.film-spot');
     const filmMax = filmFrames.length - 1;
@@ -3719,6 +3667,9 @@
 
         /* 透明度只負責收掉遠處；淺色底降透明度＝褪色，遠近改用往紙色融的薄膜 */
         f.style.opacity = clamp(1 - Math.max(0, Math.abs(o) - 2.6) * .7, 0, 1).toFixed(3);
+        /* 遠處的片格還在 DOM 裡，opacity:0 仍然吃得到點擊。不擋掉的話，
+           點正中央有機會點到轉去背面的那一格，變成轉盤亂跳、介紹打不開 */
+        f.style.pointerEvents = Math.abs(o) <= 2 ? 'auto' : 'none';
         f.style.setProperty('--fade', ((1 - near) * .78).toFixed(3));
 
         /* 縮放與失焦掛在畫面上，不掛在片格本身：
@@ -3740,14 +3691,7 @@
       filmPrev.disabled = filmIndex === 0;
       filmNext.disabled = filmIndex === filmMax;
       filmCount.textContent = String(filmIndex + 1).padStart(2, '0');
-      filmSync();
     }
-
-    /* 目前這一格的職稱與說明，跟著語言與選取狀態走 */
-    filmSync = function () {
-      filmRole.textContent = t('teams.s' + (filmIndex + 1));
-      filmNote.textContent = t('teams.b' + (filmIndex + 1));
-    };
 
     function filmFrame(now) {
       if (!filmDrag.on) {
@@ -4215,7 +4159,11 @@
         if (hit === null) { return; }
         idx = clamp(Math.round(hit), 0, filmMax);
       } else {
-        const f = e.target.closest('.frame');
+        /* 不能用 e.target：拖曳時呼叫過 setPointerCapture，click 會被
+           重新指向捕獲元素（也就是 #film），永遠找不到片格。
+           改用座標去問現在那個點上是誰，不受捕獲影響 */
+        const hit = document.elementFromPoint(e.clientX, e.clientY);
+        const f = hit && hit.closest ? hit.closest('.frame') : null;
         if (!f) { return; }
         idx = filmFrames.indexOf(f);
       }
@@ -4224,16 +4172,9 @@
       else { filmGo(idx); }
     });
 
-    document.getElementById('filmProfile').addEventListener('click', (e) => {
-      e.preventDefault();
-      openDetail('person', filmIndex, document.getElementById('filmProfile'));
-    });
-
     /* 一律以「目標位置」為基準往前後推：
        filmIndex 要等動畫跑到才更新，用它當基準的話，
        連按兩下箭頭只會走一格 */
-    document.getElementById('filmLink').addEventListener('click', (e) => { e.preventDefault(); goTo('portfolio'); });
-
     filmPrev.addEventListener('click', () => filmGo(Math.round(filmTarget) - 1));
     filmNext.addEventListener('click', () => filmGo(Math.round(filmTarget) + 1));
 
@@ -4275,7 +4216,6 @@
     filmPrev.disabled = filmIndex === 0;
     filmNext.disabled = filmIndex === filmMax;
     filmCount.textContent = String(filmIndex + 1).padStart(2, '0');
-    filmSync();
     filmMetrics();
     filmRender(performance.now());
 

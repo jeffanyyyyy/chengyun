@@ -6,6 +6,7 @@ import re, sys
 
 src = open('/home/user/chengyun/experimental/immersive/index.html', encoding='utf-8').read()
 NO_PF = '--no-pf' in sys.argv
+VERCEL = '--vercel' in sys.argv
 
 head = src[src.index('<head>') + 6 : src.index('</head>')]
 body = src[src.index('<body>') + 6 : src.index('</body>')]
@@ -15,9 +16,11 @@ head = '\n'.join(l for l in head.splitlines()
                  if not re.search(r'<meta charset|viewport|theme-color|rel="icon"|<title>|name="description"', l))
 
 # 預先編譯好的 Tailwind：play CDN 萬一沒跑起來，版面仍然成立
+# artifact 的支援檔案是平的、Vercel 是從站台根目錄取，所以路徑不同
+TW = '/assets/tw.css' if VERCEL else 'tw.css'
 head = head.replace('<script src="https://cdn.tailwindcss.com"></script>',
     '<!-- 預先編譯好的 Tailwind：play CDN 萬一沒跑起來，版面仍然成立 -->\n'
-    '<link rel="stylesheet" href="tw.css" />\n\n<script src="https://cdn.tailwindcss.com"></script>')
+    '<link rel="stylesheet" href="' + TW + '" />\n\n<script src="https://cdn.tailwindcss.com"></script>')
 
 def strip_pf(text):
     """拿掉標記起來的活動成果區塊，以及單行標記。"""
@@ -64,6 +67,22 @@ if NO_PF:
     ]
     for a, b in renum:
         body = body.replace(a, b)
+
+if VERCEL:
+    # Vercel 是直接服務倉庫根目錄的靜態站，assets/ 就在原處。
+    # 用絕對路徑而不是相對路徑：這份 HTML 可能被放在任何一層
+    # （根目錄、/studio/、或透過 rewrite 從 / 提供），相對路徑會跟著斷。
+    body = body.replace('../../assets/', '/assets/')
+    out = ('<!DOCTYPE html>\n<html lang="zh-Hant-TW">\n<head>\n'
+           '<meta charset="utf-8" />\n'
+           '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />\n'
+           '<meta name="theme-color" content="#0b0b0c" />\n'
+           '<title>澄耘活動工作室 有限公司</title>\n'
+           '<meta name="description" content="澄耘活動工作室：企業活動與大型慶典總籌、活動市集與品牌 IP 策展、軟硬體工程與演藝人力、ESG 永續會展規劃。模組化透明報價，創辦人親自帶隊督導。" />\n'
+           + head + '</head>\n<body>' + body + '</body>\n</html>\n')
+    open(sys.argv[1], 'w', encoding='utf-8').write(out)
+    print('Vercel 版 → %d bytes' % len(out.encode()))
+    raise SystemExit
 
 # artifact 的支援檔案是平的，路徑一併改掉
 body = body.replace('../../assets/bg-obsidian.mp4', 'bg-loop.mp4')

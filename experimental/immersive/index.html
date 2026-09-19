@@ -46,6 +46,19 @@
     --font: 'Inter', 'Noto Sans TC', sans-serif;
     --ease: cubic-bezier(.22, 1, .36, 1);
     --scene-in: .9s;
+
+    /* ── 字級倍率 ─────────────────────────────
+       整站的字都從這四個倍率長出來。想再大一點就調這裡，
+       不必逐條去翻——各自的比例關係已經寫在宣告裡了。
+
+       小字放得比大字多，是刻意的。原本難讀的是 9–13px 那一段，
+       標題本來就夠大；若全部等比放大，只是把版面整個撐開，
+       留白跟著變多，讀起來並沒有比較輕鬆。
+       把級距往上壓縮，大小對比會稍微收斂，但層次仍在。 */
+    --fs-display: 1.06;   /* 章名、大標、計數器 */
+    --fs-body: 1.14;      /* 內文、說明、條列、表單 */
+    --fs-label: 1.18;     /* 眉標、提示、語言切換這類小字 */
+    --fs-caption: 1.20;   /* 活動成果的圖說，原本只有 8.5–11px */
   }
 
   html, body { height: 100%; }
@@ -226,7 +239,7 @@
     pointer-events: none;
     /* 白箭頭壓在暖白底的章節上等於沒有；和頁首同一招，底色是什麼就反過來 */
     mix-blend-mode: difference;
-    font-size: .8rem;
+    font-size: calc(.8rem * var(--fs-label));
     line-height: 1;
     color: rgba(255, 255, 255, .5);
     opacity: 0;
@@ -322,7 +335,7 @@
     width: min(44rem, 86vw);
     margin: 0;
     text-align: center;
-    font-size: .74rem;
+    font-size: calc(.74rem * var(--fs-body));
     line-height: 2.1;
     letter-spacing: .02em;
     color: rgba(255, 255, 255, .62);
@@ -331,14 +344,14 @@
   }
 
   @media (max-width: 640px) {
-    .hero-lede { bottom: 24svh; font-size: .68rem; line-height: 1.95; }
+    .hero-lede { bottom: 24svh; font-size: calc(.68rem * var(--fs-body)); line-height: 1.95; }
   }
 
   /* ── 語言切換 ───────────────────────── */
   .lang { display: flex; align-items: center; gap: .5rem; }
 
   .lang button {
-    font-size: .6rem;
+    font-size: calc(.6rem * var(--fs-label));
     letter-spacing: .18em;
     text-transform: uppercase;
     color: rgba(255, 255, 255, .4);
@@ -348,7 +361,7 @@
 
   .lang button[aria-current="true"] { color: #fff; }
   .lang button:hover { color: rgba(255, 255, 255, .8); }
-  .lang i { font-style: normal; color: rgba(255, 255, 255, .2); font-size: .55rem; }
+  .lang i { font-style: normal; color: rgba(255, 255, 255, .2); font-size: calc(.55rem * var(--fs-label)); }
 
   /* ── 長按進度 ───────────────────────── */
   /* 靜止時寬度是零，畫面上不留任何裝飾；長按時才從左往右長出來 */
@@ -440,14 +453,14 @@
   .menu-row .idx {
     flex: none;
     width: 2rem;
-    font-size: .6rem;
+    font-size: calc(.6rem * var(--fs-label));
     letter-spacing: .25em;
     color: rgba(255, 255, 255, .3);
     transition: color .45s var(--ease);
   }
 
   .menu-row .label {
-    font-size: clamp(1.5rem, 5vw, 2.6rem);
+    font-size: calc(clamp(1.5rem, 5vw, 2.6rem) * var(--fs-display));
     font-weight: 300;
     letter-spacing: .06em;
     line-height: 1.2;
@@ -470,7 +483,7 @@
   /* ── 章節內文 ───────────────────────── */
   .eyebrow {
     display: block;
-    font-size: .6rem;
+    font-size: calc(.6rem * var(--fs-label));
     letter-spacing: .35em;
     text-transform: uppercase;
     color: rgba(255, 255, 255, .45);
@@ -478,7 +491,7 @@
   }
 
   .scene-title {
-    font-size: clamp(1.4rem, 4.2vw, 2.6rem);
+    font-size: calc(clamp(1.4rem, 4.2vw, 2.6rem) * var(--fs-display));
     font-weight: 300;
     line-height: 1.45;
     letter-spacing: .02em;
@@ -488,14 +501,14 @@
   .scene-body {
     max-width: 40rem;
     margin: 0 0 1.25rem;
-    font-size: .9rem;
+    font-size: calc(.9rem * var(--fs-body));
     line-height: 2;
     color: rgba(255, 255, 255, .6);
   }
 
   .term {
     display: block;
-    font-size: .7rem;
+    font-size: calc(.7rem * var(--fs-body));
     letter-spacing: .22em;
     color: rgba(255, 255, 255, .85);
     margin-bottom: .6rem;
@@ -504,13 +517,13 @@
   .desc {
     display: block;
     margin: 0;
-    font-size: .78rem;
+    font-size: calc(.78rem * var(--fs-body));
     line-height: 1.9;
     color: rgba(255, 255, 255, .45);
   }
 
   .fig {
-    font-size: clamp(1.75rem, 5vw, 2.75rem);
+    font-size: calc(clamp(1.75rem, 5vw, 2.75rem) * var(--fs-display));
     font-weight: 200;
     line-height: 1;
     margin-bottom: .6rem;
@@ -526,27 +539,27 @@
   .svc b {
     display: block;
     font-weight: 400;
-    font-size: .95rem;
+    font-size: calc(.95rem * var(--fs-body));
     letter-spacing: .04em;
     margin-bottom: .5rem;
   }
 
   .svc span {
     display: block;
-    font-size: .78rem;
+    font-size: calc(.78rem * var(--fs-body));
     line-height: 1.9;
     color: rgba(255, 255, 255, .45);
   }
 
   .note {
-    font-size: .68rem;
+    font-size: calc(.68rem * var(--fs-label));
     letter-spacing: .16em;
     color: rgba(255, 255, 255, .35);
   }
 
   .link {
     display: block;
-    font-size: 1rem;
+    font-size: calc(1rem * var(--fs-body));
     letter-spacing: .02em;
     margin-bottom: .5rem;
     color: #fff;
@@ -557,7 +570,7 @@
 
   .pill {
     display: inline-block;
-    font-size: .6rem;
+    font-size: calc(.6rem * var(--fs-label));
     letter-spacing: .3em;
     text-transform: uppercase;
     border: 1px solid rgba(255, 255, 255, .25);
@@ -583,14 +596,14 @@
     flex: none;
     width: 2.5rem;
     padding-top: .3rem;
-    font-size: .65rem;
+    font-size: calc(.65rem * var(--fs-label));
     letter-spacing: .2em;
     color: rgba(255, 255, 255, .35);
     font-variant-numeric: tabular-nums;
   }
 
   .svc-title {
-    font-size: 1.05rem;
+    font-size: calc(1.05rem * var(--fs-body));
     font-weight: 400;
     letter-spacing: .04em;
     margin-bottom: .75rem;
@@ -598,7 +611,7 @@
 
   .svc-lead {
     margin: 0 0 .6rem;
-    font-size: .85rem;
+    font-size: calc(.85rem * var(--fs-body));
     line-height: 1.9;
     color: rgba(255, 255, 255, .72);
   }
@@ -606,7 +619,7 @@
   .svc-detail {
     margin: 0;
     max-width: 44rem;
-    font-size: .78rem;
+    font-size: calc(.78rem * var(--fs-body));
     line-height: 2;
     color: rgba(255, 255, 255, .45);
   }
@@ -631,7 +644,7 @@
     flex: none;
     width: 2.5rem;
     font-weight: 400;
-    font-size: .65rem;
+    font-size: calc(.65rem * var(--fs-label));
     letter-spacing: .2em;
     color: rgba(255, 255, 255, .35);
     padding-top: .2rem;
@@ -639,7 +652,7 @@
   }
 
   .flow span {
-    font-size: .85rem;
+    font-size: calc(.85rem * var(--fs-body));
     line-height: 1.9;
     color: rgba(255, 255, 255, .7);
   }
@@ -710,7 +723,7 @@
   }
 
   .film-count b {
-    font-size: clamp(1.6rem, 3.4vw, 3rem);
+    font-size: calc(clamp(1.6rem, 3.4vw, 3rem) * var(--fs-display));
     font-weight: 200;
     letter-spacing: -.02em;
     color: rgba(20, 19, 15, .5);
@@ -719,7 +732,7 @@
 
   .film-count i {
     font-style: normal;
-    font-size: .62rem;
+    font-size: calc(.62rem * var(--fs-label));
     letter-spacing: .2em;
     color: rgba(20, 19, 15, .3);
   }
@@ -735,7 +748,7 @@
     z-index: 3;
     margin: .65rem 0 0;
     min-height: 1.5em;
-    font-size: clamp(.95rem, 1.5vw, 1.15rem);
+    font-size: calc(clamp(.95rem, 1.5vw, 1.15rem) * var(--fs-display));
     font-weight: 400;
     letter-spacing: .06em;
     color: var(--ink);
@@ -753,7 +766,7 @@
     position: relative;
     z-index: 3;
     margin: 1.4rem 0 0;
-    font-size: .62rem;
+    font-size: calc(.62rem * var(--fs-label));
     letter-spacing: .22em;
     text-transform: uppercase;
     color: rgba(20, 19, 15, .3);
@@ -790,7 +803,7 @@
   }
 
   .person-list li {
-    font-size: .78rem;
+    font-size: calc(.78rem * var(--fs-body));
     line-height: 1.9;
     color: rgba(255, 255, 255, .45);
   }
@@ -983,13 +996,13 @@
   .frame-shot > span { position: relative; z-index: 2; }
 
   .frame-shot > span:first-child {
-    font-size: .6rem;
+    font-size: calc(.6rem * var(--fs-label));
     letter-spacing: .3em;
     color: rgba(255, 255, 255, .32);
   }
 
   .frame-role {
-    font-size: .78rem;
+    font-size: calc(.78rem * var(--fs-body));
     letter-spacing: .05em;
     color: rgba(255, 255, 255, .6);
     text-align: center;
@@ -1102,7 +1115,7 @@
 
   .field label {
     display: block;
-    font-size: .58rem;
+    font-size: calc(.58rem * var(--fs-label));
     letter-spacing: .2em;
     text-transform: uppercase;
     color: rgba(255, 255, 255, .45);
@@ -1121,7 +1134,7 @@
     border-radius: 0;
     padding: .55rem 0;
     font: inherit;
-    font-size: .85rem;
+    font-size: calc(.85rem * var(--fs-body));
     color: #fff;
     transition: border-color .4s var(--ease);
     -webkit-appearance: none;
@@ -1144,7 +1157,7 @@
   .field .err {
     display: block;
     margin-top: .45rem;
-    font-size: .62rem;
+    font-size: calc(.62rem * var(--fs-label));
     letter-spacing: .08em;
     color: #e08b7a;
     min-height: .9rem;
@@ -1158,7 +1171,7 @@
     display: flex;
     align-items: flex-start;
     gap: .75rem;
-    font-size: .78rem;
+    font-size: calc(.78rem * var(--fs-body));
     line-height: 1.8;
     color: rgba(255, 255, 255, .6);
     cursor: none;
@@ -1182,7 +1195,7 @@
 
   .form-msg {
     margin: 0;
-    font-size: .72rem;
+    font-size: calc(.72rem * var(--fs-label));
     line-height: 1.8;
     letter-spacing: .04em;
     color: rgba(255, 255, 255, .55);
@@ -1195,7 +1208,7 @@
   .faq-group {
     display: block;
     margin: 2.75rem 0 .5rem;
-    font-size: .6rem;
+    font-size: calc(.6rem * var(--fs-label));
     letter-spacing: .3em;
     text-transform: uppercase;
     color: rgba(255, 255, 255, .4);
@@ -1206,7 +1219,7 @@
   .faq-steps {
     margin: 0 0 1.4rem;
     padding: 0 2rem 0 1.1rem;
-    font-size: .8rem;
+    font-size: calc(.8rem * var(--fs-body));
     line-height: 2;
     color: rgba(255, 255, 255, .5);
   }
@@ -1220,7 +1233,7 @@
     cursor: none;
     padding: 1.1rem 2rem 1.1rem 0;
     position: relative;
-    font-size: .92rem;
+    font-size: calc(.92rem * var(--fs-body));
     letter-spacing: .03em;
     color: rgba(255, 255, 255, .75);
     transition: color .4s var(--ease);
@@ -1233,7 +1246,7 @@
     position: absolute;
     right: 0;
     top: 1rem;
-    font-size: 1rem;
+    font-size: calc(1rem * var(--fs-body));
     color: rgba(255, 255, 255, .45);
     transition: transform .4s var(--ease);
   }
@@ -1244,7 +1257,7 @@
   .faq p {
     margin: 0 0 1.4rem;
     padding-right: 2rem;
-    font-size: .8rem;
+    font-size: calc(.8rem * var(--fs-body));
     line-height: 2;
     color: rgba(255, 255, 255, .5);
   }
@@ -1294,7 +1307,7 @@
 
   .intro-hint {
     margin: 0;
-    font-size: .62rem;
+    font-size: calc(.62rem * var(--fs-label));
     letter-spacing: .3em;
     text-transform: uppercase;
     color: rgba(255, 255, 255, .78);
@@ -1316,7 +1329,7 @@
   }
 
   .intro-skip {
-    font-size: .6rem;
+    font-size: calc(.6rem * var(--fs-label));
     letter-spacing: .24em;
     text-transform: uppercase;
     color: rgba(255, 255, 255, .6);
@@ -1683,7 +1696,7 @@
     bottom: calc(clamp(52px, 8vh, 80px) + 1.8em);
     margin: 0;
     max-width: 40ch;
-    font-size: clamp(9px, .72vw, 10.5px);
+    font-size: calc(clamp(9px, .72vw, 10.5px) * var(--fs-caption));
     letter-spacing: .16em;
     text-transform: uppercase;
     color: var(--pf-dim);
@@ -1727,7 +1740,7 @@
     margin: clamp(14px, 2.6vh, 34px) auto;
     max-width: 34ch;
     text-align: center;
-    font-size: 11px;
+    font-size: calc(11px * var(--fs-caption));
     line-height: 1.75;
     letter-spacing: .1em;
     text-transform: uppercase;
@@ -1772,7 +1785,7 @@
     display: block;
     margin-top: .7em;
     text-align: left;
-    font-size: clamp(9px, .72vw, 10.5px);
+    font-size: calc(clamp(9px, .72vw, 10.5px) * var(--fs-caption));
     letter-spacing: .16em;
     text-transform: uppercase;
     color: var(--pf-dim);
@@ -1830,7 +1843,7 @@
     left: clamp(18px, 5vw, 92px);
     bottom: clamp(52px, 8vh, 80px);
     margin: 0;
-    font-size: .6rem;
+    font-size: calc(.6rem * var(--fs-label));
     letter-spacing: .3em;
     text-transform: uppercase;
     color: var(--pf-dim);
@@ -1838,7 +1851,7 @@
 
   @media (max-width: 767px) {
     .pf-line { font-size: 13.5vw; }
-    .pf-kicker { font-size: 10px; max-width: 26ch; }
+    .pf-kicker { font-size: calc(10px * var(--fs-caption)); max-width: 26ch; }
     .pf-meter { width: 70px; }
 
     /* 散落的百分比版位在窄螢幕只會擠成一團，改成兩欄交錯 */
@@ -1851,7 +1864,7 @@
     }
     .pf-card { position: static !important; width: auto !important; }
     .pf-card:nth-child(even) { margin-top: 14%; }
-    .pf-cap { font-size: 8.5px; letter-spacing: .12em; }
+    .pf-cap { font-size: calc(8.5px * var(--fs-caption)); letter-spacing: .12em; }
     /* 客戶那一行在這個寬度一定會斷成四行，收起來，點進去看 */
     .pf-cap > span { display: none; }
   }

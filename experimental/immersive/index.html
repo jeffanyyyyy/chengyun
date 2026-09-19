@@ -2272,7 +2272,7 @@
   <div class="scene-inner grid place-items-center min-h-[100svh] px-6 md:px-10 py-10">
     <div class="stagger w-full max-w-6xl text-center">
       <span class="eyebrow" data-i18n="teams.eyebrow">03 — Teams</span>
-      <h2 class="scene-title film-title fx-parallax" data-i18n-html="teams.title">Our team<br />Hosts</h2>
+      <h2 class="scene-title film-title fx-parallax fx-skip" data-i18n-html="teams.title">Our team<br />Hosts</h2>
 
       <!-- 目前停在誰身上，跟著膠卷切換 -->
       <p class="film-name" id="filmName" aria-live="polite"></p>
@@ -3572,6 +3572,13 @@
           { yPercent: 108 }, { yPercent: 0, duration: .85, ease: 'power4.out', stagger: .11 });
       }
 
+      /* 視差的大標只淡入、不碰位移：位移每一幀都被視差改寫，
+         兩套動畫搶同一個屬性的話，標題會先飄好、又被浮現動畫拽回去重演一次 */
+      const par = scene.querySelector('.fx-parallax');
+      if (par) {
+        gsap.fromTo(par, { opacity: 0 }, { opacity: 1, duration: .8, ease: 'power2.out' });
+      }
+
       /* 字距一定要用 px：實測 GSAP 補間不了 em 單位的 letterSpacing，
          會卡在起始值不動。結束值從 CSS 算出來的實際值讀回來，跑完再清掉
          行內樣式，字級隨視窗改變時才不會留著過期的 px */
@@ -3748,9 +3755,11 @@
       /* 文字特效：轉場蓋定之後才播，不然滑動途中就演完了 */
       fxParTarget = to.querySelector('.fx-parallax');
       if (!fxParTarget) { fxPar.x = fxPar.y = fxPar.tx = fxPar.ty = 0; }
+      /* 和內容浮現同一刻開始。兩邊時間點不同的話，一章的內容會分成
+         前後兩波進場，看起來就像同一個動畫演了兩次 */
       clearTimeout(fxTimer);
       fxTimer = setTimeout(() => fxPlay(to),
-        (useBlinds(fromName, name) ? BLIND_HALF : STACK_DUR) * 1000 * .85);
+        (useBlinds(fromName, name) ? BLIND_HALF + BLIND_DUR * .4 : STACK_DUR * .45) * 1000);
 
       /* 焦點移到新分鏡，鍵盤使用者不會被留在看不見的地方 */
       const focusable = to.querySelector('a, button');

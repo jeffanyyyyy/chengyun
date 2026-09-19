@@ -1891,7 +1891,7 @@
 
 <div class="stage" id="stage" aria-hidden="true">
   <video class="stage-video" id="bgVideo" autoplay muted loop playsinline preload="auto">
-    <source src="../../assets/crystal-hero.mp4" type="video/mp4" />
+    <source src="../../assets/bg-obsidian.mp4" type="video/mp4" />
   </video>
   <!-- 內頁的背景：水晶落定之後的那一段，倒放接正放，循環點看不出來。
        首頁不顯示，離開首頁才淡進來；過場結束進到關於我們時從第 0 秒起播，
@@ -4546,18 +4546,25 @@
     const introBar = document.getElementById('introBar');
     const introSkip = document.getElementById('introSkip');
 
-    const INTRO_SPAN = 2200;                           /* 捲動多少 px 走完整支 */
+    /* 捲動多少 px 走完整支。這一條是兩支併起來的 41 秒，
+       比原本的 15.7 秒長一倍多，行程也跟著拉長，捲動的手感才一致 */
+    const INTRO_SPAN = 4200;
 
-    /* 影片從第幾秒開始播。第一支（首頁背景）最後是人沉出畫面、只剩氣泡與光束，
-       第二支正好從同樣的氣泡光束開場——兩邊已經咬合，不需要跳過任何東西，
-       所以這裡是 0。（前一支水晶影片要跳過開頭重複的 1.6 秒，才設成 1.63。） */
-    const INTRO_START = 0;
+    /* 影片從第幾秒開始播。這一條是兩支併起來的：
+         0.0 – 3.5s    水晶（和首頁背景是同一顆，看兩次沒有意義）
+         3.5 – 13.0s   舞台燈亮、人走出來
+        13.0 – 25.5s   人沉入水中，只剩氣泡與光束
+        25.5 – 41.2s   碎片聚攏，重新凝回水晶
+       逐格量出來的切點在 3.50 秒（平均亮度 10.5 → 42.8），
+       所以跳過開頭那顆水晶，捲第一下就是舞台亮起來。
+       設成 0 就是從頭播完整條。 */
+    const INTRO_START = 3.5;
 
     /* 進場後自動播到第幾秒。被捲動拖著播的影片在沒人動它時是完全靜止的，
-       一進場就停在一格氣泡上，看起來像圖不像影片。先自動播一小段讓氣泡浮起來，
+       一進場就停在一格上，看起來像圖不像影片。先自動播一小段，
        之後才交還給捲動。設成跟 INTRO_START 同值就取消這個自動段。
-       1.5 秒＝氣泡明顯在動、碎片還沒開始聚攏，剛好留整個凝聚過程給捲動。 */
-    const INTRO_BURST = 1.5;
+       5.0 秒＝舞台燈已經掃開、人還沒走出來，剛好留整段給捲動。 */
+    const INTRO_BURST = 5.0;
     let introP = 0;                                    /* 目前進度 0–1 */
     let introT = 0;                                    /* 目標進度 */
     let introRaf = 0;
@@ -4580,7 +4587,7 @@
       if (introLoaded || reduce) { return; }
       introLoaded = true;
       const small = innerWidth < 900 || (navigator.connection && navigator.connection.saveData);
-      introVideo.src = small ? '../../assets/crystal-reveal-480.mp4' : '../../assets/crystal-reveal-720.mp4';
+      introVideo.src = small ? '../../assets/intro-480.mp4' : '../../assets/intro-720.mp4';
       introVideo.load();
     }
 

@@ -87,6 +87,9 @@ if VERCEL:
 # artifact 的支援檔案是平的，路徑一併改掉
 body = body.replace('../../assets/bg-obsidian.mp4', 'bg-loop.mp4')
 body = body.replace('../../assets/crystal-rest.mp4', 'crystal-rest.mp4')
+# 自動播放被擋時（iOS 低耗電模式等）頂上來的靜幀
+for _p in ('poster-hero', 'poster-rest'):
+    body = body.replace('../../assets/%s.jpg' % _p, '%s.jpg' % _p)
 for i in range(1, 25):
     body = body.replace('../../assets/team/%02d.jpg' % i, 'team-%02d.jpg' % i)
 for i in range(1, 13):
